@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Cam Check</title>
+<style>
+  body { font-family: monospace; background: #111; color: #eee; padding: 20px; }
+  h2 { color: #4af; }
+  li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<h2>Énumération des caméras (comme WhatsApp / Chromium)</h2>
+<ol id="list"><li>…</li></ol>
+<script>
+(async () => {
+  const out = document.getElementById('list')
+  out.innerHTML = ''
+  // Chrome exige une permission pour voir les labels des devices
+  let granted = false
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({ video: true })
+    granted = true
+    s.getTracks().forEach(t => t.stop())
+  } catch (e) {
+    out.innerHTML += '<li style="color:#f88">getUserMedia: ' + e.message + '</li>'
+  }
+  out.innerHTML += '<li style="color:#8f8">permission: ' + (granted ? 'OK' : 'refusée') + '</li>'
+  const devices = await navigator.mediaDevices.enumerateDevices()
+  const cams = devices.filter(d => d.kind === 'videoinput')
+  out.innerHTML += '<li><b>Caméras vidéo (' + cams.length + '):</b></li>'
+  for (const c of cams) {
+    out.innerHTML += '<li>  ▸ "' + (c.label || '(label caché)') + '"</li>'
+  }
+})()
+</script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { DashboardSidebar, PlanGuardBanner } from '@/components/dashboard/sidebar'
+import { TelegramSupport } from '@/components/telegram-support'
+import { ChapCam2Announcement } from '@/components/dashboard/chapcam-2-announcement'
+import { FREE_UNLIMITED_POINTS, isFreeLiveSwap } from '@/lib/free-mode'
+
+/*
+subscriptions table schema:
+CREATE TABLE subscriptions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users UNIQUE,
+  plan text CHECK (plan IN ('free','1day','30days','90days','365days')) DEFAULT 'free',
+  started_at timestamptz DEFAULT now(),
+  expires_at timestamptz,
+  is_active boolean DEFAULT true
+);
+
+user_avatars table schema:
+CREATE TABLE user_avatars (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users,
+  name text NOT NULL,
+  url text NOT NULL,
+  is_custom boolean DEFAULT true,
+  created_at timestamptz DEFAULT now()
+);
+*/
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const supabase = await createClient()
+
+  // Auth protection
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
+
+  if (userError || !user) {
+    redirect('/auth/login')
+  }
+
+  // Fetch subscription data avec points
+  const { data: subscription } = await supabase
+    .from('subscriptions')
+    .select('plan, expires_at, is_active, points, max_points')
+    .eq('user_id', user.id)
+    .single()
+
+  // Fetch avatar count
+  const { count: avatarCount } = await supabase
+    .from('user_avatars')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+
+  // Fetch solde de minutes Voice Swap (ChapVoice) — produit distinct des points
+  const { data: voiceSub } = await supabase
+    .from('voice_subscriptions')
+    .select('seconds_remaining, expires_at')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  const voiceExpired = voiceSub?.expires_at ? new Date(voiceSub.expires_at) < new Date() : false
+  const voiceSecondsRemaining = voiceExpired ? 0 : voiceSub?.seconds_remaining ?? 0
+
+  const freeMode = isFreeLiveSwap()
+  const plan = freeMode ? 'unlimited' : (subscription?.plan ?? 'free')
+  const expiresAt = freeMode ? null : (subscription?.expires_at ?? null)
+  const isActive = freeMode ? true : (subscription?.is_active ?? false)
+  const pointsRemaining = freeMode
+    ? FREE_UNLIMITED_POINTS
+    : (subscription?.points ?? 0)
+  const pointsTotal = freeMode
+    ? FREE_UNLIMITED_POINTS
+    : (subscription?.max_points ?? 0)
+
+  return (
+    <div className="min-h-screen bg-background">
+      <DashboardSidebar
+        email={user.email}
+        plan={plan}
+        expiresAt={expiresAt}
+        isActive={isActive}
+        avatarCount={avatarCount ?? 0}
+        pointsRemaining={pointsRemaining}
+        pointsTotal={pointsTotal}
+      />
+      
+      {!freeMode && (
+        <PlanGuardBanner
+          plan={plan}
+          expiresAt={expiresAt}
+          isActive={isActive}
+          pointsRemaining={pointsRemaining}
+          voiceSecondsRemaining={voiceSecondsRemaining}
+        />
+      )}
+
+      {/* Main Content Area */}
+      <main className="min-h-screen pt-14 md:ml-[240px] md:pt-0">
+        {/* Add padding top when plan guard banner is shown */}
+        <div className={!freeMode && (plan === 'free' || !isActive) ? 'pt-12' : ''}>
+          {children}
+        </div>
+      </main>
+
+      {/* Telegram Support Button */}
+      <TelegramSupport />
+
+      {/* Popup d'annonce ChapCam 2.0 (affiche une fois apres connexion) */}
+      <ChapCam2Announcement />
+    </div>
+  )
+}

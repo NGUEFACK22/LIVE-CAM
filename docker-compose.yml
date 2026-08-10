@@ -1,0 +1,266 @@
+version: '3.8'
+
+services:
+  # ------------------------------------------------------------
+  # PostgreSQL Database
+  # ------------------------------------------------------------
+  db:
+    image: supabase/postgres:15.1.0.117
+    container_name: chapcam-db
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./supabase/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "54322:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chapcam-network
+
+  # ------------------------------------------------------------
+  # Kong API Gateway
+  # ------------------------------------------------------------
+  kong:
+    image: kong:2.8.1
+    container_name: chapcam-kong
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,rate-limiting
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+    ports:
+      - "54321:8000"
+      - "54323:8443"
+    volumes:
+      - ./supabase/kong.yml:/kong/kong.yml:ro
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - chapcam-network
+
+  # ------------------------------------------------------------
+  # GoTrue Auth
+  # ------------------------------------------------------------
+  auth:
+    image: supabase/gotrue:v2.147.0
+    container_name: chapcam-auth
+    environment:
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://postgres:postgres@db:5432/postgres?search_path=auth
+      GOTRUE_SITE_URL: http://localhost:3000
+      GOTRUE_URI_ALLOW_LIST: http://localhost:3000,http://127.0.0.1:3000
+      GOTRUE_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_EMAIL_AUTOCONFIRM: "true"
+      GOTRUE_SMTP_ADMIN_EMAIL: admin@localhost
+      GOTRUE_SMTP_HOST: localhost
+      GOTRUE_SMTP_PORT: "2525"
+      GOTRUE_SMTP_USER: ""
+      GOTRUE_SMTP_PASS: ""
+      GOTRUE_SMTP_SENDER_NAME: ChapCam
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "false"
+      GOTRUE_EXTERNAL_PHONE_ENABLED: "false"
+    ports:
+      - "54324:9999"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9999/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chapcam-network
+
+  # ------------------------------------------------------------
+  # PostgREST (REST API)
+  # ------------------------------------------------------------
+  rest:
+    image: postgrest/postgrest:v11.2.0
+    container_name: chapcam-rest
+    environment:
+      PGRST_DB_URI: postgres://postgres:postgres@db:5432/postgres
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      PGRST_SERVER_HOST: 0.0.0.0
+      PGRST_SERVER_PORT: 3000
+    ports:
+      - "54325:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chapcam-network
+
+  # ------------------------------------------------------------
+  # Realtime
+  # ------------------------------------------------------------
+  realtime:
+    image: supabase/realtime:v2.30.0
+    container_name: chapcam-realtime
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: postgres
+      DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime, public;'
+      JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      SECRET_KEY_BASE: super-secret-key-base-for-phoenix-must-be-long-enough
+      ERL_AFLAGS: "-proto_dist inet_tcp"
+      RELEASE_NODE: realtime@localhost
+    ports:
+      - "54326:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chapcam-network
+
+  # ------------------------------------------------------------
+  # Storage
+  # ------------------------------------------------------------
+  storage:
+    image: supabase/storage-api:v1.10.0
+    container_name: chapcam-storage
+    environment:
+      ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      SERVICE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: stub
+      GLOBAL_FACTOR: "false"
+      ENABLE_IMAGE_TRANSFORMATION: "true"
+      IMGPROXY_URL: http://imgproxy:5001
+    ports:
+      - "54327:5000"
+    volumes:
+      - storage_data:/var/lib/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      rest:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chapcam-network
+
+  # ------------------------------------------------------------
+  # Image Proxy (pour transformation images)
+  # ------------------------------------------------------------
+  imgproxy:
+    image: darthsim/imgproxy:v3.6.0
+    container_name: chapcam-imgproxy
+    environment:
+      IMGPROXY_BIND: ":5001"
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: /var/lib/storage
+      IMGPROXY_USE_WEBP_DETECTION: "true"
+      IMGPROXY_HTTP_WORKERS: 10
+    volumes:
+      - storage_data:/var/lib/storage
+    networks:
+      - chapcam-network
+
+  # ------------------------------------------------------------
+  # Edge Functions (Deno)
+  # ------------------------------------------------------------
+  edge-functions:
+    image: supabase/edge-runtime:v1.64.0
+    container_name: chapcam-edge-functions
+    environment:
+      SUPABASE_EDGE_RUNTIME_PORT: 9000
+      SUPABASE_EDGE_RUNTIME_PG_HOST: db
+      SUPABASE_EDGE_RUNTIME_PG_PORT: 5432
+      SUPABASE_EDGE_RUNTIME_PG_DATABASE: postgres
+      SUPABASE_EDGE_RUNTIME_PG_USER: postgres
+      SUPABASE_EDGE_RUNTIME_PG_PASSWORD: postgres
+      SUPABASE_EDGE_RUNTIME_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      SUPABASE_EDGE_RUNTIME_VERIFY_JWT: "false"
+    ports:
+      - "54328:9000"
+    volumes:
+      - ./supabase/functions:/home/deno/functions:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - chapcam-network
+
+  # ------------------------------------------------------------
+  # Studio (Dashboard Web)
+  # ------------------------------------------------------------
+  studio:
+    image: supabase/studio:20240115-5e2c8a5
+    container_name: chapcam-studio
+    environment:
+      STUDIO_DEFAULT_ORGANIZATION: ChapCam
+      STUDIO_DEFAULT_PROJECT: chapcam-local
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      SUPABASE_SERVICE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXJhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+    ports:
+      - "54329:3000"
+    depends_on:
+      - kong
+    networks:
+      - chapcam-network
+
+  # ------------------------------------------------------------
+  # Mailhog (Emails de test)
+  # ------------------------------------------------------------
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: chapcam-mailhog
+    ports:
+      - "2525:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - chapcam-network
+
+networks:
+  chapcam-network:
+    driver: bridge
+
+volumes:
+  db_data:
+  storage_data:

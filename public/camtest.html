@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Cam List</title></head>
+<body>
+<h2>Caméras visibles via enumerateDevices() (API Chromium = WhatsApp)</h2>
+<pre id="out">chargement...</pre>
+<script>
+async function main() {
+  const out = document.getElementById('out');
+  let lines = [];
+  try {
+    const devs = await navigator.mediaDevices.enumerateDevices();
+    for (const d of devs) {
+      lines.push(`[${d.kind}] ${d.label || '(pas de label - permission requise)'}`);
+      lines.push(`    deviceId: ${d.deviceId}`);
+    }
+    const cams = devs.filter(d => d.kind === 'videoinput');
+    lines.push(`\n== TOTAL videoinput: ${cams.length} ==`);
+  } catch (e) {
+    lines.push('Erreur: ' + e.message);
+  }
+  out.textContent = lines.join('\n');
+}
+main();
+</script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+_format_version: "2.1"
+_transform: true
+
+# ------------------------------------------------------------
+# Kong Configuration pour Supabase Local
+# Ce fichier configure le gateway API qui route vers les services
+# ------------------------------------------------------------
+
+services:
+  # -----------------------------------------------------------------
+  # Auth (GoTrue) - /auth/v1/*
+  # -----------------------------------------------------------------
+  - name: auth
+    url: http://auth:9999
+    routes:
+      - name: auth-routes
+        paths:
+          - /auth/v1
+        strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "http://localhost:3000"
+            - "http://127.0.0.1:3000"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Authorization
+            - Content-Type
+            - X-Client-Info
+            - apikey
+          exposed_headers:
+            - Content-Range
+            - X-Total-Count
+          credentials: true
+          max_age: 3600
+
+  # -----------------------------------------------------------------
+  # REST API (PostgREST) - /rest/v1/*
+  # -----------------------------------------------------------------
+  - name: rest
+    url: http://rest:3000
+    routes:
+      - name: rest-routes
+        paths:
+          - /rest/v1
+        strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "http://localhost:3000"
+            - "http://127.0.0.1:3000"
+          methods:
+            - GET
+            - POST
+            - PATCH
+            - DELETE
+            - OPTIONS
+            - HEAD
+          headers:
+            - Accept
+            - Authorization
+            - Content-Type
+            - Prefer
+            - Range
+            - Content-Range
+            - apikey
+          exposed_headers:
+            - Content-Range
+            - X-Total-Count
+            - Accept-Ranges
+          credentials: true
+          max_age: 3600
+
+  # -----------------------------------------------------------------
+  # Realtime - /realtime/v1/*
+  # -----------------------------------------------------------------
+  - name: realtime
+    url: http://realtime:4000
+    routes:
+      - name: realtime-routes
+        paths:
+          - /realtime/v1
+        strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "http://localhost:3000"
+            - "http://127.0.0.1:3000"
+          methods:
+            - GET
+            - POST
+            - OPTIONS
+          headers:
+            - Accept
+            - Authorization
+            - Content-Type
+            - apikey
+          credentials: true
+          max_age: 3600
+
+  # -----------------------------------------------------------------
+  # Storage - /storage/v1/*
+  # -----------------------------------------------------------------
+  - name: storage
+    url: http://storage:5000
+    routes:
+      - name: storage-routes
+        paths:
+          - /storage/v1
+        strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "http://localhost:3000"
+            - "http://127.0.0.1:3000"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Authorization
+            - Content-Type
+            - apikey
+            - x-upsert
+          credentials: true
+          max_age: 3600
+
+  # -----------------------------------------------------------------
+  # Edge Functions - /functions/v1/*
+  # -----------------------------------------------------------------
+  - name: functions
+    url: http://edge-functions:9000
+    routes:
+      - name: functions-routes
+        paths:
+          - /functions/v1
+        strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "http://localhost:3000"
+            - "http://127.0.0.1:3000"
+          methods:
+            - GET
+            - POST
+            - OPTIONS
+          headers:
+            - Accept
+            - Authorization
+            - Content-Type
+            - apikey
+          credentials: true
+          max_age: 3600
+
+  # -----------------------------------------------------------------
+  # Studio (Dashboard) - /*
+  # -----------------------------------------------------------------
+  - name: studio
+    url: http://studio:3000
+    routes:
+      - name: studio-routes
+        paths:
+          - /
+        strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "http://localhost:3000"
+            - "http://127.0.0.1:3000"
+          methods:
+            - GET
+            - POST
+            - OPTIONS
+          headers:
+            - Accept
+            - Authorization
+            - Content-Type
+          credentials: true
+          max_age: 3600
+
+# ---------------------------------------------------------------------
+# Consumers (pour l'auth par clés API)
+# ---------------------------------------------------------------------
+consumers:
+  - username: anon
+    custom_id: anon
+  - username: service_role
+    custom_id: service_role
+
+# ---------------------------------------------------------------------
+# Basicauth pour anon/service_role (utilisé par les clients)
+# ---------------------------------------------------------------------
+basicauth_credentials:
+  - consumer: anon
+    username: anon
+    password: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+  - consumer: service_role
+    username: service_role
+    password: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+
+# ---------------------------------------------------------------------
+# ACL pour restreindre l'accès selon le rôle
+# ---------------------------------------------------------------------
+acls:
+  - consumer: anon
+    group: anon
+  - consumer: service_role
+    group: admin
+
+# ---------------------------------------------------------------------
+# Plugins globaux
+# ---------------------------------------------------------------------
+plugins:
+  # Rate limiting global (optionnel)
+  - name: rate-limiting
+    config:
+      minute: 1000
+      policy: local
+      fault_tolerant: true
+      hide_client_headers: false
+
+  # Request size limit
+  - name: request-size-limiting
+    config:
+      allowed_payload_size: 128
+      require_content_length: false
