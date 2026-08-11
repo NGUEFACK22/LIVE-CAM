@@ -5,6 +5,7 @@ import { createDecartClient, models } from '@decartai/sdk'
 import { isFreeLiveSwap } from '@/lib/free-mode'
 import { isElectron, getElectronAPI } from '@/lib/electron'
 import { LUCY_SWAP_PROMPT, LUCY_SWAP_ENHANCE } from '@/lib/lucy-prompts'
+import { prepareAvatarImage } from '@/lib/avatar-image'
 
 // 2 points = 1 seconde de swap
 const POINTS_PER_SECOND = 2
@@ -401,6 +402,12 @@ export function useLucy21() {
         throw new Error("L'image d'avatar est vide. Sélectionne un autre avatar.")
       }
 
+      // Redimensionner + compresser l'avatar avant envoi au SDK : un gros
+      // avatar (jusqu'à 15 Mo) en base64 dépasserait la limite du WebSocket de
+      // signalisation, le serveur rejetterait le set_image SILENCIEUSEMENT et
+      // le modèle renverrait un flux noir sans image de référence.
+      avatarBlob = await prepareAvatarImage(avatarBlob)
+
       const client = createDecartClient({ apiKey: clientToken })
 
       // Marque la session reellement active : appele UNIQUEMENT a la 1ere vraie
@@ -436,6 +443,12 @@ export function useLucy21() {
         // reproduit en pur CSS (scaleX(-1)) sur les deux videos de la page.
         mirror: false,
         resolution: '720p',
+
+        // CRITIQUE Electron : le SDK publie la camera en H.264 par defaut
+        // (REALTIME_CONFIG.livekit.defaultVideoCodec). Le Chromium embarqué
+        // d'Electron n'a pas d'encodeur H.264 fiable -> le flux publié est
+        // noir. On force VP8, supporté partout, dans l'app de bureau.
+        preferredVideoCodec: isElectron() ? 'vp8' : undefined,
 
         // IMPORTANT : on passe l'avatar (image + prompt) via `initialState`.
         // Ainsi le SDK applique l'etat initial pendant le handshake de
@@ -514,7 +527,22 @@ export function useLucy21() {
         realtimeClient.on?.('error', (err: any) => {
           if (isStale()) return
           console.error('[Lucy 2.1] Erreur client IA:', err)
-          const message = typeof err === 'string' ? err : err?.message || 'Interruption du service IA'
+          // Le SDK classe la plupart des echecs en "Signaling error" (fallback
+          // du classifieur) et met la VRAIE cause dans err.cause. On la remonte
+          // pour afficher le message reel du serveur (ex: rejet du set_image_ack,
+          // permission denied, image trop grosse...).
+          const cause =
+            typeof err?.cause === 'string'
+              ? err.cause
+              : err?.cause instanceof Error
+                ? err.cause.message
+                : undefined
+          const baseMessage =
+            typeof err === 'string'
+              ? err
+              : err?.message || 'Interruption du service IA'
+          const message = cause && cause !== baseMessage ? `${baseMessage} (${cause})` : baseMessage
+          console.error('[Lucy 2.1] Cause réelle:', err?.cause)
           disconnect()
           setError(`Erreur service IA : ${message}`)
           setConnectionState('error')
@@ -525,6 +553,7 @@ export function useLucy21() {
       realtimeClient.on?.('connectionChange', (state: string) => {
         if (isStale()) return
         setConnectionState(state)
+        console.log(`[Lucy 2.1] ConnectionState: ${state} (firstFrame=${firstFrameRef.current})`)
         if (state === 'failed' || state === 'disconnected' || state === 'closed') {
           if (firstFrameRef.current) {
             disconnect()
@@ -532,6 +561,22 @@ export function useLucy21() {
             setConnectionState('error')
           }
         }
+      })
+
+      // Diagnostics : position en file d'attente Decart (modele charge) et
+      // progression de generation. Logs utiles pour confirmer que le modele
+      // tourne pendant l'ecran noir.
+      realtimeClient.on?.('queuePosition', (qp: { position: number; queueSize: number }) => {
+        if (isStale()) return
+        console.log(`[Lucy 2.1] File Decart: position ${qp.position}/${qp.queueSize}`)
+      })
+      realtimeClient.on?.('generationTick', (e: { seconds: number }) => {
+        if (isStale()) return
+        console.log(`[Lucy 2.1] generation_tick: ${e.seconds}s`)
+      })
+      realtimeClient.on?.('connectionQuality', (r: unknown) => {
+        if (isStale()) return
+        console.log('[Lucy 2.1] connectionQuality:', r)
       })
 
       // Garde-fou : si aucune image transformee n'arrive en 20s, on coupe et on
@@ -720,8 +765,9 @@ export function useLucy21() {
       if (avatarBlob.size === 0) {
         throw new Error("Image d'avatar vide")
       }
+      const prepared = await prepareAvatarImage(avatarBlob)
       await realtimeClientRef.current.set({
-        image: avatarBlob,
+        image: prepared,
         prompt: LUCY_SWAP_PROMPT,
         enhance: LUCY_SWAP_ENHANCE,
       })
