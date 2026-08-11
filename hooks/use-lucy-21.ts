@@ -25,6 +25,74 @@ const RETRY_DELAY_MS = [5_000, 10_000, 15_000]
 
 // NOTE: Mode demo retiré - toujours utiliser le vrai swap IA avec Decart
 
+// Mesure la luminance max d'une frame video (sous-echantillon 16x16).
+// Utilisee pour detecter un flux renvoye par Decart qui serait noir
+// (serveur qui ne genere rien -> on ne facture JAMAIS un ecran noir).
+function frameMaxLuma(video: HTMLVideoElement, w: number, h: number): number {
+  try {
+    const c = document.createElement('canvas')
+    c.width = w
+    c.height = h
+    const ctx = c.getContext('2d', { willReadFrequently: true })
+    if (!ctx) return -1
+    ctx.drawImage(video, 0, 0, w, h)
+    const data = ctx.getImageData(0, 0, w, h).data
+    let mx = 0
+    for (let i = 0; i < data.length; i += 16) {
+      const y = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]
+      if (y > mx) mx = y
+    }
+    return mx
+  } catch (_) {
+    return -1
+  }
+}
+
+// Lit quelques frames du flux transforme et renvoie true si elles sont
+// (quasi) noires — signe que le serveur ne produit rien d'exploitable.
+function isStreamBlack(stream: MediaStream, frames = 4): Promise<boolean> {
+  return new Promise((resolve) => {
+    let settled = false
+    const done = (black: boolean) => {
+      if (settled) return
+      settled = true
+      resolve(black)
+    }
+    try {
+      const video = document.createElement('video')
+      video.muted = true
+      video.playsInline = true
+      video.srcObject = stream
+      let checked = 0
+      let minMax = 255
+      const checkFrame = () => {
+        const w = Math.min(video.videoWidth || 160, 160)
+        const h = Math.min(video.videoHeight || 90, 90)
+        const mx = frameMaxLuma(video, w, h)
+        if (mx >= 0 && mx < minMax) minMax = mx
+        checked++
+        if (checked >= frames) {
+          try { video.srcObject = null } catch {}
+          video.remove()
+          done(minMax < 40) // < 40 : image quasi noire
+        } else {
+          setTimeout(checkFrame, 200)
+        }
+      }
+      video.onloadedmetadata = () => video.play().catch(() => {})
+      video.onplaying = checkFrame
+      video.onloadeddata = checkFrame
+      setTimeout(() => {
+        try { video.srcObject = null } catch {}
+        video.remove()
+        done(checked < frames ? true : minMax < 40)
+      }, 4000)
+    } catch (_) {
+      done(true)
+    }
+  })
+}
+
 export function useLucy21() {
   const [isConnected, setIsConnected] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
@@ -317,10 +385,45 @@ export function useLucy21() {
       }
 
       // MODE PRODUCTION : vrai token Decart
+      // Selection de la caméra PHYSIQUE réelle. Sans deviceId, le navigateur /
+      // Electron prend le device par defaut (souvent index 0) : si une camera
+      // virtuelle (OBS Virtual Camera, ChapCam Camera...) est installee et
+      // ETEINTE, elle produit un flux NOIR -> le serveur Decart ne recoit rien
+      // d'exploitable -> ecran noir de sortie. On enumere les devices et on
+      // ecarte les cameras virtuelles pour choisir la webcam physique.
       let stream: MediaStream
       try {
+        let deviceId: string | undefined
+        try {
+          // Un 1er getUserMedia discret debloque les labels des devices.
+          const probe = await navigator.mediaDevices.getUserMedia({ video: true })
+          probe.getTracks().forEach((t) => t.stop())
+          const devices = await navigator.mediaDevices.enumerateDevices()
+          const real = devices.filter(
+            (d) =>
+              d.kind === 'videoinput' &&
+              !/virtual|obs|chapcam|ndi|screen|desktop|capture/i.test(d.label || ''),
+          )
+          // Priorite : deviceId explicite (reglage utilisateur) sinon 1ere webcam physique.
+          const savedDeviceId = localStorage.getItem('chapcam_camera_device_id')
+          if (savedDeviceId && real.some((d) => d.deviceId === savedDeviceId)) {
+            deviceId = savedDeviceId
+          } else if (real.length > 0) {
+            deviceId = real[0].deviceId
+          }
+          console.log(
+            deviceId
+              ? `[Lucy 2.1] Camera choisie: physique (deviceId ${deviceId})`
+              : '[Lucy 2.1] Camera choisie: defaut (aucune webcam physique trouvée)',
+          )
+        } catch (_) {
+          // Pas de permission / enumerateDevices indisponible : fallback defaut.
+          console.warn('[Lucy 2.1] Enumeration devices impossible, camera par defaut')
+        }
+
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
+            deviceId: deviceId ? { ideal: deviceId } : undefined,
             width: { ideal: 1280 },
             height: { ideal: 720 },
             frameRate: { ideal: 30 },
@@ -450,6 +553,14 @@ export function useLucy21() {
         // noir. On force VP8, supporté partout, dans l'app de bureau.
         preferredVideoCodec: isElectron() ? 'vp8' : undefined,
 
+        // Même combat côté RECEPTION : le SDK n'envoie `livekit_server_codec`
+        // que pour Safari (prepare-connection.js). Sans ce hint, le serveur
+        // Decart choisit H.264 pour le flux transformé renvoyé, que le
+        // Chromium embarqué décode mal -> écran noir. On force VP8 aussi en
+        // réception dans l'app de bureau (exactement comme le SDK le fait
+        // pour Safari Desktop).
+        queryParams: isElectron() ? { livekit_server_codec: 'vp8' } : undefined,
+
         // IMPORTANT : on passe l'avatar (image + prompt) via `initialState`.
         // Ainsi le SDK applique l'etat initial pendant le handshake de
         // connexion, une fois la WebSocket de signalisation reellement ouverte.
@@ -487,10 +598,51 @@ export function useLucy21() {
           const elAny = el as HTMLVideoElement & {
             requestVideoFrameCallback?: (cb: () => void) => number
           }
+          const tryMarkLive = () => {
+            if (isStale() || firstFrameRef.current) return
+            // Garde-fou anti ecran noir : on ne facture que si le flux
+            // transforme contient de VRAIS pixels (luma > 40/255). Un flux
+            // noir signifie que le serveur ne genere rien (image ref rejetee,
+            // codec illisible...) -> on retente au lieu de debiter le client.
+            isStreamBlack(transformedStream)
+              .then((black) => {
+                if (isStale() || firstFrameRef.current) return
+                if (!black) {
+                  markLive()
+                  return
+                }
+                console.warn(
+                  '[Lucy 2.1] Flux transforme NOIR detecte (serveur ne renvoie rien) — retry',
+                )
+                // Fermer la session noire et relancer une tentative complete.
+                if (connectTimeoutRef.current) {
+                  clearTimeout(connectTimeoutRef.current)
+                  connectTimeoutRef.current = null
+                }
+                disconnectDecart()
+                releaseMedia()
+                if (virtualCamActiveRef.current) {
+                  stopVirtualCamInternal().catch(() => {})
+                }
+                if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
+                setConnectionState('connecting')
+                setIsConnecting(true)
+                setIsConnected(false)
+                setError(
+                  'Le flux transformé est arrivé vide (écran noir). Nouvelle tentative…',
+                )
+                retryTimerRef.current = setTimeout(() => {
+                  retryTimerRef.current = null
+                  if (!mountedRef.current) return
+                  connectRef.current?.(avatarImageUrl, { isRetry: true })
+                }, 4000)
+              })
+              .catch(() => markLive())
+          }
           if (typeof elAny.requestVideoFrameCallback === 'function') {
-            elAny.requestVideoFrameCallback(() => markLive())
+            elAny.requestVideoFrameCallback(() => tryMarkLive())
           } else {
-            el.onplaying = () => markLive()
+            el.onplaying = () => tryMarkLive()
           }
 
           // Auto-demarrage de la camera virtuelle. Chemin PRINCIPAL : OBS
