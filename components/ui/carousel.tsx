@@ -95,6 +95,10 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return
+    // Init : signale l'état de défilement dès que l'instance Embla existe.
+    // Le setState est volontaire ici (état local du carrousel) — règle
+    // désactivée ciblée.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     onSelect(api)
     api.on('reInit', onSelect)
     api.on('select', onSelect)

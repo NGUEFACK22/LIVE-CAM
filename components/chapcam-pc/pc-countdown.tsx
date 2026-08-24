@@ -18,18 +18,37 @@ function getRemaining() {
 }
 
 export function PcCountdown() {
-  const [time, setTime] = useState(getRemaining())
+  // IMPORTANT : `getRemaining()` appelle Date.now() — l'initialiser dans
+  // useState le ferait tourner cote serveur PUIS cote client avec des valeurs
+  // differentes (secondes ecoulees) -> React #418 (hydration mismatch). On
+  // demarre a null (identique SSR/client) et on calcule apres montage.
+  const [time, setTime] = useState<ReturnType<typeof getRemaining> | null>(null)
 
   useEffect(() => {
+    const t = setTimeout(() => setTime(getRemaining()), 0)
     const id = setInterval(() => setTime(getRemaining()), 1000)
-    return () => clearInterval(id)
+    return () => {
+      clearTimeout(t)
+      clearInterval(id)
+    }
   }, [])
 
+  // Aucun rendu temporel tant que le compte a rebours n'est pas monte cote
+  // client : le rendu serveur et le premier rendu client affichent les memes
+  // valeurs (0 partout), donc pas de mismatch d'hydration.
+  const safe = time ?? {
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    ended: false,
+  }
+
   const units = [
-    { label: "Jours", value: time.days },
-    { label: "Heures", value: time.hours },
-    { label: "Min", value: time.minutes },
-    { label: "Sec", value: time.seconds },
+    { label: "Jours", value: safe.days },
+    { label: "Heures", value: safe.hours },
+    { label: "Min", value: safe.minutes },
+    { label: "Sec", value: safe.seconds },
   ]
 
   return (
@@ -37,7 +56,7 @@ export function PcCountdown() {
       <div className="flex items-center gap-2 text-[#fbbf24]">
         <Clock className="w-4 h-4" />
         <span className="text-sm font-semibold tracking-wide uppercase">
-          {time.ended ? "Offre de lancement terminee" : "Fin du prix de lancement dans"}
+          {safe.ended ? "Offre de lancement terminee" : "Fin du prix de lancement dans"}
         </span>
       </div>
       <div className="flex items-center gap-3">

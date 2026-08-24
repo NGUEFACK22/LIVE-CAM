@@ -1,0 +1,11 @@
+============================================================
+ChapCam - Test d'authentification Supabase
+============================================================
+
+🔍 Test de santé Supabase...
+   Status: 401
+   Response: {"message":"No API key found in request","hint":"No `apikey` request header or url param was found."}
+
+❌ Le serveur Supabase n'est pas accessible.
+   Vérifiez votre connexion Internet.
+Assertion failed: !(handle->flags & UV_HANDLE_CLOSING), file src\win\async.c, line 76

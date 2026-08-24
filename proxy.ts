@@ -2,14 +2,14 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { isAdminEmail } from '@/lib/admin-email'
 
-// Middleware minimal de protection :
+// Proxy minimal de protection (Next 16 : anciennement middleware.ts) :
 //  - redirige vers /auth/login les visiteurs non connectes sur /dashboard et /numbers/app ;
 //  - protege /admin (pages) et /api/admin (routes) : utilisateur connecte + email admin.
 //  - toutes les autres routes passent sans latence (matcher restreint).
 // Les routes API font de toute facon leur propre verification (isAdminRequest,
-// requireAuth) : ce middleware est une couche de defense supplementaire.
+// requireAuth) : ce proxy est une couche de defense supplementaire.
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY

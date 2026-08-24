@@ -43,6 +43,10 @@ export default function AdminStatsPage() {
   }, [])
 
   useEffect(() => {
+    // Chargement initial + polling : loadStats() est async, les setState ont
+    // lieu dans les callbacks du fetch (jamais pendant le rendu). Règle
+    // set-state-in-effect désactivée ciblée (elle ne modélise pas les await).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadStats()
     // Rafraichissement temps reel toutes les 5 secondes
     const interval = setInterval(loadStats, 5000)

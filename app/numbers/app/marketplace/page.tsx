@@ -47,6 +47,10 @@ export default function MarketplacePage() {
   // À l'ouverture du modal (ou changement pays/service), on interroge la
   // disponibilité + le prix de CHAQUE forfait en parallèle. Les forfaits
   // indisponibles seront grisés. Le forfait actif retombe sur "verification".
+  // Réinitialisation des devis quand le pays/service change : les setState
+  // synchrones répondent à un changement de prop (pattern "ajuster l'état
+  // quand une prop change") — règle désactivée ciblée sur ce bloc.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!service) {
       setQuotes({})
@@ -69,6 +73,7 @@ export default function MarketplacePage() {
       cancelled = true
     }
   }, [country, service, getQuote])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   async function confirmBuy() {
     if (!service || !quote?.available) return

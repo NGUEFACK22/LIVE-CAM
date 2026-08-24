@@ -10,12 +10,17 @@ export function ResponsibleUsePopup() {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    try {
-      const acknowledged = localStorage.getItem(STORAGE_KEY)
-      if (!acknowledged) setOpen(true)
-    } catch {
-      // localStorage indisponible : on n'affiche pas pour ne pas bloquer.
-    }
+    // Lecture différée d'un tick (règle set-state-in-effect) : le popup
+    // s'ouvre juste après le montage si l'utilisateur n'a pas encore accepté.
+    const t = setTimeout(() => {
+      try {
+        const acknowledged = localStorage.getItem(STORAGE_KEY)
+        if (!acknowledged) setOpen(true)
+      } catch {
+        // localStorage indisponible : on n'affiche pas pour ne pas bloquer.
+      }
+    }, 0)
+    return () => clearTimeout(t)
   }, [])
 
   function acknowledge() {

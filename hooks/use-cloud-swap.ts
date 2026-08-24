@@ -82,8 +82,18 @@ export function useCloudSwap(config: CloudSwapConfig): CloudSwapResult {
   const processingInterval = useRef<NodeJS.Timeout | null>(null)
   const gpuEndpoint = useRef<string>('')
 
+  // Refs vers les fonctions recreees a chaque rendu (processFrame, disconnect,
+  // statut). Evite les closures perimees : le setInterval de
+  // startProcessingLoop et le cleanup d'unmount appellent TOUJOURS la version
+  // a jour, sinon processFrame verrait localVideoTrack=null (1er rendu) et ne
+  // traiterait jamais une frame, et le cleanup ne couperait jamais la session.
+  const processFrameRef = useRef<() => Promise<void>>(async () => {})
+  const disconnectRef = useRef<() => Promise<void>>(async () => {})
+  const statusRef = useRef<CloudSwapStatus>('idle')
+
   // Update status with callback
   const updateStatus = useCallback((newStatus: CloudSwapStatus) => {
+    statusRef.current = newStatus
     setStatus(newStatus)
     onStatusChange?.(newStatus)
   }, [onStatusChange])
@@ -96,6 +106,41 @@ export function useCloudSwap(config: CloudSwapConfig): CloudSwapResult {
       return updated
     })
   }, [onMetricsUpdate])
+
+  // Start frame processing loop
+  // NOTE : appelle processFrameRef.current / disconnectRef.current (refs) pour
+  // toujours utiliser les versions a jour de ces fonctions, jamais celles du
+  // 1er rendu (closures perimees : localVideoTrack etait null, gpuEndpoint vide).
+  // Declare AVANT connect : celui-ci appelle startProcessingLoop, une
+  // declaration plus bas creerait un acces avant initialisation.
+  const startProcessingLoop = useCallback(() => {
+    const tierLimits = TIER_LIMITS[userTier]
+    const targetInterval = 1000 / tierLimits.maxFps
+
+    processingInterval.current = setInterval(async () => {
+      // Check session duration limit for free tier
+      const sessionDuration = (Date.now() - sessionStartTime.current) / 1000
+      if (sessionDuration >= tierLimits.maxDuration) {
+        console.log('[v0] Session duration limit reached')
+        disconnectRef.current()
+        return
+      }
+
+      // Process frame
+      await processFrameRef.current()
+
+      // Update metrics
+      frameCount.current++
+      const pointsUsed = Math.floor(sessionDuration * tierLimits.pointsPerSecond)
+      
+      updateMetrics({
+        sessionDuration,
+        framesProcessed: frameCount.current,
+        pointsUsed,
+        fps: frameCount.current / sessionDuration,
+      })
+    }, targetInterval)
+  }, [userTier, updateMetrics])
 
   // Connect to cloud swap session
   const connect = useCallback(async () => {
@@ -163,37 +208,7 @@ export function useCloudSwap(config: CloudSwapConfig): CloudSwapResult {
       setError(err instanceof Error ? err.message : 'Connection failed')
       updateStatus('error')
     }
-  }, [userId, userTier, avatarUrl, updateStatus])
-
-  // Start frame processing loop
-  const startProcessingLoop = useCallback(() => {
-    const tierLimits = TIER_LIMITS[userTier]
-    const targetInterval = 1000 / tierLimits.maxFps
-
-    processingInterval.current = setInterval(async () => {
-      // Check session duration limit for free tier
-      const sessionDuration = (Date.now() - sessionStartTime.current) / 1000
-      if (sessionDuration >= tierLimits.maxDuration) {
-        console.log('[v0] Session duration limit reached')
-        disconnect()
-        return
-      }
-
-      // Process frame
-      await processFrame()
-
-      // Update metrics
-      frameCount.current++
-      const pointsUsed = Math.floor(sessionDuration * tierLimits.pointsPerSecond)
-      
-      updateMetrics({
-        sessionDuration,
-        framesProcessed: frameCount.current,
-        pointsUsed,
-        fps: frameCount.current / sessionDuration,
-      })
-    }, targetInterval)
-  }, [userTier, updateMetrics])
+  }, [userId, userTier, avatarUrl, updateStatus, startProcessingLoop])
 
   // Process a single frame through GPU cloud
   const processFrame = useCallback(async () => {
@@ -295,11 +310,22 @@ export function useCloudSwap(config: CloudSwapConfig): CloudSwapResult {
     }
   }, [userId, updateStatus])
 
+  // Exposer les versions a jour aux refs utilisees par startProcessingLoop et
+  // par le cleanup d'unmount (evite les closures perimees du 1er rendu).
+  // L'assignation se fait dans un useEffect (et non pendant le rendu) :
+  // acceder a ref.current pendant le rendu est interdit par les regles React.
+  useEffect(() => {
+    processFrameRef.current = processFrame
+    disconnectRef.current = disconnect
+  }, [processFrame, disconnect])
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (status === 'processing' || status === 'connected') {
-        disconnect()
+      // Lire le statut via une ref : le state capturé au montage (idle) aurait
+      // toujours ete false et la session ne se serait jamais arretee.
+      if (statusRef.current === 'processing' || statusRef.current === 'connected') {
+        disconnectRef.current()
       }
     }
   }, [])

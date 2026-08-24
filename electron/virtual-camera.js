@@ -20,7 +20,7 @@
  * LANCER OBS avec --startvirtualcam (demarrage auto de la Virtual Camera).
  */
 
-const { ipcMain, BrowserWindow } = require('electron')
+const { ipcMain, BrowserWindow, app } = require('electron')
 const path = require('path')
 const fs = require('fs')
 const crypto = require('crypto')
@@ -39,8 +39,25 @@ const DEFAULT = { width: 1280, height: 720, fps: 30 }
 const SWAP_RB = true
 const FLIP_V = true
 
+// IMPORTANT : log() ecrit AUSSI dans le fichier de diagnostic chapcam-debug.log
+// (le meme que main.js). Sans cela, les logs du lancement OBS / du demarrage
+// pilote sont INVISIBLES dans le journal — impossible de diagnostiquer un
+// crash au moment ou OBS demarre ("Page leave detected" + plus aucun log).
+let _debugLogPath = null
+function debugLogFilePath() {
+  try {
+    if (_debugLogPath) return _debugLogPath
+    const dir = app.getPath('userData')
+    _debugLogPath = path.join(dir, 'chapcam-debug.log')
+  } catch (_) {}
+  return _debugLogPath
+}
 function log(msg) {
   console.log(`[VirtualCamera] ${msg}`)
+  try {
+    const p = debugLogFilePath()
+    if (p) fs.appendFileSync(p, `[${new Date().toISOString()}] [vcam] [VirtualCamera] ${msg}\n`)
+  } catch (_) {}
 }
 
 // Detecte si OBS Studio tourne (obs64.exe). C'est le chemin de diffusion
@@ -214,7 +231,7 @@ const OBS_DEFAULT_PREV_VER = 537001985
 // si cette version change (marqueur sidecar) : sans ca, chaque lancement
 // reecrirait le fichier, le marquerait "modifie" et forcerait un
 // redemarrage inutile d'OBS.
-const SCENE_VERSION = 4
+const SCENE_VERSION = 5
 
 // Version de format OBS de la machine, lue dans global.ini ([General]
 // LastVersion). Utilisee comme prev_ver du JSON de scene : OBS refuse de
@@ -437,15 +454,12 @@ function buildChapCamSceneCollection() {
         versioned_id: 'window_capture',
         settings: {
           window: windowId,
-          // Force BITBLT (mode 1) au lieu de WGC (auto=0). BitBlt capture les
-          // pixels REELLEMENT PEINTS de la fenetre (GDI), ce qui fonctionne sur
-          // TOUTES les machines (y compris GPU AMD + Windows 11 25H2 ou WGC est
-          // casse -> ecran noir/logo OBS). WGC est utilise par defaut par OBS
-          // auto-detection, mais il echoue silencieusement sur certaines configs.
-          // BitBlt est plus fiable pour les fenetres qui changent souvent
-          // (video, canvas) car il lit la surface GDI finale, pas le compositing.
-          method: 1, // 1 = BitBlt, 2 = WGC, 0 = auto (non fiable partout)
-          capture_mode: 'bitblt', // compat OBS 28/29 (chaine)
+          // WGC (mode 2) est plus fiable avec Electron disableHardwareAcceleration
+          // (testé 24/08: BitBlt échoue "Failed to create 2D texture 80070057" sur ce PC,
+          // WGC passe proprement "method chosen: WGC" + Virtual Camera Start OK).
+          // WGC capture via Windows Graphics Capture (compositor), BitBlt via GDI.
+          method: 2, // 1 = BitBlt, 2 = WGC, 0 = auto
+          capture_mode: 'wgc', // compat OBS 28/29 (chaine)
           cursor: false,
           client_area: true,
           // force l'OSD supprime pour la capture
@@ -844,22 +858,19 @@ async function launchObs(options = {}) {
   // cours -> le check alreadyGood ci-dessous detecte la scene perimee et
   // redemarre OBS pour charger la scene a jour. Sans ce premier appel, un OBS
   // deja actif garderait indefiniment l'ancienne scene (WGC -> ecran noir).
-  // Avec options.force, la scene est TOUJOURS reecrite -> OBS redemarre.
-  const scene = ensureObsSceneCollection(!!options.force)
+  // COMPORTEMENT SOUHAITÉ (fix WhatsApp écran noir) : CHAQUE clic sur "Lancer OBS"
+  // écrase l'ancienne scène et recrée la nouvelle -> WhatsApp voit toujours la
+  // capture à jour (window:Chrome_WidgetWin_1:ChapCam.exe + method:1 BitBlt).
+  // On force donc la réécriture à chaque lancement, et on redémarre OBS pour
+  // charger la scène fraîche — plus de cas "alreadyGood" qui garde une scène noire.
+  const forceRecreate = true
+  const scene = ensureObsSceneCollection(forceRecreate)
 
-  // OBS tourne deja ? Deux cas :
-  //  - il tourne DEJA avec nos parametres (collection ChapCam + virtualcam,
-  //    process sain) ET sa scene est a jour : on ne le redemarre PAS.
-  //    Le redemarrer systematiquement le marquait en "unclean shutdown"
-  //    (dialogue de crash au demarrage suivant) et allongeait le delai.
-  //  - sinon (OBS ouvert a la main sans nos flags, bloque, ou scene perimee) :
-  //    on le redemarre pour appliquer la scene et la Virtual Camera.
-  //  - options.force : on redemarre systematiquement (recréer la source).
   const wasRunning = isObsBridgeRunning()
-  const alreadyGood = !options.force && wasRunning && obsRunningWithChapCamFlags() && obsLogShowsVirtualCam()
   const exe = findObsExecutable()
 
-  if (wasRunning && alreadyGood) {
+  // Plus de early-return alreadyGood : on écrase toujours (évite écran noir WhatsApp)
+  if (false && wasRunning) {
     log('OBS deja actif avec la scene ChapCam + Virtual Camera — pas de redemarrage')
     return {
       launched: false,
@@ -872,13 +883,10 @@ async function launchObs(options = {}) {
   }
 
   if (wasRunning) {
-    log('OBS deja ouvert sans nos parametres (ou scene perimee) — redemarrage pour charger la scene ChapCam a jour')
+    log('OBS deja ouvert — redemarrage systématique pour écraser avec la nouvelle scène ChapCam (fix WhatsApp noir)')
     await killObs()
     _obsCheck = { value: false, at: 0 }
-    // user.ini est ecrit SANS conflit apres l'arret (OBS reecrirait user.ini
-    // a sa fermeture et perdrait nos cles). La scene, elle, a deja ete ecrite
-    // ci-dessus : on relance simplement pour mettre a jour user.ini.
-    ensureObsSceneCollection()
+    ensureObsSceneCollection(true)
   }
 
   if (!exe) {

@@ -40,14 +40,14 @@ export function ObsSetupGuide({ obsAvailable, obsRunning, onLaunchObs, onClose }
   } | null>(null)
   const [sceneCreated, setSceneCreated] = useState(false)
 
-  // Auto-advance si OBS est déjà détecté
-  useEffect(() => {
-    if (obsRunning && currentStep === 'check-obs') {
-      setCurrentStep('configure-obs')
-    } else if (obsAvailable && !obsRunning && currentStep === 'welcome') {
-      setCurrentStep('launch-obs')
-    }
-  }, [obsAvailable, obsRunning, currentStep])
+  // Auto-advance si OBS est déjà détecté : ajustement d'état pendant le
+  // rendu (pattern React documenté) — les gardes sur currentStep évitent
+  // toute boucle de rendu.
+  if (obsRunning && currentStep === 'check-obs') {
+    setCurrentStep('configure-obs')
+  } else if (obsAvailable && !obsRunning && currentStep === 'welcome') {
+    setCurrentStep('launch-obs')
+  }
 
   const steps: Step[] = ['welcome', 'check-obs', 'launch-obs', 'configure-obs', 'select-camera', 'test-stream', 'complete']
   const currentStepIndex = steps.indexOf(currentStep)
@@ -92,14 +92,14 @@ export function ObsSetupGuide({ obsAvailable, obsRunning, onLaunchObs, onClose }
             <h3 className="text-lg font-semibold">Bienvenue dans ChapCam !</h3>
             <p className="text-muted-foreground">
               Ce guide va vous aider à configurer OBS Studio pour diffuser votre face swap
-              sur WhatsApp, Zoom, Teams et d'autres applications.
+              sur WhatsApp, Zoom, Teams et d&apos;autres applications.
             </p>
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 text-sm">
               <div className="flex items-start gap-2">
                 <Info className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
                 <p className="text-blue-200">
                   <strong>Prérequis :</strong> OBS Studio doit être installé. 
-                  Si ce n'est pas le cas, téléchargez-le sur <a href="https://obsproject.com" target="_blank" rel="noopener" className="underline">obsproject.com</a>
+                  Si ce n&apos;est pas le cas, téléchargez-le sur <a href="https://obsproject.com" target="_blank" rel="noopener" className="underline">obsproject.com</a>
                 </p>
               </div>
             </div>
@@ -112,7 +112,7 @@ export function ObsSetupGuide({ obsAvailable, obsRunning, onLaunchObs, onClose }
             <div className="w-16 h-16 mx-auto rounded-full bg-blue-500/20 flex items-center justify-center">
               <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
             </div>
-            <h3 className="text-lg font-semibold">Vérification d'OBS Studio...</h3>
+            <h3 className="text-lg font-semibold">Vérification d&apos;OBS Studio...</h3>
             <p className="text-muted-foreground">
               {obsAvailable 
                 ? 'OBS Studio est détecté sur votre système !'
@@ -169,7 +169,7 @@ export function ObsSetupGuide({ obsAvailable, obsRunning, onLaunchObs, onClose }
               </div>
               <h3 className="text-lg font-semibold mt-4">Configuration OBS</h3>
               <p className="text-muted-foreground">
-                La scene "ChapCam" a été créée automatiquement dans OBS.
+                La scene &quot;ChapCam&quot; a été créée automatiquement dans OBS.
               </p>
             </div>
             
@@ -178,8 +178,8 @@ export function ObsSetupGuide({ obsAvailable, obsRunning, onLaunchObs, onClose }
                 <div className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
                   <p className="text-green-200">
-                    <strong>Scène "ChapCam" créée !</strong><br />
-                    OBS a été lancé avec la scène préconfigurée. La source "Capture de fenetre"
+                    <strong>Scène &quot;ChapCam&quot; créée !</strong><br />
+                    OBS a été lancé avec la scène préconfigurée. La source &quot;Capture de fenetre&quot;
                     pointe automatiquement vers la fenêtre ChapCam.
                   </p>
                 </div>
@@ -191,11 +191,11 @@ export function ObsSetupGuide({ obsAvailable, obsRunning, onLaunchObs, onClose }
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
-                  <span>OBS Studio est en cours d'exécution</span>
+                  <span>OBS Studio est en cours d&apos;exécution</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
-                  <span>La scene "ChapCam" est chargée</span>
+                  <span>La scene &quot;ChapCam&quot; est chargée</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
@@ -215,7 +215,7 @@ export function ObsSetupGuide({ obsAvailable, obsRunning, onLaunchObs, onClose }
               </div>
               <h3 className="text-lg font-semibold mt-4">Sélection de la caméra</h3>
               <p className="text-muted-foreground">
-                Dans votre application de visioconférence, sélectionnez "OBS Virtual Camera".
+                Dans votre application de visioconférence, sélectionnez &quot;OBS Virtual Camera&quot;.
               </p>
             </div>
             
@@ -245,7 +245,7 @@ export function ObsSetupGuide({ obsAvailable, obsRunning, onLaunchObs, onClose }
               <div className="flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
                 <p className="text-amber-200">
-                  <strong>Important :</strong> Gardez la fenêtre ChapCam visible pendant l'appel.
+                  <strong>Important :</strong> Gardez la fenêtre ChapCam visible pendant l&apos;appel.
                   Si elle est minimisée, OBS affichera un écran noir.
                 </p>
               </div>
@@ -264,9 +264,9 @@ export function ObsSetupGuide({ obsAvailable, obsRunning, onLaunchObs, onClose }
               Démarrez le Live Swap dans ChapCam pour voir le flux apparaître dans votre application.
             </p>
             <div className="bg-muted rounded-lg p-4 text-left text-sm space-y-2">
-              <p><strong>1.</strong> Dans ChapCam, cliquez sur "Démarrer le Live Swap"</p>
+              <p><strong>1.</strong> Dans ChapCam, cliquez sur &quot;Démarrer le Live Swap&quot;</p>
               <p><strong>2.</strong> Attendez la première image transformée (compteur de points)</p>
-              <p><strong>3.</strong> Dans votre application, sélectionnez "OBS Virtual Camera"</p>
+              <p><strong>3.</strong> Dans votre application, sélectionnez &quot;OBS Virtual Camera&quot;</p>
               <p><strong>4.</strong> Vérifiez que le flux apparaît</p>
             </div>
           </div>
@@ -287,7 +287,7 @@ export function ObsSetupGuide({ obsAvailable, obsRunning, onLaunchObs, onClose }
                 <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
                 <p className="text-green-200">
                   <strong>Rappel :</strong> Gardez la fenêtre ChapCam visible pendant les appels
-                  pour que le flux continue d'être capturé par OBS.
+                  pour que le flux continue d&apos;être capturé par OBS.
                 </p>
               </div>
             </div>

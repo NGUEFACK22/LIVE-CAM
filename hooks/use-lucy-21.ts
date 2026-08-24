@@ -14,7 +14,11 @@ const POINTS_PER_SECOND = 2
 const DEDUCTION_INTERVAL = 5
 
 // Delai max avant d'abandonner une connexion sans 1ere image transformee.
-const CONNECT_TIMEOUT_MS = 20_000
+// Note : le flux transforme arrive ~10-16 s apres la connexion (signal +
+// LiveKit + publication serveur) et le modele met encore 2-10 s a produire sa
+// 1ere vraie frame (TTFF). 20 s etait trop juste : la session etait tuee
+// pendant la chauffe du modele. 30 s couvre flux + chauffe.
+const CONNECT_TIMEOUT_MS = 30_000
 
 // Auto-retry borne quand Decart est temporairement en surcapacite
 // ("no available runner"). Le SDK retente deja 5x en interne ; ces retries
@@ -48,9 +52,22 @@ function frameMaxLuma(video: HTMLVideoElement, w: number, h: number): number {
   }
 }
 
-// Lit quelques frames du flux transforme et renvoie true si elles sont
-// (quasi) noires — signe que le serveur ne produit rien d'exploitable.
-function isStreamBlack(stream: MediaStream, frames = 4): Promise<boolean> {
+// Surveille l'ELEMENT VIDEO AFFICHE (celui qui joue reellement le flux
+// transforme) pendant `watchMs` et renvoie true UNIQUEMENT si TOUTES les
+// frames echantillonnees sont (quasi) noires — le serveur ne produit rien
+// d'exploitable. Des qu'une frame lumineuse apparait, on repond false
+// immediatement (la session est vivante, on peut facturer/marquer live).
+//
+// IMPORTANT (bug corrige, 16/08) : l'ancienne version creait un SECOND
+// element <video> avec le meme MediaStream pour mesurer les pixels. Or ce
+// double n'a souvent JAMAIS de frame decodee (le flux WebRTC/LiveKit est
+// deja consomme par l'element affiche) -> drawImage rendait du NOIR en
+// permanence -> faux "flux noir" alors que l'avatar etait parfaitement
+// visible. Resultat : la session marchait (l'utilisateur voyait le swap)
+// mais etait tuee ~10 s plus tard puis relancee -> "ca se rafraichit" en
+// boucle. On mesure maintenant l'element video lui-meme, celui qui est
+// reellement en train de peindre des frames.
+function isElementBlack(el: HTMLVideoElement, watchMs = 10_000, intervalMs = 800): Promise<boolean> {
   return new Promise((resolve) => {
     let settled = false
     const done = (black: boolean) => {
@@ -59,34 +76,32 @@ function isStreamBlack(stream: MediaStream, frames = 4): Promise<boolean> {
       resolve(black)
     }
     try {
-      const video = document.createElement('video')
-      video.muted = true
-      video.playsInline = true
-      video.srcObject = stream
-      let checked = 0
-      let minMax = 255
+      const startedAt = Date.now()
+      let started = false
       const checkFrame = () => {
-        const w = Math.min(video.videoWidth || 160, 160)
-        const h = Math.min(video.videoHeight || 90, 90)
-        const mx = frameMaxLuma(video, w, h)
-        if (mx >= 0 && mx < minMax) minMax = mx
-        checked++
-        if (checked >= frames) {
-          try { video.srcObject = null } catch {}
-          video.remove()
-          done(minMax < 40) // < 40 : image quasi noire
-        } else {
-          setTimeout(checkFrame, 200)
+        if (started) return
+        started = true
+        const w = Math.min(el.videoWidth || 160, 160)
+        const h = Math.min(el.videoHeight || 90, 90)
+        const mx = frameMaxLuma(el, w, h)
+        // Des qu'une frame reelle apparait, le flux est vivant.
+        if (mx >= 40) {
+          done(false)
+          return
         }
+        // Toute la fenetre est noire : le serveur ne genere rien.
+        if (Date.now() - startedAt >= watchMs) {
+          done(true)
+          return
+        }
+        setTimeout(() => {
+          started = false
+          checkFrame()
+        }, intervalMs)
       }
-      video.onloadedmetadata = () => video.play().catch(() => {})
-      video.onplaying = checkFrame
-      video.onloadeddata = checkFrame
-      setTimeout(() => {
-        try { video.srcObject = null } catch {}
-        video.remove()
-        done(checked < frames ? true : minMax < 40)
-      }, 4000)
+      // L'element est deja en lecture (onRemoteStream a fait el.play()) : on
+      // peut mesurer directement, pas besoin d'attendre onplaying/onloadeddata.
+      checkFrame()
     } catch (_) {
       done(true)
     }
@@ -110,9 +125,6 @@ export function useLucy21() {
   // (tag [data-chapcam-output] sur remoteVideo). On ne garde ici que l'etat
   // "pilote demarre" pour ne pas double-capturer avec un canvas mort.
   const virtualCamActiveRef = useRef(false)
-  // Ref vers startVirtualCamera (declaree plus bas) : permet a onRemoteStream
-  // de demarrer la camera interne sans probleme d'ordre de declaration.
-  const startVirtualCameraRef = useRef<((opts?: { force?: boolean }) => Promise<void>) | null>(null)
   // Chemin de diffusion : OBS Virtual Camera en priorite, pilote en fallback.
   // Le mode effectif est expose par le statut de la camera virtuelle.
   // Garde-fou : la session n'est consideree "active" (et donc facturee cote
@@ -129,6 +141,12 @@ export function useLucy21() {
   const autoRetryRef = useRef(0)
   // Timer du retry planifie (permet de l'annuler si l'utilisateur decoince).
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Garde anti-double surveillance : le requestVideoFrameCallback se declenche
+  // a CHAQUE frame peinte. Sans ce verrou, chaque frame noire pendant la
+  // chauffe du modele lancerait un nouveau watcher isStreamBlack -> les
+  // retries seraient comptes en double (2 watchers = 2 increments de
+  // autoRetryRef, abandon premature au lieu de laisser le modele chauffer).
+  const blackCheckInFlightRef = useRef(false)
   // Ref vers connect : permet au catch de relancer une tentative complete
   // sans casser les deps du useCallback (evite une boucle de recreation).
   const connectRef = useRef<
@@ -302,6 +320,40 @@ export function useLucy21() {
   }, [])
 
   // ---------------------------------------------------------------------------
+  // Retry automatique borné (partagé par le timeout de connexion, le watcher
+  // écran noir et le catch de connect). Un seul timer à la fois (garde
+  // retryTimerRef) pour éviter les double-déclenchements.
+  // ---------------------------------------------------------------------------
+  const scheduleAutoRetry = useCallback(
+    (avatarImageUrl: string, message: string, messageFinal?: string) => {
+      // Un retry est déjà planifié : ne pas en empiler un second.
+      if (retryTimerRef.current) return
+      if (autoRetryRef.current >= MAX_AUTO_RETRY) {
+        disconnect()
+        setError(messageFinal || message)
+        setConnectionState('error')
+        setIsConnecting(false)
+        setIsConnected(false)
+        return
+      }
+      autoRetryRef.current += 1
+      const delay = RETRY_DELAY_MS[autoRetryRef.current - 1] ?? 4000
+      setConnectionState('connecting')
+      setIsConnecting(true)
+      setIsConnected(false)
+      setError(
+        `${message} Nouvelle tentative ${autoRetryRef.current}/${MAX_AUTO_RETRY} dans ${Math.round(delay / 1000)} s…`,
+      )
+      retryTimerRef.current = setTimeout(() => {
+        retryTimerRef.current = null
+        if (!mountedRef.current) return
+        connectRef.current?.(avatarImageUrl, { isRetry: true })
+      }, delay)
+    },
+    [disconnect],
+  )
+
+  // ---------------------------------------------------------------------------
   // Connect
   // ---------------------------------------------------------------------------
 
@@ -322,6 +374,10 @@ export function useLucy21() {
     setIsConnected(false)
     setConnectionState('connecting')
     firstFrameRef.current = false
+    // Un watcher de surveillance noire eventuellement reste en vol d'une
+    // tentative precedente ne doit pas bloquer la nouvelle (il conclura via
+    // isStale() sans effet, mais on libere le verrou des maintenant).
+    blackCheckInFlightRef.current = false
     // Budget de retries frais uniquement pour une tentative utilisateur ;
     // une tentative interne (retry auto) conserve le compteur en cours.
     if (!opts?.isRetry) autoRetryRef.current = 0
@@ -530,9 +586,37 @@ export function useLucy21() {
         setConnectionState('connected')
       }
 
-      // La camera virtuelle demarre automatiquement dans onRemoteStream des la
-      // 1ere image transformee. Chemin PRINCIPAL : OBS Virtual Camera (OBS
-      // capture la fenetre ChapCam) ; fallback : pilote akvirtualcamera.
+      // La camera virtuelle (OBS Virtual Camera / pilote "ChapCam Camera") ne
+      // demarre PAS automatiquement avec la connexion : la diffusion est
+      // activee manuellement par l'utilisateur (indicateur de flux / page
+      // Caméra virtuelle), voir onRemoteStream plus bas.
+
+      // Garde-fou global : si aucune image transformee n'arrive en
+      // CONNECT_TIMEOUT_MS (phase de connexion SDK COMPRISE), on retente
+      // (borne) puis on affiche une erreur claire.
+      //
+      // IMPORTANT (bug 16/08) : l'ancien code definissait ce timeout APRES
+      // `await client.realtime.connect(...)`. Or le SDK peut se deconnecter
+      // tout seul pendant la phase de connexion (log 11:35:47 : room coupe 3s
+      // apres connected, aucun evenement emis -> l'UI restait figee en
+      // "connexion" sans retry ni erreur). En definissant le timeout AVANT
+      // l'await, toute tentative est toujours bornee, meme si connect() pend.
+      connectTimeoutRef.current = setTimeout(() => {
+        if (isStale() || firstFrameRef.current) return
+        console.warn('[Lucy 2.1] Timeout connexion / 1ere image — retry borné')
+        disconnectDecart()
+        releaseMedia()
+        if (connectTimeoutRef.current) {
+          clearTimeout(connectTimeoutRef.current)
+          connectTimeoutRef.current = null
+        }
+        if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
+        scheduleAutoRetry(
+          avatarImageUrl,
+          "La transformation n'a pas démarré",
+          "La transformation n'a pas démarré. Réessaie dans un instant.",
+        )
+      }, CONNECT_TIMEOUT_MS)
 
       const realtimeClient = await client.realtime.connect(stream, {
         model: models.realtime('lucy-2.5'),
@@ -600,11 +684,25 @@ export function useLucy21() {
           }
           const tryMarkLive = () => {
             if (isStale() || firstFrameRef.current) return
+            // Un watcher est deja en cours : ne pas en empiler un second
+            // (chaque frame peinte declencherait tryMarkLive). Le premier
+            // watcher conclura (markLive ou retry) apres sa fenetre.
+            if (blackCheckInFlightRef.current) return
+            blackCheckInFlightRef.current = true
             // Garde-fou anti ecran noir : on ne facture que si le flux
             // transforme contient de VRAIS pixels (luma > 40/255). Un flux
             // noir signifie que le serveur ne genere rien (image ref rejetee,
             // codec illisible...) -> on retente au lieu de debiter le client.
-            isStreamBlack(transformedStream)
+            // NB : on mesure l'ELEMENT VIDEO AFFICHE (el, celui qui peint
+            // vraiment les frames) et non un double cree a partir du stream :
+            // le double ne decodait jamais les frames -> faux noir -> session
+            // tuee alors que l'avatar etait visible. Le watcher attend jusqu'a
+            // ~10 s (chauffe du modele) avant de conclure noir ; des qu'une
+            // frame lumineuse apparait, il repond immediatement.
+            isElementBlack(el)
+              .finally(() => {
+                blackCheckInFlightRef.current = false
+              })
               .then((black) => {
                 if (isStale() || firstFrameRef.current) return
                 if (!black) {
@@ -625,17 +723,18 @@ export function useLucy21() {
                   stopVirtualCamInternal().catch(() => {})
                 }
                 if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
-                setConnectionState('connecting')
-                setIsConnecting(true)
-                setIsConnected(false)
-                setError(
-                  'Le flux transformé est arrivé vide (écran noir). Nouvelle tentative…',
+
+                // Retry BORNE : un flux noir persistant (image d'avatar rejetee
+                // par le serveur, modele en surcharge...) ne doit pas relancer
+                // la caméra indefiniment toutes les 4s. On reutilise le meme
+                // compteur que les autres retries (autoRetryRef) : apres
+                // MAX_AUTO_RETRY tentatives, on affiche une erreur claire au
+                // lieu de boucler silencieusement.
+                scheduleAutoRetry(
+                  avatarImageUrl,
+                  'Le flux transformé est arrivé vide (écran noir)',
+                  "Le flux transformé reste noir après plusieurs tentatives. Vérifie que l'image de l'avatar est nette et bien éclairée, puis réessaie.",
                 )
-                retryTimerRef.current = setTimeout(() => {
-                  retryTimerRef.current = null
-                  if (!mountedRef.current) return
-                  connectRef.current?.(avatarImageUrl, { isRetry: true })
-                }, 4000)
               })
               .catch(() => markLive())
           }
@@ -645,10 +744,11 @@ export function useLucy21() {
             el.onplaying = () => tryMarkLive()
           }
 
-          // Auto-demarrage de la camera virtuelle. Chemin PRINCIPAL : OBS
-          // Virtual Camera (OBS est lance avec --startvirtualcam et capture la
-          // fenetre ChapCam). Fallback : pilote akvirtualcamera embarque.
-          startVirtualCameraRef.current?.({ force: true }).catch(() => {})
+          // La camera virtuelle (OBS / pilote) ne demarre PLUS automatiquement
+          // au demarrage du Live Swap : elle provoque des boucles kill/relance
+          // OBS (une 2e tentative de demarrage pendant que la precedente est
+          // encore en cours coupe la sortie de l'appel video). L'utilisateur
+          // l'active manuellement via l'indicateur ou la page Caméra virtuelle.
         },
       })
 
@@ -711,6 +811,31 @@ export function useLucy21() {
             disconnect()
             setError('La connexion avec le service IA a été interrompue.')
             setConnectionState('error')
+          } else {
+            // Deconnexion du SDK AVANT la 1re frame : la session est morte
+            // sans jamais produire d'image (log 16/08 11:35:47 : room coupe
+            // 3s apres connected, sans event "error"). L'ancien code ignorait
+            // ce cas -> UI figee en "connexion" indefiniment (le timeout etait
+            // defini apres l'await et n'avait jamais cours). On retente
+            // (borne) comme pour un ecran noir.
+            console.warn(
+              `[Lucy 2.1] Session interrompue avant 1re frame (${state}) — retry borné`,
+            )
+            if (connectTimeoutRef.current) {
+              clearTimeout(connectTimeoutRef.current)
+              connectTimeoutRef.current = null
+            }
+            disconnectDecart()
+            releaseMedia()
+            if (virtualCamActiveRef.current) {
+              stopVirtualCamInternal().catch(() => {})
+            }
+            if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
+            scheduleAutoRetry(
+              avatarImageUrl,
+              "La connexion avec le service IA a été interrompue avant le démarrage",
+              "La connexion avec le service IA a été interrompue avant le démarrage. Réessaie dans un instant.",
+            )
           }
         }
       })
@@ -731,43 +856,10 @@ export function useLucy21() {
         console.log('[Lucy 2.1] connectionQuality:', r)
       })
 
-      // Garde-fou : si aucune image transformee n'arrive en 20s, on coupe et on
-      // previent l'utilisateur, sans jamais l'avoir facture pour l'ecran noir.
-      connectTimeoutRef.current = setTimeout(() => {
-        if (isStale() || firstFrameRef.current) return
-        // Saturation / chauffe lente du modele : on retente (borne) avant
-        // d'abandonner. La facturation n'a pas commence (firstFrameRef false).
-        if (autoRetryRef.current < MAX_AUTO_RETRY) {
-          autoRetryRef.current += 1
-          const delay = RETRY_DELAY_MS[autoRetryRef.current - 1]
-          disconnectDecart()
-          releaseMedia()
-          if (connectTimeoutRef.current) {
-            clearTimeout(connectTimeoutRef.current)
-            connectTimeoutRef.current = null
-          }
-          setConnectionState('connecting')
-          setIsConnecting(true)
-          setIsConnected(false)
-          setError(
-            `La transformation n'a pas démarré. Nouvelle tentative ${autoRetryRef.current}/${MAX_AUTO_RETRY} dans ${Math.round(delay / 1000)} s…`,
-          )
-          if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
-          retryTimerRef.current = setTimeout(() => {
-            retryTimerRef.current = null
-            if (!mountedRef.current) return
-            connectRef.current?.(avatarImageUrl, { isRetry: true })
-          }, delay)
-          return
-        }
-        // disconnect() d'abord (cleanup media + invalide gen), PUIS on pose
-        // l'erreur : disconnect remet error a null, donc l'ordre compte.
-        disconnect()
-        setError("La transformation n'a pas démarré. Réessaie dans un instant.")
-        setConnectionState('error')
-        setIsConnecting(false)
-        setIsConnected(false)
-      }, CONNECT_TIMEOUT_MS)
+      // NB : le garde-fou de connexion (CONNECT_TIMEOUT_MS) est defini PLUS
+      // HAUT, avant `await client.realtime.connect(...)`, pour couvrir aussi
+      // la phase de connexion SDK (le SDK peut pendre ou se deconnecter tout
+      // seul pendant cette phase, sans emettre d'evenement).
     } catch (err: unknown) {
       if (isStale()) return
       console.error('[Lucy 2.1]', err)
@@ -797,21 +889,12 @@ export function useLucy21() {
       // Saturation serveur Decart (intermittente) : on retente automatiquement
       // (borne) avant de laisser tomber. La facturation ne demarre qu'a la 1ere
       // frame (markLive), donc aucun risque de facturation pendant les retries.
-      if (isCapacityError && autoRetryRef.current < MAX_AUTO_RETRY) {
-        autoRetryRef.current += 1
-        const delay = RETRY_DELAY_MS[autoRetryRef.current - 1]
-        setConnectionState('connecting')
-        setIsConnecting(true)
-        setIsConnected(false)
-        setError(
-          `Le service IA Decart est temporairement saturé (aucun serveur de calcul disponible). Nouvelle tentative ${autoRetryRef.current}/${MAX_AUTO_RETRY} dans ${Math.round(delay / 1000)} s…`,
+      if (isCapacityError) {
+        scheduleAutoRetry(
+          avatarImageUrl,
+          'Le service IA Decart est temporairement saturé (aucun serveur de calcul disponible)',
+          "Le service IA Decart est temporairement saturé (aucun serveur de calcul disponible pour lucy-2.5). Réessaie dans quelques minutes.",
         )
-        if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
-        retryTimerRef.current = setTimeout(() => {
-          retryTimerRef.current = null
-          if (!mountedRef.current) return
-          connectRef.current?.(avatarImageUrl, { isRetry: true })
-        }, delay)
         return
       }
 
@@ -838,12 +921,14 @@ export function useLucy21() {
     disconnect,
     disconnectDecart,
     releaseMedia,
+    scheduleAutoRetry,
     stopVirtualCamInternal,
   ])
 
-  // Expose connect via ref pour que le catch puisse relancer une tentative
-  // complete sans figer connect dans ses propres deps.
-  connectRef.current = connect
+  // Expose connect via ref pour eviter les dépendances cycliques
+  useEffect(() => {
+    connectRef.current = connect
+  }, [connect])
 
   // ---------------------------------------------------------------------------
   // Camera virtuelle manuelle
@@ -895,8 +980,6 @@ export function useLucy21() {
       setVirtualCamError(msg || 'Erreur démarrage caméra virtuelle')
     }
   }, [isConnected])
-
-  startVirtualCameraRef.current = startVirtualCamera
 
   const stopVirtualCamera = useCallback(async () => {
     await stopVirtualCamInternal()

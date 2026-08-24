@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNumbers } from '@/components/numbers/numbers-provider'
 import { ActivityChart, RevenueChart } from '@/components/numbers/charts'
 import { timeAgo } from '@/lib/numbers/data'
@@ -48,9 +48,18 @@ export default function DashboardPage() {
   const waitingNumbers = activations.filter((a) => a.status === 'waiting')
   const receivedCodes = activations.filter((a) => a.code)
 
+  // Horloge de référence : Date.now() pendant le rendu est interdit (règle
+  // react-hooks/purity) → on rafraîchit `now` via un intervalle (le setState
+  // a lieu dans le callback du timer, jamais pendant le rendu).
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
   // Activité réelle (activations + codes reçus) sur 14 jours.
   const activityData = useMemo(() => {
-    const today = startOfDay(Date.now())
+    const today = startOfDay(now)
     const buckets = Array.from({ length: 14 }, (_, i) => {
       const dayMs = today - (13 - i) * DAY
       return {
@@ -68,7 +77,7 @@ export default function DashboardPage() {
       }
     }
     return buckets
-  }, [activations])
+  }, [activations, now])
 
   // Dépenses réelles par mois (achats) sur 12 mois.
   const revenueData = useMemo(() => {
@@ -111,7 +120,7 @@ export default function DashboardPage() {
     },
     {
       label: 'Codes reçus (24h)',
-      value: receivedCodes.filter((a) => Date.now() - a.createdAt < DAY).length.toString(),
+      value: receivedCodes.filter((a) => now - a.createdAt < DAY).length.toString(),
       sub: `${unreadCount} non lus`,
       icon: MessageSquareText,
       href: '/numbers/app/messages',

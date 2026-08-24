@@ -53,8 +53,30 @@ export function useVoiceSubscription() {
   }, [])
 
   useEffect(() => {
-    void refresh()
-  }, [refresh])
+    let active = true
+    fetch('/api/voice-subscription', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((json) => {
+        if (active && json?.success) {
+          setData({
+            plan: json.plan,
+            secondsRemaining: json.secondsRemaining,
+            secondsTotal: json.secondsTotal,
+            minutesRemaining: json.minutesRemaining,
+            minutesTotal: json.minutesTotal,
+            expiresAt: json.expiresAt,
+            active: json.active,
+          })
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   return { ...data, loading, refresh }
 }

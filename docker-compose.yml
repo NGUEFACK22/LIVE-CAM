@@ -230,7 +230,7 @@ services:
   # Studio (Dashboard Web)
   # ------------------------------------------------------------
   studio:
-    image: supabase/studio:20240115-5e2c8a5
+    image: supabase/studio:latest
     container_name: chapcam-studio
     environment:
       STUDIO_DEFAULT_ORGANIZATION: ChapCam

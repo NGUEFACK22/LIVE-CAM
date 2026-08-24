@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Settings, User, Bell, Shield, Trash2, LogOut, Palette } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { ThemeToggleSegmented } from '@/components/theme-toggle'
@@ -18,7 +18,8 @@ export default function SettingsPage() {
   const [planData, setPlanData] = useState<SettingsPlan | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const supabase = createClient()
+  // Instance Supabase stable (memoïsée) : peut figurer dans les deps de l'effet.
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,7 +41,7 @@ export default function SettingsPage() {
     }
 
     fetchData()
-  }, [])
+  }, [supabase])
 
   if (loading) {
     return (

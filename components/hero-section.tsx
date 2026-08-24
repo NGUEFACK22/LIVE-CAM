@@ -132,7 +132,7 @@ export function HeroSection() {
           <div className="flex items-center gap-3 pt-1">
             <div className="flex -space-x-3">
               {["a3", "a2", "a6", "a1", "a5"].map((a) => (
-                <img
+                <Image
                   key={a}
                   src={`/images/hero/avatars/${a}.png`}
                   alt="Créateur inscrit"

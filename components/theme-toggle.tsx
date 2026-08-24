@@ -1,16 +1,23 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import { useTheme } from 'next-themes'
 import { Sun, Moon } from 'lucide-react'
+
+const emptySubscribe = () => () => {}
+const useIsMounted = () =>
+  useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  )
 
 /**
  * Toggle compact (sidebar) : un interrupteur clair/sombre.
  */
 export function ThemeToggleCompact({ collapsed = false }: { collapsed?: boolean }) {
   const { resolvedTheme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  const mounted = useIsMounted()
 
   const isDark = resolvedTheme === 'dark'
 
@@ -56,8 +63,7 @@ export function ThemeToggleCompact({ collapsed = false }: { collapsed?: boolean 
  */
 export function ThemeToggleSegmented() {
   const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  const mounted = useIsMounted()
 
   const options = [
     { value: 'light', label: 'Clair', icon: Sun },

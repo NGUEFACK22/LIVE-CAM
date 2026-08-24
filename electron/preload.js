@@ -487,6 +487,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Platform detection
   isElectron: true,
   platform: process.platform,
+
+  // Journal de diagnostic : recuperer / vider les logs (ecran noir)
+  getDebugLog: () => ipcRenderer.invoke('get-debug-log'),
+  clearDebugLog: () => ipcRenderer.invoke('clear-debug-log'),
 })
 
 console.log('[ChapCam] Preload script initialized')

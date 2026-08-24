@@ -13,16 +13,18 @@ export function ChapCam2Announcement() {
 
   useEffect(() => {
     // Affiche le popup une seule fois par client (jusqu'a fermeture).
+    let shouldShow = false
     try {
-      const seen = localStorage.getItem(ANNOUNCEMENT_KEY)
-      if (!seen) {
-        // Petit delai pour laisser le dashboard s'afficher avant le popup.
-        const t = setTimeout(() => setOpen(true), 600)
-        return () => clearTimeout(t)
-      }
+      shouldShow = !localStorage.getItem(ANNOUNCEMENT_KEY)
     } catch {
-      setOpen(true)
+      // localStorage indisponible : on affiche quand meme le popup.
+      shouldShow = true
     }
+    if (!shouldShow) return
+    // Petit delai pour laisser le dashboard s'afficher avant le popup (et
+    // eviter un setState synchrone dans l'effet).
+    const t = setTimeout(() => setOpen(true), 600)
+    return () => clearTimeout(t)
   }, [])
 
   const dismiss = () => {

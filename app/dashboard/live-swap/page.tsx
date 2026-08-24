@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo, useSyncExternalStore } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Camera, Zap, Clock, Coins, Plus, Check, AlertCircle, AlertTriangle, Loader2, Square, Wifi, WifiOff, Monitor, Cloud, Settings, Download, Crown, CreditCard, ClipboardList, Mic, MicOff, Video as VideoIcon, VideoOff, BookOpen, Languages, ImageIcon, Film, ArrowRight, Maximize2, Minimize2, AudioLines, Share2, ExternalLink, Tv } from 'lucide-react'
 import { useLucy21 } from '@/hooks/use-lucy-21'
-import { useVirtualCamera } from '@/hooks/use-virtual-camera'
 import { isElectron } from '@/lib/electron'
 import { InstallationRequestModal } from '@/components/dashboard/installation-request-modal'
 import { VirtualCameraIndicator } from '@/components/live/virtual-camera-indicator'
@@ -39,6 +39,10 @@ export default function DashboardPage() {
   const pointsUsedRef = useRef(0)        // total points consommes ce swap
   const pendingSyncRef = useRef(0)       // points consommes NON encore envoyes au serveur
   const remainingRef = useRef(0)         // solde restant estime (pour couper a 0)
+  // Ref vers handleStopSwapAndSave : casse la dépendance circulaire entre
+  // syncPendingPoints (coupe le swap quand le solde tombe à 0) et
+  // handleStopSwapAndSave (flush des points restants).
+  const handleStopSwapAndSaveRef = useRef<() => Promise<void>>(async () => {})
   // Certification d'usage responsable, requise avant chaque demarrage de swap.
   const [swapConsent, setSwapConsent] = useState(false)
   const [accessError, setAccessError] = useState<string | null>(null)
@@ -70,13 +74,21 @@ export default function DashboardPage() {
   const [colorCorrection, setColorCorrection] = useState(true)
   const [micOn, setMicOn] = useState(true)
   const [camOn, setCamOn] = useState(true)
-  const [isDesktop, setIsDesktop] = useState(false)
+  // Détection de l'app de bureau (Electron) : sans état ni effet, lue une
+  // seule fois au montage (useSyncExternalStore) pour éviter tout flash SSR.
+  const isDesktop = useSyncExternalStore(
+    () => () => {},
+    () => isElectron(),
+    () => false,
+  )
 
   // Mode Stream : affiche UNIQUEMENT la sortie ChapCam en plein ecran dans la
   // fenetre, pour qu'OBS capture l'avatar SANS l'interface (sidebar, header...).
   const [streamMode, setStreamMode] = useState(false)
   // Dimensions de la video de sortie (pour diagnostic)
   const [remoteVideoDims, setRemoteVideoDims] = useState<{ w: number; h: number } | null>(null)
+  // Feedback bouton "Diagnostic" (copie des logs dans le presse-papiers)
+  const [debugCopied, setDebugCopied] = useState(false)
 
   const chapCamRef = useRef<HTMLDivElement | null>(null)
   const [isCamFullscreen, setIsCamFullscreen] = useState(false)
@@ -98,11 +110,6 @@ export default function DashboardPage() {
     return () => document.removeEventListener('fullscreenchange', onFsChange)
   }, [])
 
-  // Détecter si on est dans l'app de bureau Electron
-  useEffect(() => {
-    setIsDesktop(isElectron())
-  }, [])
-
   // Use Lucy hook - must be called before useEffects that use its values
   const {
     isConnected,
@@ -116,55 +123,62 @@ export default function DashboardPage() {
     disconnect,
     updateAvatar,
     checkAccess,
+    connectionState,
   } = useLucy21()
 
-  // Camera virtuelle (app de bureau) : lance OBS + cree la source "ChapCam"
-  // automatiquement quand le Live Swap demarre, pour que WhatsApp voie l'avatar.
-  const {
-    available: vcamAvailable,
-    start: vcamStart,
-    launchObs: vcamLaunchObs,
-    state: vcamState,
-  } = useVirtualCamera()
+  // Camera virtuelle (app de bureau) : NI le mode Stream NI la camera
+  // virtuelle (OBS / pilote) ne se lancent automatiquement au demarrage du
+  // Live Swap. L'utilisateur active manuellement le bouton "Stream" quand il
+  // veut une sortie plein ecran pour OBS, et lance OBS via l'indicateur
+  // "Pret a diffuser" quand il est pret a diffuser vers WhatsApp/Zoom.
+  // (Ancien comportement retire le 19/08 : le double demarrage automatique
+  // provoquait des boucles kill/relance OBS — ~60 s de sortie noire.)
 
   // Suivi des dimensions de la video de sortie (diagnostic)
   useEffect(() => {
-    if (!isConnected) {
-      setRemoteVideoDims(null)
-      return
-    }
+    if (!isConnected) return
     const interval = setInterval(() => {
       const el = remoteVideoRef.current
       if (el && el.videoWidth > 0 && el.videoHeight > 0) {
         setRemoteVideoDims({ w: el.videoWidth, h: el.videoHeight })
       }
     }, 2000)
-    return () => clearInterval(interval)
-  }, [isConnected])
+    return () => {
+      clearInterval(interval)
+      // Reset au démontage / déconnexion (cleanup, pas de setState synchrone
+      // dans le corps de l'effet).
+      setRemoteVideoDims(null)
+    }
+  }, [isConnected, remoteVideoRef])
 
   // ============================================================================
-  // STREAM MODE AUTO : quand l'app desktop (Electron) est connectee, on force
-  // le mode Stream pour qu'OBS capture UNIQUEMENT l'avatar (pas l'UI, pas le
-  // miroir CSS). Sans ca, WhatsApp/Zoom captent la fenetre avec sidebar/spinner
-  // et l'avatar inverse — donc l'interlocuteur voit du n'importe quoi.
-  // L'utilisateur peut quand meme quitter le mode Stream via Echap ou le bouton.
+  // MODE STREAM MANUEL UNIQUEMENT : le mode Stream (plein ecran de la sortie
+  // ChapCam pour la capture OBS) ne se lance PLUS automatiquement au demarrage
+  // du Live Swap. L'utilisateur l'active quand il le souhaite via le bouton
+  // "Stream" (Tv) et le quitte via "Quitter Stream" ou Echap.
+  // L'ancien useEffect auto-forcait streamMode=true des la connexion, ce qui
+  // masquait brutalement toute l'interface sans action de l'utilisateur.
+  // Note : en mode Stream actif, le miroir CSS de la sortie est desactive par
+  // le rendu (isStreamActive), l'avatar reste dans le bon sens pour OBS.
   // ============================================================================
   useEffect(() => {
-    if (!isDesktop) return
-    if (isConnected && !streamMode) {
-      setStreamMode(true)
-      // Dans WhatsApp, l'interlocuteur doit voir l'avatar NON mirroré (le miroir
-      // est un confort local pour l'utilisateur, comme dans un miroir physique).
-      if (mirrorOutput) setMirrorOutput(false)
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setStreamMode(false)
     }
-  }, [isDesktop, isConnected, streamMode, mirrorOutput])
+    if (!streamMode) return
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [streamMode])
 
-  const supabase = createClient()
+  // Instance Supabase stable (memoïsée) : peut figurer dans les deps des effets.
+  const supabase = useMemo(() => createClient(), [])
 
   // Charger les preferences sauvegardees uniquement cote client (apres montage)
-  // pour eviter tout mismatch d'hydratation avec le rendu serveur.
+  // pour eviter tout mismatch d'hydratation avec le rendu serveur. Lecture
+  // différée d'un tick pour éviter un setState synchrone dans l'effet.
   useEffect(() => {
-    setPreferences(loadProcessingPreferences())
+    const t = setTimeout(() => setPreferences(loadProcessingPreferences()), 0)
+    return () => clearTimeout(t)
   }, [])
 
   // Detecter le hardware au montage
@@ -176,9 +190,13 @@ export default function DashboardPage() {
       // Si PC gamer detecte, forcer le mode local obligatoirement
       if (caps.isGamingPC) {
         setProcessingMode('local')
-        const forcedPrefs = { ...preferences, mode: 'local' as const }
-        setPreferences(forcedPrefs)
-        saveProcessingPreferences(forcedPrefs)
+        // Garde anti-boucle : l'effet a `preferences` dans ses deps, on ne
+        // réécrit donc les préférences que si elles ne sont pas déjà en local.
+        if (preferences.mode !== 'local') {
+          const forcedPrefs = { ...preferences, mode: 'local' as const }
+          setPreferences(forcedPrefs)
+          saveProcessingPreferences(forcedPrefs)
+        }
         setStats(prev => ({ ...prev, resolution: caps.gpuTier === 'high' ? '1080p' : '720p', fps: caps.gpuTier === 'high' ? 30 : 25 }))
       } else {
         // PC classique: determiner le mode optimal (cloud par defaut)
@@ -188,7 +206,7 @@ export default function DashboardPage() {
       }
     }
     detectHardware()
-  }, [networkQuality])
+  }, [networkQuality, preferences])
 
   // Surveiller la qualite reseau
   useEffect(() => {
@@ -243,7 +261,7 @@ export default function DashboardPage() {
     }
 
     loadData()
-  }, [])
+  }, [supabase])
 
   // Envoie au serveur les points consommes mais pas encore synchronises.
   // Utilise des refs -> aucune closure perimee. Rejoue le lot en cas d'echec.
@@ -268,7 +286,7 @@ export default function DashboardPage() {
           remainingRef.current = data.currentPoints
           setUserPoints(data.currentPoints)
         }
-        if (data.depleted) handleStopSwapAndSave()
+        if (data.depleted) handleStopSwapAndSaveRef.current()
       } else {
         // Echec -> on remet le lot en attente pour re-essayer au prochain tick.
         pendingSyncRef.current += chunk
@@ -308,7 +326,7 @@ export default function DashboardPage() {
 
       // Solde epuise -> couper le swap et sauvegarder le reste.
       if (remainingRef.current <= 0) {
-        handleStopSwapAndSave()
+        handleStopSwapAndSaveRef.current()
       }
     }, 1000)
     return () => clearInterval(interval)
@@ -371,6 +389,13 @@ export default function DashboardPage() {
     durationRef.current = 0
   }, [disconnect, isSyncingPoints, syncPendingPoints])
 
+  // Expose la version à jour de handleStopSwapAndSave via une ref (les
+  // intervalles l'appellent via la ref pour éviter closures périmées et
+  // dépendance circulaire).
+  useEffect(() => {
+    handleStopSwapAndSaveRef.current = handleStopSwapAndSave
+  }, [handleStopSwapAndSave])
+
   // === TRACKING UTILISATEURS ACTIFS ===
   useEffect(() => {
     const trackActivity = async () => {
@@ -404,7 +429,7 @@ export default function DashboardPage() {
     const interval = setInterval(trackActivity, 30000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [supabase])
 
   const handleStartSwap = async () => {
     if (!selectedAvatar || !swapConsent) return
@@ -439,23 +464,9 @@ export default function DashboardPage() {
       remainingRef.current = FREE_MODE ? FREE_UNLIMITED_POINTS : userPoints
       await connect(selectedAvatar.url)
 
-      // App de bureau : activer la diffusion vers WhatsApp/Zoom des que le swap
-      // demarre. Lance OBS (et cree/recree la source "ChapCam" automatiquement)
-      // si ce n'est pas deja fait. L'utilisateur n'a plus a cliquer sur un
-      // bouton separe ni a configurer OBS a la main.
-      if (isDesktop && vcamAvailable) {
-        try {
-          // 1. OBS + scene/source "ChapCam" (force=true : recree la source si
-          //    la fenetre cible a change, sinon OBS garderait une ancienne
-          //    source perimee -> image noire dans l'appel video).
-          await vcamLaunchObs({ force: true })
-          // 2. Demarrer la Virtual Camera OBS (le mode 'obs' fait capturer la
-          //    fenetre ChapCam par OBS lui-meme, aucun pixel cote renderer).
-          await vcamStart({ width: 1280, height: 720, fps: 30 })
-        } catch (vcamErr) {
-          console.warn('[live-swap] Echec activation diffusion OBS:', vcamErr)
-        }
-      }
+      // NB : aucune activation automatique de la diffusion OBS / camera
+      // virtuelle ici (voir commentaire plus haut) — l'utilisateur la lance
+      // manuellement quand il en a besoin.
     } catch (err: unknown) {
       console.error('[live-swap] Erreur demarrage swap:', err)
       const message =
@@ -566,19 +577,27 @@ export default function DashboardPage() {
             overflow: hidden !important;
           }
 
-          /* Tout element de la page SAUF le stage est invisible
-             MAIS reste dans le flux (pour ne pas casser la video).
-             On utilise opacity:0 + position fixes qui ne chevauchent rien. */
-          .cc-stream-root > *:not(.cc-keep-tree) {
-            opacity: 0 !important;
-            pointer-events: none !important;
-            position: absolute !important;
-            left: -99999px !important;
-            top: -99999px !important;
-            width: 1px !important;
-            height: 1px !important;
-            overflow: hidden !important;
-          }
+          /* Tout element SAUF le stage et ses ancêtres est caché.
+              FIX écran noir (02/2026) : l'ancien sélecteur masquait TOUT les enfants directs
+              avec opacity:0, y compris le grid parent du stage -> le stage fixed héritait
+              de l'opacity 0 et OBS capturait du noir. On garde les ancêtres du stage
+              (.cc-keep-tree) visibles et on cache leurs frères via display:none. */
+           .cc-stream-root > *:not(.cc-keep-tree):not(:has(.cc-cam-stage)) {
+             display: none !important;
+           }
+           .cc-stream-root > .cc-keep-tree {
+             display: block !important;
+             opacity: 1 !important;
+             position: static !important;
+             width: auto !important;
+             height: auto !important;
+             overflow: visible !important;
+             left: auto !important;
+             top: auto !important;
+           }
+           .cc-keep-tree > *:not(.cc-keep-tree):not(.cc-cam-stage):not(:has(.cc-cam-stage)) {
+             display: none !important;
+           }
 
           /* Empecher le scroll pendant le Stream Mode */
           html, body {
@@ -744,6 +763,29 @@ export default function DashboardPage() {
               </span>
               {error && <span className="text-red-400 truncate max-w-[200px]" title={error}>{error}</span>}
             </div>
+            <button
+              onClick={async () => {
+                try {
+                  const api = (window as any).electronAPI
+                  if (!api?.getDebugLog) return
+                  const log = await api.getDebugLog()
+                  const prefix =
+                    `ChapCam diagnostic ${new Date().toISOString()}\n` +
+                    `isElectron=${isElectron()} isConnected=${isConnected} isConnecting=${isConnecting} error=${error}\n` +
+                    `connectionState=${connectionState} streamMode=${streamMode} remoteDims=${remoteVideoDims ? `${remoteVideoDims.w}x${remoteVideoDims.h}` : 'none'}\n\n`
+                  await navigator.clipboard.writeText(prefix + log)
+                  setDebugCopied(true)
+                  setTimeout(() => setDebugCopied(false), 2000)
+                } catch (e) {
+                  console.error('[live-swap] Copie diagnostic:', e)
+                }
+              }}
+              className="ml-auto flex h-7 items-center gap-1.5 rounded-md border border-hairline bg-muted px-2.5 text-[10px] font-semibold text-foreground/70 transition-colors hover:border-hairline-strong hover:text-foreground"
+              title="Copier les logs de diagnostic dans le presse-papiers"
+            >
+              <AlertTriangle className="h-3 w-3" />
+              {debugCopied ? 'Copié !' : 'Diagnostic'}
+            </button>
           </>
         )}
       </div>
@@ -809,7 +851,7 @@ export default function DashboardPage() {
             <ul className="mt-1.5 text-xs text-foreground/60 list-disc list-inside space-y-0.5">
               <li>Téléchargez <strong>ChapCam Desktop</strong> (fichier <code className="px-1 bg-black/30 rounded">.exe</code>)</li>
               <li>Installez-le, puis installez <strong>OBS Studio</strong> (obsproject.com) si ce n&apos;est pas déjà fait</li>
-              <li>L&apos;app lance OBS automatiquement avec sa Virtual Camera</li>
+              <li>Démarrez le Live Swap, puis lancez OBS depuis le bouton « Lancer OBS »</li>
               <li>Dans WhatsApp/Zoom/OBS : choisissez <strong>OBS Virtual Camera</strong></li>
             </ul>
             <div className="mt-2 flex items-center gap-2 flex-wrap">
@@ -868,12 +910,12 @@ export default function DashboardPage() {
           le pilote "ChapCam Camera" (fallback), voir VirtualCameraIndicator. */}
 
       {/* Main layout : contenu + panneau de reglages */}
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <div className={`grid gap-6 lg:grid-cols-[1fr_340px] ${isStreamActive ? 'cc-keep-tree' : ''}`}>
         {/* Colonne principale */}
-        <div className="space-y-6">
+        <div className={`space-y-6 ${isStreamActive ? 'cc-keep-tree' : ''}`}>
           {/* Cameras avec cercle IA — la camera ChapCam est volontairement plus grande
               pour faciliter la capture en fenetre dans OBS */}
-          <div className="relative grid gap-6 md:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)]">
+          <div className={`relative grid gap-6 md:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] ${isStreamActive ? 'cc-keep-tree' : ''}`}>
             {/* Camera reelle */}
             <div className="overflow-hidden rounded-2xl border border-hairline bg-card shadow-[0_8px_40px_rgba(0,0,0,0.4)]">
               <div className="flex items-center gap-2 border-b border-hairline bg-muted px-4 py-2.5 backdrop-blur-md">
@@ -1074,9 +1116,11 @@ export default function DashboardPage() {
               <p className="mb-3 text-sm font-semibold text-foreground">Avatar sélectionné</p>
               {selectedAvatar ? (
                 <div className="flex items-center gap-3">
-                  <img
+                  <Image
                     src={selectedAvatar.url || '/placeholder.svg'}
                     alt={selectedAvatar.name}
+                    width={56}
+                    height={56}
                     className="h-14 w-14 rounded-xl border border-primary/40 object-cover"
                   />
                   <div className="min-w-0 flex-1">
@@ -1121,7 +1165,7 @@ export default function DashboardPage() {
                           : 'border-hairline hover:border-white/30'
                       }`}
                     >
-                      <img src={avatar.url || '/placeholder.svg'} alt={avatar.name} className="h-full w-full object-cover" />
+                      <Image src={avatar.url || '/placeholder.svg'} alt={avatar.name} fill sizes="80px" className="object-cover" />
                       {selectedAvatar?.id === avatar.id && (
                         <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary">
                           <Check className="h-3 w-3 text-black" />

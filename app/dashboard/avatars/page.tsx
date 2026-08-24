@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { 
   Plus, 
   Trash2, 
@@ -289,11 +290,13 @@ export default function AvatarsPage() {
               }`}
               onClick={() => handleSetActive(avatar)}
             >
-              <div className="aspect-[3/4]">
-                <img
+              <div className="relative aspect-[3/4]">
+                <Image
                   src={avatar.url}
                   alt={avatar.name}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                  className="object-cover"
                 />
               </div>
               
@@ -334,7 +337,7 @@ export default function AvatarsPage() {
           <div className="space-y-4">
             {/* Name input */}
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">Nom de l'avatar</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">Nom de l&apos;avatar</label>
               <Input
                 value={avatarName}
                 onChange={(e) => setAvatarName(e.target.value)}
@@ -355,6 +358,9 @@ export default function AvatarsPage() {
             >
               {previewUrl ? (
                 <div className="relative">
+                  {/* URL blob: (apercu local du fichier selectionne) — non
+                      optimisable par next/image, on garde <img>. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={previewUrl} alt="Preview" className="max-h-64 mx-auto rounded-lg" />
                   <button
                     onClick={(e) => {

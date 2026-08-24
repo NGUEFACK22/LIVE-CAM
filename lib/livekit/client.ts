@@ -24,6 +24,15 @@ export class LiveKitClient {
   async connect(config: LiveKitConfig, callbacks?: RoomCallbacks): Promise<Room> {
     this.callbacks = callbacks || {}
 
+    // Deconnecter proprement tout room precedent avant d'en ouvrir un nouveau.
+    // Sans cela, un second connect() (re-essai, double clic) laissait l'ancien
+    // room ouvert : camera encore active, bande passante consommee, et le
+    // client LiveKit creait un event listener par room (fuite memoire).
+    if (this.room) {
+      await this.room.disconnect().catch(() => {})
+      this.room = null
+    }
+
     this.room = new Room({
       adaptiveStream: true,
       dynacast: true,

@@ -36,9 +36,14 @@ export function ChapCamPcCountdown({ compact = false }: { compact?: boolean }) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null)
 
   useEffect(() => {
-    setTimeLeft(computeTimeLeft())
+    // Premier calcul différé d'un tick (règle set-state-in-effect) : le
+    // compte à rebours démarre dès la première seconde.
+    const t = setTimeout(() => setTimeLeft(computeTimeLeft()), 0)
     const id = setInterval(() => setTimeLeft(computeTimeLeft()), 1000)
-    return () => clearInterval(id)
+    return () => {
+      clearTimeout(t)
+      clearInterval(id)
+    }
   }, [])
 
   const units = [

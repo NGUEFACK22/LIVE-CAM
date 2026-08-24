@@ -58,6 +58,9 @@ export default function MesDemandesPage() {
   }, [])
 
   useEffect(() => {
+    // Chargement initial : load() est async, les setState ont lieu dans les
+    // callbacks du fetch (jamais pendant le rendu) → règle désactivée ciblée.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
   }, [load])
 

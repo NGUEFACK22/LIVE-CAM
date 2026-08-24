@@ -73,6 +73,10 @@ export interface ElectronAPI {
   // Platform detection
   isElectron: boolean
   platform: NodeJS.Platform
+
+  // Journal de diagnostic : recuperer / vider les logs (ecran noir)
+  getDebugLog?: () => Promise<string>
+  clearDebugLog?: () => Promise<boolean>
 }
 
 declare global {
@@ -148,5 +152,5 @@ export async function getAppVersion(): Promise<string> {
     return api.getAppVersion()
   }
   
-  return '1.0.12'
+  return '1.0.13'
 }

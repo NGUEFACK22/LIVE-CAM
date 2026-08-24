@@ -55,14 +55,103 @@ let mainWindow
 let splashWindow
 let tray
 let nextServer
+// Compteur de redemarrages consecutifs du serveur Next (anti boucle infinie)
+let nextServerRestartAttempts = 0
 
 const isDev = process.env.NODE_ENV === 'development'
-const PORT = 3000
+let PORT = Number(process.env.PORT || 3000)
+
+// Trouve le premier port libre à partir de PORT (évite EADDRINUSE si 3000 pris par un autre logiciel)
+async function findFreePort(start) {
+  const net = require('net')
+  return new Promise((resolve) => {
+    const probe = net.createServer()
+    probe.once('error', (err) => {
+      if (err && err.code === 'EADDRINUSE') {
+        resolve(findFreePort(start + 1))
+      } else {
+        resolve(start)
+      }
+    })
+    probe.once('listening', () => {
+      probe.close(() => resolve(start))
+    })
+    probe.listen(start, '127.0.0.1')
+  })
+}
 
 // Debug logging
+// IMPORTANT : log() ecrit AUSSI dans le journal de diagnostic (fichier
+// chapcam-debug.log). Sans cela, les logs du processus principal (demarrage
+// du serveur Next, relances, rechargements de fenetre, did-fail-load) partent
+// sur stdout et sont INVISIBLES dans le journal — impossible de diagnostiquer
+// un ecran noir ou un rechargement intempestif.
 function log(message) {
   console.log(`[ChapCam] ${message}`)
+  try {
+    writeDebugLog(`[${new Date().toISOString()}] [main] [ChapCam] ${message}`)
+  } catch (_) {}
 }
+
+// ---- JOURNAL DE DIAGNOSTIC (fix ecran noir) -------------------------------
+// L'app packagee n'a pas de console facilement accessible pour l'utilisateur.
+// On capture TOUS les console.log du renderer (les logs [Lucy 2.1], [Next.js],
+// [live-swap]...) et on les ecrit dans un fichier local. Un bouton
+// "Diagnostic" dans la page Live Swap les copie dans le presse-papiers, ce qui
+// permet de diagnostiquer un ecran noir sans DevTools.
+let debugLogPath = null
+let debugLogFd = null
+function initDebugLog() {
+  try {
+    const dir = app.getPath('userData')
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+    debugLogPath = path.join(dir, 'chapcam-debug.log')
+    debugLogFd = fs.openSync(debugLogPath, 'a')
+    // Tronquer si le fichier depasse 2 Mo (rotation simple)
+    try {
+      const stat = fs.statSync(debugLogPath)
+      if (stat.size > 2 * 1024 * 1024) {
+        fs.truncateSync(debugLogPath, 0)
+      }
+    } catch (_) {}
+    log(`Journal de diagnostic: ${debugLogPath}`)
+  } catch (e) {
+    log(`Erreur init journal diagnostic: ${e.message}`)
+  }
+}
+function writeDebugLog(line) {
+  try {
+    if (debugLogFd) fs.writeSync(debugLogFd, line + '\n')
+  } catch (_) {}
+}
+function clearDebugLogFile() {
+  try {
+    if (debugLogFd) {
+      fs.closeSync(debugLogFd)
+      debugLogFd = null
+    }
+    if (debugLogPath && fs.existsSync(debugLogPath)) fs.unlinkSync(debugLogPath)
+    initDebugLog()
+  } catch (_) {}
+}
+
+// ---- CAPTURE DES CRASH / EXCEPTIONS (diagnostic ecran noir) ---------------
+// Toute exception non geree du processus principal tue l'app SANS aucun log
+// (c'est exactement ce qui s'est passe : "Page leave detected" puis silence
+// total au demarrage OBS). On capture tout ce qui peut tuer le main pour
+// pouvoir le voir dans chapcam-debug.log au prochain incident.
+process.on('uncaughtException', (err) => {
+  try {
+    writeDebugLog(`[${new Date().toISOString()}] [main] [FATAL] uncaughtException: ${err && err.stack ? err.stack : String(err)}`)
+  } catch (_) {}
+  console.error('[ChapCam] uncaughtException:', err)
+})
+process.on('unhandledRejection', (reason) => {
+  try {
+    writeDebugLog(`[${new Date().toISOString()}] [main] [FATAL] unhandledRejection: ${reason && reason.stack ? reason.stack : String(reason)}`)
+  } catch (_) {}
+  console.error('[ChapCam] unhandledRejection:', reason)
+})
 
 // Create splash screen
 function createSplashScreen() {
@@ -200,7 +289,13 @@ function createWindow() {
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js'),
       webSecurity: !isDev,
-      devTools: true
+      devTools: true,
+      // Ne JAMAIS geler la page en arriere-plan : Chromium peut "freezer" une
+      // page cachee (Page Lifecycle API) et livekit ecoute l'evenement
+      // 'freeze' -> il se deconnecte -> "Page leave detected" -> session
+      // live swap tuee alors que l'utilisateur est juste passe sur une autre
+      // fenetre ou que Windows a reduit l'activite.
+      backgroundThrottling: false
     },
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     backgroundColor: '#0a0e1a',
@@ -287,20 +382,66 @@ function createWindow() {
     showMainWindow()
   })
 
+  // Capturer tous les logs du renderer vers le journal de diagnostic (ecran
+  // noir : permet de voir l'etat reel de la connexion Decart/LiveKit sans
+  // DevTools).
+  //
+  // IMPORTANT (Electron >= 30) : la signature historique
+  // (event, level, message, line, sourceId) a ete RETIREE. Les proprietes
+  // (level, message, lineNumber, sourceId) sont portees par l'objet event.
+  // On lit donc l'objet event en priorite, avec repli sur les args positionnels
+  // pour les anciennes versions d'Electron.
+  mainWindow.webContents.on('console-message', (event, legacyLevel, legacyMessage) => {
+    try {
+      const ts = new Date().toISOString()
+      const level =
+        typeof event?.level === 'number' || typeof event?.level === 'string'
+          ? event.level
+          : legacyLevel
+      const message =
+        typeof event?.message === 'string' ? event.message : legacyMessage
+      writeDebugLog(`[${ts}] [${level}] ${message}`)
+    } catch (_) {}
+  })
+
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
-    log(`Failed to load: ${errorDescription} (${errorCode}) - URL: ${validatedURL}`)
+    // IMPORTANT : ce handler se declenche pour CHAQUE frame, y compris les
+    // ressources secondaires (image, script, favicon, font). Sans le filtre
+    // isMainFrame, l'echec d'une simple ressource rechargeait TOUTE la page
+    // vers l'URL de la ressource cassee -> boucle de rechargements -> ecran
+    // noir, et chaque rechargement tuait la session live swap en cours
+    // ("Page leave detected" de livekit). On ne reagit qu'aux echecs de la
+    // frame principale.
+    if (!event.isMainFrame) return
+    log(`Failed to load (main frame): ${errorDescription} (${errorCode}) - URL: ${validatedURL}`)
     // Ne plus basculer sur la page d'erreur "recharger" : l'app est 100%
-    // locale (localhost) et le serveur tourne. On retente simplement le
-    // chargement, l'utilisateur ne voit jamais de fausse erreur.
+    // locale (localhost) et le serveur tourne. On retente le chargement de la
+    // PAGE (pas de validatedURL, qui peut etre une ressource cassee) avec un
+    // delai, sans boucle infinie.
     if (!app.isQuitting && validatedURL && validatedURL.startsWith(`http://localhost:${PORT}`)) {
       setTimeout(() => {
-        if (mainWindow && !mainWindow.isDestroyed()) mainWindow.loadURL(validatedURL)
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.loadURL(`http://localhost:${PORT}/dashboard/live-swap`).catch(() => {})
+        }
       }, 800)
     }
   })
 
+  // Crash du renderer : la version moderne d'Electron utilise
+  // 'render-process-gone' (avec la raison exacte : oom, crashed, killed...) au
+  // lieu de l'ancien 'crashed'. On ecoute les DEUX pour etre sur de capter le
+  // crash dans le journal.
   mainWindow.webContents.on('crashed', () => {
-    log('Renderer process crashed')
+    log('Renderer process crashed (crashed)')
+  })
+  mainWindow.webContents.on('render-process-gone', (_event, details) => {
+    log(`Renderer process gone: reason=${details && details.reason} exitCode=${details && details.exitCode} (diagnostic)`)
+  })
+  mainWindow.webContents.on('unresponsive', () => {
+    log('Renderer process unresponsive')
+  })
+  mainWindow.webContents.on('gpu-process-crashed', (_event, killed) => {
+    log(`GPU process crashed (killed=${killed})`)
   })
 
   // Handle window close
@@ -362,8 +503,8 @@ function loadApp() {
   // et non la page marketing (/), qui est sombre (#0a0e1a) : OBS capture la
   // fenêtre et l'envoie à WhatsApp — sans ça, WhatsApp voit un écran noir tant
   // que l'utilisateur n'a pas navigué manuellement jusqu'au studio. Si la
-  // session n'est pas active, le middleware redirige vers /auth/login (une
-  // seule connexion nécessaire, la session persiste ensuite).
+  // session n'est pas active, le proxy (proxy.ts, ex-middleware) redirige
+  // vers /auth/login (une seule connexion nécessaire, la session persiste ensuite).
   const appUrl = `http://localhost:${PORT}/dashboard/live-swap`
   log(`Loading app URL: ${appUrl}`)
   mainWindow.loadURL(appUrl)
@@ -690,6 +831,24 @@ ipcMain.handle('get-platform', () => {
   return process.platform
 })
 
+// Journal de diagnostic : recuperer / vider les logs captures (bouton
+// "Diagnostic" de la page Live Swap).
+ipcMain.handle('get-debug-log', () => {
+  try {
+    if (debugLogPath && fs.existsSync(debugLogPath)) {
+      const txt = fs.readFileSync(debugLogPath, 'utf8')
+      // Garder les 400 dernieres lignes (le fichier peut etre gros)
+      const lines = txt.split(/\r?\n/)
+      return lines.slice(-400).join('\n')
+    }
+  } catch (_) {}
+  return ''
+})
+ipcMain.handle('clear-debug-log', () => {
+  clearDebugLogFile()
+  return true
+})
+
 // Start Next.js dev server in development
 function startNextServer() {
   if (isDev) {
@@ -710,12 +869,19 @@ function startNextServer() {
     )
     
     nextServer.stdout.on('data', (data) => {
-      console.log(`[Next.js] ${data}`)
+      const txt = String(data).trim()
+      if (!txt) return
+      console.log(`[Next.js] ${txt}`)
+      writeDebugLog(`[${new Date().toISOString()}] [next] ${txt}`)
     })
     
     nextServer.stderr.on('data', (data) => {
-      console.error(`[Next.js Error] ${data}`)
+      const txt = String(data).trim()
+      if (!txt) return
+      console.error(`[Next.js Error] ${txt}`)
+      writeDebugLog(`[${new Date().toISOString()}] [next-error] ${txt}`)
     })
+    watchNextServer()
     return
   }
 
@@ -743,11 +909,53 @@ function startNextServer() {
   })
 
   nextServer.stdout.on('data', (data) => {
-    console.log(`[Next.js] ${data}`)
+    const txt = String(data).trim()
+    if (!txt) return
+    console.log(`[Next.js] ${txt}`)
+    writeDebugLog(`[${new Date().toISOString()}] [next] ${txt}`)
   })
 
   nextServer.stderr.on('data', (data) => {
-    console.error(`[Next.js Error] ${data}`)
+    const txt = String(data).trim()
+    if (!txt) return
+    console.error(`[Next.js Error] ${txt}`)
+    writeDebugLog(`[${new Date().toISOString()}] [next-error] ${txt}`)
+  })
+
+  // Relance automatique du serveur Next s'il meurt (crash, OOM, veille
+  // Windows...). SANS ce garde-fou, l'app continue de tourner (le renderer
+  // garde la page en memoire et le tracking Supabase externe fonctionne) mais
+  // TOUT fetch vers l'API locale (/api/live/access, /api/points...) echoue
+  // avec "TypeError: Failed to fetch" -> le bouton "Demarrer le live swap"
+  // affiche "Impossible de verifier l'acces".
+  watchNextServer()
+}
+
+// Surveille la vie du serveur Next et le relance s'il meurt.
+// Backoff exponentiel (2s, 4s, 8s, 16s) plafonne a 60s, puis abandon apres
+// 10 tentatives pour ne pas boucler indefiniment si le port est vraiment pris.
+function watchNextServer() {
+  if (!nextServer) return
+  nextServer.on('exit', (code, signal) => {
+    if (app.isQuitting) return
+    nextServerRestartAttempts++
+    if (nextServerRestartAttempts > 10) {
+      log(`Serveur Next abandonne apres ${nextServerRestartAttempts} relances (code=${code}, signal=${signal})`)
+      return
+    }
+    const delay = Math.min(2000 * Math.pow(2, nextServerRestartAttempts - 1), 60000)
+    log(`Serveur Next arrete (code=${code}, signal=${signal}) — relance dans ${delay}ms (tentative ${nextServerRestartAttempts})`)
+    setTimeout(() => {
+      if (app.isQuitting) return
+      startNextServer()
+      // Recharger la fenetre : le renderer avait la page en memoire avec une
+      // API morte ; il faut refaire le tour (auth + fetch /api/*) pour que le
+      // live swap retrouve son backend.
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        log('Rechargement de la fenetre apres relance du serveur Next')
+        mainWindow.loadURL(`http://localhost:${PORT}/dashboard/live-swap`).catch(() => {})
+      }
+    }, delay)
   })
 }
 
@@ -765,6 +973,9 @@ function waitForNextServer(timeoutMs = 60000) {
         { host: '127.0.0.1', port: PORT, path: '/', timeout: 1500 },
         (res) => {
           res.resume()
+          // Le serveur repond : reinitialiser le compteur de relances (les
+          // redemarrages precedents ont abouti).
+          nextServerRestartAttempts = 0
           resolve(true)
         },
       )
@@ -787,11 +998,25 @@ function waitForNextServer(timeoutMs = 60000) {
 }
 
 // App lifecycle
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   log('App ready')
+  initDebugLog()
+
+  // Port libre : si 3000 est occupé (autre app), on bascule sur 3001/3002...
+  // Sinon Next échoue silencieusement et la fenêtre reste sur "Impossible de charger".
+  try {
+    const free = await findFreePort(PORT)
+    if (free !== PORT) {
+      log(`Port ${PORT} occupé -> bascule sur ${free}`)
+      PORT = free
+      process.env.PORT = String(PORT)
+    }
+  } catch (e) {
+    log(`findFreePort échec: ${e.message}`)
+  }
 
   // ---- FIX CORS SUPABASE (login/inscription "Failed to fetch") ------------
-  // L'app charge l'UI depuis http://localhost:3000 (serveur Next embarque).
+  // L'app charge l'UI depuis http://localhost:PORT (serveur Next embarque).
   // supabase-js (gotrue) envoie credentials:'include' sur /auth/v1/*. Or
   // Supabase repond Access-Control-Allow-Origin:* sans Allow-Credentials, ce
   // que Chromium refuse pour une requete cross-origin avec credentials -> le

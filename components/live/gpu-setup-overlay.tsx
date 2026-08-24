@@ -21,12 +21,13 @@ export function GpuSetupOverlay({ status, queuePosition, queueTotal, saturated, 
   // Chronometre d'attente (affiche depuis combien de temps on patiente)
   const [elapsed, setElapsed] = useState(0)
   useEffect(() => {
-    if (!visible) {
-      setElapsed(0)
-      return
-    }
+    if (!visible) return
     const t = setInterval(() => setElapsed((s) => s + 1), 1000)
-    return () => clearInterval(t)
+    return () => {
+      clearInterval(t)
+      // Reset quand l'overlay disparaît (cleanup, pas le corps de l'effet).
+      setElapsed(0)
+    }
   }, [visible])
 
   if (!visible) return null

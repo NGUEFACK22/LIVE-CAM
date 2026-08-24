@@ -21,9 +21,11 @@ files:
 # echoue et l'app affiche une erreur "processus principal". On de-paquete
 # donc node_modules, .next, public ET .env.local hors asar (dans
 # app.asar.unpacked) et on pointe le serveur Next vers ce dossier reel.
-# .env.local est lu par `next start` au demarrage (DECART_API_KEY et cie).
-# S'il restait dans l'asar, le process Next (ELECTRON_RUN_AS_NODE = node
-# pur, sans support asar) ne pourrait pas le lire et le swap IA echouerait.
+# .env.local est lu par `next start` au demarrage (NEXT_PUBLIC_* et fallback
+# DECART_API_KEY). IMPORTANT : scripts/build-electron-win.mjs SANITIZE ce fichier
+# AVANT packaging (DECART_API_KEY/SERVICE_ROLE blanchis) — voir mjs:3b.
+# La vraie clé Decart est fournie à chaud via Supabase app_config (lib/decart-config.ts:71),
+# les NEXT_PUBLIC_* restent inlinés dans .next au build.
 asarUnpack:
   - "node_modules/**/*"
   - ".next/**/*"

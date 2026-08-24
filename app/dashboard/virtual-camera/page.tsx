@@ -187,9 +187,9 @@ export default function VirtualCameraPage() {
           <div className="mx-auto max-w-2xl rounded-xl border border-primary/30 bg-black/50 p-3 backdrop-blur-md">
             <p className="text-xs font-semibold text-primary mb-1">Pour utiliser dans un appel vidéo :</p>
             <ol className="text-[11px] text-foreground/70 space-y-1">
-              <li>1. Cliquez sur l'icône "Partager l'écran" dans votre app de visioconférence</li>
-              <li>2. Sélectionnez l'onglet "ChapCam Virtual Camera" ou toute la fenêtre</li>
-              <li>3. Le flux transformé par l'IA sera visible par les autres participants</li>
+              <li>1. Cliquez sur l&apos;icône &quot;Partager l&apos;écran&quot; dans votre app de visioconférence</li>
+              <li>2. Sélectionnez l&apos;onglet &quot;ChapCam Virtual Camera&quot; ou toute la fenêtre</li>
+              <li>3. Le flux transformé par l&apos;IA sera visible par les autres participants</li>
             </ol>
           </div>
         </div>

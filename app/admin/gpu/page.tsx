@@ -53,6 +53,10 @@ export default function AdminGpuPage() {
   }, [])
 
   useEffect(() => {
+    // Chargement initial + polling : load() est async, les setState ont lieu
+    // dans les callbacks du fetch (jamais pendant le rendu). Règle
+    // set-state-in-effect désactivée ciblée (elle ne modélise pas les await).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
     const interval = setInterval(load, 3000)
     return () => clearInterval(interval)

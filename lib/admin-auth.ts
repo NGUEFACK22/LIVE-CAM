@@ -4,8 +4,9 @@ import { ADMIN_EMAIL } from '@/lib/admin-email'
 export { ADMIN_EMAIL }
 
 // Verifie que la requete provient bien de l'admin connecte.
-// Le middleware ne protege PAS les routes /api/admin (il retourne tot
-// pour la plupart des routes API), donc chaque route admin doit appeler ceci.
+// Le proxy (proxy.ts, ex-middleware) protege deja /api/admin en premiere
+// couche (utilisateur connecte + email admin), mais chaque route admin
+// rappelle ceci en defense en profondeur.
 export async function isAdminRequest(): Promise<boolean> {
   try {
     const supabase = await createClient()

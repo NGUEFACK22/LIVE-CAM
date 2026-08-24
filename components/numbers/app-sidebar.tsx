@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -79,9 +80,11 @@ function SidebarInner({ onNavigate }: { onNavigate?: () => void }) {
         className="group block overflow-hidden rounded-xl border border-white/10 shadow-lg shadow-[#7c3aed]/20 transition-transform duration-200 hover:scale-[1.02]"
         aria-label="Découvrir ChapSim"
       >
-        <img
+        <Image
           src="/chapsim/presentation.jpg"
           alt="ChapSim — Numéros virtuels, SMS OTP et proxies premium"
+          width={1280}
+          height={625}
           className="h-auto w-full"
         />
       </Link>

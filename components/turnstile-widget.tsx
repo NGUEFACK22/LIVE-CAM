@@ -61,9 +61,10 @@ export function TurnstileWidget({ onVerify, onExpire, theme = 'dark' }: Turnstil
   const widgetIdRef = useRef<string | null>(null)
   const onVerifyRef = useRef(onVerify)
   const onExpireRef = useRef(onExpire)
-
-  onVerifyRef.current = onVerify
-  onExpireRef.current = onExpire
+  useEffect(() => {
+    onVerifyRef.current = onVerify
+    onExpireRef.current = onExpire
+  }, [onVerify, onExpire])
 
   const render = useCallback(() => {
     if (!SITE_KEY || !containerRef.current || !window.turnstile) return

@@ -82,13 +82,20 @@ export function NumbersProvider({ user, children }: { user: AccountUser; childre
   }, [])
 
   useEffect(() => {
+    // Chargement initial : refreshState() est async, les setState ont lieu
+    // dans les callbacks du fetch (jamais pendant le rendu) → règle
+    // désactivée ciblée.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshState()
   }, [refreshState])
 
   // Sondage automatique tant qu'une activation attend un SMS.
   const hasWaiting = state.activations.some((a) => a.status === 'waiting')
   const waitingRef = useRef(hasWaiting)
-  waitingRef.current = hasWaiting
+  // Mise à jour de la ref dans un effet (jamais pendant le rendu).
+  useEffect(() => {
+    waitingRef.current = hasWaiting
+  }, [hasWaiting])
   useEffect(() => {
     if (!hasWaiting) return
     const interval = setInterval(() => {

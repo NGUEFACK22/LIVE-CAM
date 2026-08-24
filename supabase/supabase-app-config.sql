@@ -80,7 +80,7 @@ create policy "app_config_service_role_all"
 insert into public.app_config (key, value, description, updated_at)
 values (
   'decart_api_key',
-  'dct_chapcam_nnilEuDZOVTIehwBWZlChfSULtWsmMhDBHhnJndFxvTvZnIEclcdoBLoLYeuvGNW',
+  'dct_moi_HbgQYSUpZSaSZgzIiUNHGyFCjrQyNHDVuMHBRiGlYNjLRWowKBjQQRpoCyNuvuwO',
   'Cle API Decart principale pour le Live Swap (Lucy 2.5). Modifiable sans rebuild — tous les clients (web, desktop) lisent cette valeur a chaque demarrage de swap.',
   now()
 )

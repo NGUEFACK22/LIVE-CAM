@@ -95,6 +95,34 @@ try {
   fs.rmSync(path.join(root, '.next'), { recursive: true, force: true })
   log('Next build...')
   execSync('npx next build --webpack', { cwd: root, stdio: 'inherit' })
+
+  // --- 3b. Sanitization AVANT packaging : on ne doit PAS embarquer les secrets
+  // DECART_API_KEY / SUPABASE_SERVICE_ROLE_KEY en clair dans app.asar.unpacked/.env.local
+  // (extractible par 7zip). NEXT_PUBLIC_* sont déjà inlinés dans .next au build,
+  // le fichier embarqué ne sert que de fallback. On le réécrit sans les clés secrètes :
+  // Supabase app_config est la source prioritaire (lib/decart-config.ts:71) — fallback .env
+  // vide = l'app reste fonctionnelle (modif à chaud dans Supabase), mais la clé n'est plus
+  // extractible du .exe.
+  try {
+    const raw = fs.readFileSync(envLocal, 'utf8')
+    const sanitized = raw
+      .split(/\r?\n/)
+      .map((line) => {
+        if (/^\s*DECART_API_KEY\s*=/.test(line)) return '# DECART_API_KEY= (retirée du build — fournie via Supabase app_config)'
+        if (/^\s*DECART_API_KEY_NO_WATERMARK\s*=/.test(line)) return '# DECART_API_KEY_NO_WATERMARK= (retirée du build)'
+        if (/^\s*SUPABASE_SERVICE_ROLE_KEY\s*=/.test(line) && !/^\s*SUPABASE_SERVICE_ROLE_KEY\s*=\s*$/.test(line)) return 'SUPABASE_SERVICE_ROLE_KEY='
+        if (/^\s*(LIVE_GPU_SHARED_SECRET|RUNPOD_API_KEY|LIVEKIT_API_SECRET|RESEND_API_KEY|PAYDUNYA_|TRYBIT_|NOWPAYMENTS_|TURNSTILE_SECRET_KEY)\s*=/.test(line)) {
+          return line.replace(/=.*/, '=')
+        }
+        return line
+      })
+      .join('\n')
+    fs.writeFileSync(envLocal, sanitized, 'utf8')
+    log('Sanitization .env.local empaqueté : secrets retirés (DECART/supabase service_role blanchis)')
+  } catch (e) {
+    log(`Sanitization échouée (non bloquant): ${e.message}`)
+  }
+
   log('electron-builder --win...')
   execSync('npx electron-builder --win', { cwd: root, stdio: 'inherit' })
   log('BUILD TERMINE')

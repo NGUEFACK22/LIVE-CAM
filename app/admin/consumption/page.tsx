@@ -75,6 +75,10 @@ export default function AdminConsumptionPage() {
   }, [])
 
   useEffect(() => {
+    // Chargement initial : load() est async, tous les setState ont lieu dans
+    // les callbacks du fetch (jamais pendant le rendu). La règle
+    // set-state-in-effect ne modélise pas les `await` → désactivation ciblée.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load(period)
   }, [period, load])
 

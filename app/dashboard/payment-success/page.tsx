@@ -59,8 +59,10 @@ function PaymentSuccessContent() {
 
   useEffect(() => {
     if (!isCrypto && !token) {
-      setStatus('error')
-      return
+      // Pas de token dans l'URL : état d'erreur différé d'un tick (règle
+      // react-hooks/set-state-in-effect).
+      const t = setTimeout(() => setStatus('error'), 0)
+      return () => clearTimeout(t)
     }
     let active = true
     let timer: ReturnType<typeof setTimeout>

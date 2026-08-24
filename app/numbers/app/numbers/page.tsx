@@ -36,8 +36,15 @@ const STATUS_FR: Record<Activation['status'], string> = {
 }
 
 function CountdownLeft({ expiresAt }: { expiresAt: number | null }) {
+  // Date.now() pendant le rendu est interdit (règle react-hooks/purity) : on
+  // rafraîchit `now` via un intervalle (setState dans le callback du timer).
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [])
   if (!expiresAt) return null
-  const diff = expiresAt - Date.now()
+  const diff = expiresAt - now
   if (diff <= 0) return <span className="text-red-400">expiré</span>
   const mins = Math.floor(diff / 60000)
   const secs = Math.floor((diff % 60000) / 1000)

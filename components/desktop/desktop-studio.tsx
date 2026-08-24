@@ -54,6 +54,9 @@ export function DesktopStudio() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const logRef = useRef<HTMLDivElement>(null)
+  // Miroir d'état du flux caméra (les refs ne doivent pas être lues pendant
+  // le rendu — règle react-hooks/refs).
+  const [streamActive, setStreamActive] = useState(false)
 
   const pushLog = useCallback((line: string) => {
     const t = new Date().toLocaleTimeString('fr-FR', { hour12: false })
@@ -71,12 +74,13 @@ export function DesktopStudio() {
 
   // Compteur FPS factice quand le swap tourne.
   useEffect(() => {
-    if (status !== 'running') {
-      setFps(0)
-      return
-    }
+    if (status !== 'running') return
     const id = setInterval(() => setFps(26 + Math.floor(Math.random() * 8)), 700)
-    return () => clearInterval(id)
+    return () => {
+      clearInterval(id)
+      // Reset FPS quand le swap s'arrête (cleanup, pas le corps de l'effet).
+      setFps(0)
+    }
   }, [status])
 
   // Auto-scroll du terminal.
@@ -87,6 +91,7 @@ export function DesktopStudio() {
   const stopStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop())
     streamRef.current = null
+    setStreamActive(false)
     if (videoRef.current) videoRef.current.srcObject = null
   }, [])
 
@@ -94,6 +99,7 @@ export function DesktopStudio() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
       streamRef.current = stream
+      setStreamActive(true)
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         await videoRef.current.play().catch(() => {})
@@ -102,6 +108,7 @@ export function DesktopStudio() {
       pushLog('Flux camera ouvert.')
       return true
     } catch {
+      setStreamActive(false)
       setPreviewOn(true) // on bascule sur le placeholder anime
       pushLog('Camera indisponible — apercu de demonstration affiche.')
       return false
@@ -279,7 +286,7 @@ export function DesktopStudio() {
                 muted
                 className={`h-full w-full object-cover ${previewOn ? 'block' : 'hidden'}`}
               />
-              {previewOn && !streamRef.current && (
+              {previewOn && !streamActive && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#001a10] to-black">
                   <div className="text-center">
                     <div className="mx-auto mb-2 h-16 w-16 animate-pulse rounded-full bg-[#00ff88]/20" />

@@ -2,6 +2,7 @@
 
 import { Check, Plus, ImageIcon } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export interface PersonaAvatar {
   id: string
@@ -69,7 +70,7 @@ export function PersonaPicker({ avatars, selected, max, onToggle, disabled }: Pr
                   : 'border-hairline hover:border-white/30'
               } ${limitReached || disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}`}
             >
-              <img src={a.url || '/placeholder.svg'} alt={a.name} className="h-full w-full object-cover" />
+              <Image src={a.url || '/placeholder.svg'} alt={a.name} fill sizes="(max-width: 768px) 30vw, 15vw" className="object-cover" />
               {isSelected && (
                 <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-black">
                   <Check className="h-3.5 w-3.5" />

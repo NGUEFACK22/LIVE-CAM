@@ -193,10 +193,10 @@ export default async function DashboardHubPage() {
         <h2 className="mb-5 text-xl font-bold text-foreground md:text-2xl">Utilisation rapide</h2>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
-            { icon: Zap, label: 'Swaps aujourd’hui', value: String(swapsToday), color: '#00ff88' },
+            { icon: Zap, label: "Swaps aujourd'hui", value: String(swapsToday), color: '#00ff88' },
             { icon: Timer, label: 'Minutes restantes', value: fmtMinutes(points), color: '#22d3ee' },
             { icon: Users, label: 'Avatars créés', value: String(avatarCount ?? 0), color: '#8b5cf6' },
-            { icon: Hourglass, label: 'Temps aujourd’hui', value: `${minutesToday} min`, color: '#f97316' },
+            { icon: Hourglass, label: "Temps aujourd'hui", value: `${minutesToday} min`, color: '#f97316' },
           ].map((s) => (
             <div
               key={s.label}

@@ -128,9 +128,7 @@ export function useLiveFaceSwap(): UseLiveFaceSwapReturn {
     readyRef.current = false
   }, [])
 
-  useEffect(() => {
-    startRef.current = start
-  })
+
 
   const stop = useCallback(() => {
     if (stoppingRef.current) return
@@ -155,12 +153,14 @@ export function useLiveFaceSwap(): UseLiveFaceSwapReturn {
     stoppingRef.current = false
   }, [cleanup])
 
+  const captureLoopRef = useRef<() => void>(() => {})
+
   const captureLoop = useCallback(() => {
     const video = videoRef.current
     const ws = wsRef.current
     const canvas = captureCanvasRef.current
     if (!video || !ws || !canvas || ws.readyState !== WebSocket.OPEN || !readyRef.current) {
-      rafRef.current = requestAnimationFrame(captureLoop)
+      rafRef.current = requestAnimationFrame(() => captureLoopRef.current())
       return
     }
 
@@ -203,8 +203,12 @@ export function useLiveFaceSwap(): UseLiveFaceSwapReturn {
       }
     }
 
-    rafRef.current = requestAnimationFrame(captureLoop)
+    rafRef.current = requestAnimationFrame(() => captureLoopRef.current())
   }, [])
+
+  useEffect(() => {
+    captureLoopRef.current = captureLoop
+  }, [captureLoop])
 
   const drawResult = useCallback(async (data: Blob) => {
     const canvas = outputCanvasRef.current
@@ -510,8 +514,12 @@ export function useLiveFaceSwap(): UseLiveFaceSwapReturn {
         setSecondsRemaining((s) => (s > 0 ? s - 1 : 0))
       }, 1000)
     },
-    [captureLoop, drawResult, cleanup, stop, status],
+    [captureLoop, drawResult, cleanup, stop],
   )
+
+  useEffect(() => {
+    startRef.current = start
+  }, [start])
 
   useEffect(() => {
     return () => {

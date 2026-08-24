@@ -1,7 +1,7 @@
 "use client"
 
 import { motion, useReducedMotion } from "framer-motion"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
 
 interface Particle {
   id: number
@@ -24,32 +24,43 @@ const ORBS = [
   { id: 3, x: 45, y: 80, size: 200, color: "#e91e8c", blur: 100 },
 ]
 
+// Gate client-only : useReducedMotion() et Math.random() different entre
+// serveur et client → hydration mismatch (React regenerait tout le tree).
+// Même pattern que theme-toggle : pas de setState synchrone dans un effet.
+const emptySubscribe = () => () => {}
+const useIsMounted = () =>
+  useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  )
+
 export function AnimatedBackground() {
   const [particles, setParticles] = useState<Particle[]>([])
-  // Gate client-only : useReducedMotion() et Math.random() different entre
-  // serveur et client → hydration mismatch (React regenerait tout le tree).
-  const [mounted, setMounted] = useState(false)
+  const mounted = useIsMounted()
   const reduceMotion = useReducedMotion()
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  useEffect(() => {
     if (!mounted || reduceMotion) return
-    const colors = ["#00d4ff", "#22c55e", "#f97316", "#8b5cf6", "#e91e8c"]
-    // 15 particules (au lieu de 50) et sans box-shadow (couteux a repeindre).
-    const newParticles: Particle[] = Array.from({ length: 15 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 3 + 2,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      duration: Math.random() * 10 + 15,
-      delay: Math.random() * 5,
-      driftX: Math.random() * 40 - 20,
-    }))
-    setParticles(newParticles)
+    // Génération différée d'un tick : les particules sont aléatoires et
+    // uniquement côté client (évite mismatch SSR + setState synchrone dans
+    // le corps de l'effet).
+    const t = setTimeout(() => {
+      const colors = ["#00d4ff", "#22c55e", "#f97316", "#8b5cf6", "#e91e8c"]
+      // 15 particules (au lieu de 50) et sans box-shadow (couteux a repeindre).
+      const newParticles: Particle[] = Array.from({ length: 15 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 3 + 2,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        duration: Math.random() * 10 + 15,
+        delay: Math.random() * 5,
+        driftX: Math.random() * 40 - 20,
+      }))
+      setParticles(newParticles)
+    }, 0)
+    return () => clearTimeout(t)
   }, [mounted, reduceMotion])
 
   return (

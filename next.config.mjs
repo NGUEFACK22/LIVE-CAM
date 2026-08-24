@@ -99,11 +99,11 @@ const nextConfig = {
   // Production optimizations
   productionBrowserSourceMaps: false, // Disable source maps in production
 
-  // Minimize and obfuscate
+  // Minimize and obfuscate — on garde console.log en prod pour le diagnostic
+  // Electron (chapcam-debug.log) et le Live Swap ([Lucy 2.1]/[live]). Le retrait
+  // de console.log masquait les logs OBS/virtual-camera sans DevTools.
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
-    } : false,
+    removeConsole: false,
   },
 }
 

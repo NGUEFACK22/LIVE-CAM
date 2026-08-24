@@ -80,6 +80,9 @@ export default function AdminInstallationsPage() {
   }, [search, status])
 
   useEffect(() => {
+    // Chargement initial : load() est async, les setState ont lieu dans les
+    // callbacks du fetch (jamais pendant le rendu) → règle désactivée ciblée.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
   }, [status]) // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -90,10 +90,13 @@ export function CloudSwapPlayer({
       // Si PC gamer detecte, forcer le mode local obligatoirement
       if (caps.isGamingPC) {
         setProcessingMode('local')
-        // Mettre a jour les preferences pour forcer le mode local
-        const forcedPrefs = { ...preferences, mode: 'local' as const }
-        setPreferences(forcedPrefs)
-        saveProcessingPreferences(forcedPrefs)
+        // Garde anti-boucle : l'effet a `preferences` dans ses deps, on ne
+        // réécrit les préférences que si elles ne sont pas déjà en local.
+        if (preferences.mode !== 'local') {
+          const forcedPrefs = { ...preferences, mode: 'local' as const }
+          setPreferences(forcedPrefs)
+          saveProcessingPreferences(forcedPrefs)
+        }
         
         // Afficher toast d'information
         console.log("PC Gaming détectué : Mode Local activé automatiquement")
@@ -111,7 +114,7 @@ export function CloudSwapPlayer({
     }
     
     detectHardware()
-  }, [])
+  }, [networkQuality, preferences])
 
   // Detecter la qualite du reseau
   useEffect(() => {
