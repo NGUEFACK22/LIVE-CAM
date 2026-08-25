@@ -206,6 +206,30 @@ export function VirtualCameraIndicator({ className = '' }: { className?: string 
     )
   }
 
+  // Cas erreur explicite (pilote/OBS a échoué) — affiche en rouge avec retry.
+  if (state.error) {
+    return (
+      <div
+        className={`flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 ${className}`}
+      >
+        <AlertTriangle className="h-4 w-4 shrink-0 text-red-500" />
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold text-red-400">Erreur caméra virtuelle</p>
+          <p className="truncate text-[11px] text-red-300/80" title={state.error}>
+            {state.error}
+          </p>
+        </div>
+        <button
+          onClick={() => handleLaunchObs({ force: true })}
+          disabled={launching}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-red-500/20 px-2.5 py-1.5 text-[11px] font-semibold text-red-300 transition-colors hover:bg-red-500/30 disabled:opacity-60"
+        >
+          {launching ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />} Réessayer
+        </button>
+      </div>
+    )
+  }
+
   // Cas 2 : ni OBS, ni pilote — blocage.
   if (!state.obsAvailable && !state.driverInstalled) {
     return (
