@@ -54,8 +54,10 @@ export default function LoginPage() {
 
       router.push('/dashboard')
       router.refresh()
-    } catch {
-      setError('Une erreur est survenue')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      // Affiche l'erreur réelle (ex: Failed to fetch -> CORS) pour diagnostic
+      setError(msg.includes('Failed to fetch') ? `Erreur réseau/CORS: ${msg} — vérifie que ChapCam est bien lancé en admin et que le port ${typeof window !== 'undefined' ? window.location.port : ''} est autorisé` : `Une erreur est survenue: ${msg}`)
     } finally {
       setLoading(false)
     }

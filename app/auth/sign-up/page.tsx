@@ -50,6 +50,9 @@ export default function SignUpPage() {
     try {
       const supabase = createClient()
 
+      // Electron: pas de redirection email nécessaire (Supabase auto-confirme, voir test direct)
+      // et window.location.origin peut être http://localhost:3001 (port dynamique) non whitelisté -> erreur "redirect not allowed"
+      const isElectron = typeof window !== 'undefined' && !!(window as unknown as { electronAPI?: { isElectron: boolean } }).electronAPI?.isElectron
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -64,7 +67,7 @@ export default function SignUpPage() {
             cgu_version: CGU_VERSION,
             consent_accepted: true,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: isElectron ? undefined : `${window.location.origin}/auth/callback`
         }
       })
 
@@ -94,8 +97,9 @@ export default function SignUpPage() {
         }
         setSuccess(true)
       }
-    } catch {
-      setError('Une erreur est survenue')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setError(msg.includes('Failed to fetch') ? `Erreur réseau/CORS: ${msg}` : `Une erreur est survenue: ${msg}`)
     } finally {
       setLoading(false)
     }
