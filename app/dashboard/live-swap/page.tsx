@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Camera, Zap, Clock, Coins, Plus, Check, AlertCircle, AlertTriangle, Loader2, Square, Wifi, WifiOff, Monitor, Cloud, Settings, Download, Crown, CreditCard, ClipboardList, Mic, MicOff, Video as VideoIcon, VideoOff, BookOpen, Languages, ImageIcon, Film, ArrowRight, Maximize2, Minimize2, AudioLines, Share2, ExternalLink, Tv } from 'lucide-react'
+import { Camera, Zap, Clock, Coins, Plus, Check, AlertCircle, AlertTriangle, Loader2, Square, Wifi, WifiOff, Monitor, Cloud, Settings, Download, Crown, CreditCard, ClipboardList, Mic, MicOff, Video as VideoIcon, VideoOff, BookOpen, Languages, ImageIcon, Film, ArrowRight, Maximize2, Minimize2, AudioLines, Share2, ExternalLink, Tv, Lock } from 'lucide-react'
 import { useLucy21 } from '@/hooks/use-lucy-21'
 import { isElectron } from '@/lib/electron'
 import { InstallationRequestModal } from '@/components/dashboard/installation-request-modal'
@@ -11,6 +11,7 @@ import { VirtualCameraIndicator } from '@/components/live/virtual-camera-indicat
 import { SwapConsent, GenerateNotice } from '@/components/dashboard/swap-consent'
 import { detectHardwareCapabilities, determineProcessingMode, loadProcessingPreferences, saveProcessingPreferences, type HardwareCapabilities, type UserProcessingPreferences } from '@/lib/hardware-detection'
 import { FREE_UNLIMITED_POINTS, isFreeLiveSwap } from '@/lib/free-mode'
+import { useBlockedModal } from '@/components/blocked-feature-modal'
 
 import { createClient } from '@/lib/supabase/client'
 
@@ -544,6 +545,7 @@ export default function DashboardPage() {
   // voit que l'avatar, nettoie et dans le bon sens.
   // ============================================================================
   const isStreamActive = streamMode && isDesktop && isConnected
+  const { show: showBlocked, Modal: BlockedModal } = useBlockedModal()
 
   return (
     <div className={isStreamActive ? 'cc-stream-root' : 'p-4 md:p-6 space-y-6'}>
@@ -1084,17 +1086,18 @@ export default function DashboardPage() {
 
           </div>
 
-          {/* Outils rapides ChapCam */}
+          {/* Outils rapides ChapCam - BLOQUÉS */}
+          <BlockedModal />
           <div className="rounded-2xl border border-hairline bg-muted p-4 backdrop-blur-xl">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-foreground/50">
               Outils rapides ChapCam
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {quickTools.map(tool => (
-                <Link
+                <button
                   key={tool.href}
-                  href={tool.href}
-                  className="group flex items-center gap-2.5 rounded-xl border border-hairline bg-black/30 px-3 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-hairline-strong"
+                  onClick={showBlocked}
+                  className="group flex items-center gap-2.5 rounded-xl border border-hairline bg-black/30 px-3 py-2.5 text-left opacity-60 transition-all duration-200 hover:border-amber-500/30 hover:bg-amber-500/10"
                 >
                   <span
                     className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
@@ -1103,8 +1106,8 @@ export default function DashboardPage() {
                     <tool.icon className="h-4 w-4" style={{ color: tool.color }} />
                   </span>
                   <span className="flex-1 truncate text-xs font-medium text-foreground">{tool.label}</span>
-                  <ArrowRight className="h-3.5 w-3.5 shrink-0 text-foreground/30 transition-transform group-hover:translate-x-0.5 group-hover:text-foreground/60" />
-                </Link>
+                  <Lock className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                </button>
               ))}
             </div>
           </div>

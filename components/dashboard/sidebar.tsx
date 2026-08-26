@@ -2,7 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Zap, Users, BarChart2, Settings, LogOut, Menu, Battery, Shield, CreditCard, Home, Languages, ImageIcon, Film, HelpCircle, Monitor, AudioLines, Globe, ChevronRight } from 'lucide-react'
+import { Zap, Users, BarChart2, Settings, LogOut, Menu, Battery, Shield, CreditCard, Home, Languages, ImageIcon, Film, HelpCircle, Monitor, AudioLines, Globe, ChevronRight, Lock } from 'lucide-react'
+import { isPathBlocked } from '@/lib/feature-flags'
+import { useBlockedModal } from '@/components/blocked-feature-modal'
 import { Progress } from '@/components/ui/progress'
 import {
   Sheet,
@@ -173,6 +175,7 @@ function SidebarContent({
   onLogout,
 }: SidebarContentProps) {
   const pathname = usePathname()
+  const { show, Modal } = useBlockedModal()
   const isExpired = expiresAt ? new Date(expiresAt) < new Date() : false
   const isUnlimited = plan === 'unlimited'
   const showUpgradeBanner =
@@ -222,8 +225,10 @@ function SidebarContent({
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-1">
+        <Modal />
         {navItems.map((item) => {
           const isActivePath = pathname === item.href
+          const blocked = isPathBlocked(item.href)
           return (
             <div key={item.href}>
               {/* Boutons vedette premium (Live Swap / ChapCam PC / ChapSim) */}
@@ -241,29 +246,46 @@ function SidebarContent({
                     tone="blue"
                     active={pathname === '/dashboard/live-swap'}
                   />
-                  <FeaturedLink
-                    href="/dashboard/chapcam-pc"
-                    icon={Monitor}
-                    title="ChapCam PC"
-                    subtitle="Windows · licence à vie"
-                    badge="À vie"
-                    tone="green"
-                    active={pathname === '/dashboard/chapcam-pc'}
-                  />
-                  <FeaturedLink
-                    href="/chapsim"
-                    icon={Globe}
-                    title="ChapSim"
-                    subtitle="SMS OTP & proxies premium"
-                    badge="OTP"
-                    tone="purple"
-                  />
+                  {/* ChapCam PC et ChapSim bloqués */}
+                  <button onClick={show} className="group relative mb-2 flex w-full items-center gap-3 overflow-hidden rounded-xl border border-[#3b82f6]/40 bg-gradient-to-br from-[#2563EB] to-[#3b82f6] p-2.5 text-white opacity-60 shadow-lg transition-all hover:brightness-110">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15">
+                      <Monitor className="h-[18px] w-[18px]" />
+                    </span>
+                    <span className="min-w-0 flex-1 text-left">
+                      <span className="flex items-center gap-1.5">
+                        <span className="truncate text-[13px] font-bold uppercase">ChapCam PC</span>
+                        <span className="shrink-0 rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] font-extrabold text-white">À vie</span>
+                      </span>
+                      <span className="mt-0.5 block truncate text-[10px] font-medium text-white/75">Windows · licence à vie</span>
+                    </span>
+                    <Lock className="h-4 w-4 shrink-0 opacity-60" />
+                  </button>
+                  <button onClick={show} className="group relative mb-2 flex w-full cursor-pointer items-center gap-3 overflow-hidden rounded-xl border border-[#7c3aed]/40 bg-gradient-to-br from-[#7c3aed] to-[#4f46e5] p-2.5 text-white opacity-60 shadow-lg transition-all hover:brightness-110">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15">
+                      <Globe className="h-[18px] w-[18px]" />
+                    </span>
+                    <span className="min-w-0 flex-1 text-left">
+                      <span className="flex items-center gap-1.5">
+                        <span className="truncate text-[13px] font-bold uppercase">ChapSim</span>
+                        <span className="shrink-0 rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] font-extrabold text-white">OTP</span>
+                      </span>
+                      <span className="mt-0.5 block truncate text-[10px] font-medium text-white/75">SMS OTP & proxies premium</span>
+                    </span>
+                    <Lock className="h-4 w-4 shrink-0 opacity-60" />
+                  </button>
                 </div>
               )}
+            <div
+              onClick={blocked ? (e) => { e.preventDefault(); show() } : undefined}
+              className={blocked ? 'cursor-pointer' : ''}
+            >
             <Link
               href={item.href}
+              onClick={blocked ? (e) => { e.preventDefault(); show() } : undefined}
               style={{ ['--nav-accent' as string]: item.color }}
               className={`group/nav mb-1 flex items-center gap-3 rounded-xl px-2.5 py-2 text-[13px] font-bold uppercase tracking-tight transition-all duration-200 ${
+                blocked ? 'opacity-60' : ''
+              } ${
                 isActivePath
                   ? 'bg-[var(--nav-accent)]/10 text-foreground shadow-sm ring-1 ring-[var(--nav-accent)]/30'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -276,37 +298,42 @@ function SidebarContent({
                 <item.icon className="h-[17px] w-[17px]" strokeWidth={2.5} />
               </span>
               <span className="flex-1 truncate">{item.label}</span>
-              {item.badge === 'NEW' && (
-                <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">
-                  NEW
-                </span>
-              )}
-              {item.badge === 'PRO' && (
-                <span className="rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-bold text-violet-300">
-                  PRO
-                </span>
+              {blocked ? (
+                <Lock className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+              ) : (
+                <>
+                  {item.badge === 'NEW' && (
+                    <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">
+                      NEW
+                    </span>
+                  )}
+                  {item.badge === 'PRO' && (
+                    <span className="rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-bold text-violet-300">
+                      PRO
+                    </span>
+                  )}
+                </>
               )}
             </Link>
+            </div>
             </div>
           )
         })}
 
-        {/* Aide & Support */}
-        <a
-          href="https://t.me/chapcam_support"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ ['--nav-accent' as string]: '#38bdf8' }}
-          className="group/nav mb-1 flex items-center gap-3 rounded-xl px-2.5 py-2 text-[13px] font-bold uppercase tracking-tight text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
+        {/* Aide & Support - bloqué */}
+        <div
+          onClick={(e) => { e.preventDefault(); show() }}
+          className="group/nav mb-1 flex cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2 text-[13px] font-bold uppercase tracking-tight text-muted-foreground opacity-60 transition-all duration-200 hover:bg-muted hover:text-foreground"
         >
           <span
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white shadow-sm transition-all duration-200 group-hover/nav:brightness-110 group-hover/nav:shadow-[0_4px_14px_-4px_var(--nav-accent)]"
-            style={{ backgroundColor: 'var(--nav-accent)' }}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white shadow-sm"
+            style={{ backgroundColor: '#38bdf8' }}
           >
             <HelpCircle className="h-[17px] w-[17px]" strokeWidth={2.5} />
           </span>
           <span className="flex-1 truncate">AIDE & SUPPORT</span>
-        </a>
+          <Lock className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+        </div>
 
         {/* Lien Secret Admin Stats */}
         {isAdmin && (

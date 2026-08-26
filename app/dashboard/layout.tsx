@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { DashboardSidebar, PlanGuardBanner } from '@/components/dashboard/sidebar'
 import { TelegramSupport } from '@/components/telegram-support'
 import { ChapCam2Announcement } from '@/components/dashboard/chapcam-2-announcement'
+import { BlockedGuard } from '@/components/dashboard/blocked-guard'
 import { FREE_UNLIMITED_POINTS, isFreeLiveSwap } from '@/lib/free-mode'
 
 /*
@@ -104,7 +105,7 @@ export default async function DashboardLayout({
       <main className="min-h-screen pt-14 md:ml-[240px] md:pt-0">
         {/* Add padding top when plan guard banner is shown */}
         <div className={!freeMode && (plan === 'free' || !isActive) ? 'pt-12' : ''}>
-          {children}
+          <BlockedGuard>{children}</BlockedGuard>
         </div>
       </main>
 

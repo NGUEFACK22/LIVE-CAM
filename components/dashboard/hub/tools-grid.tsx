@@ -1,5 +1,9 @@
+'use client'
+
 import Link from 'next/link'
-import { Zap, Languages, ImageIcon, Film, Monitor, Smartphone, ArrowRight } from 'lucide-react'
+import { Zap, Languages, ImageIcon, Film, Monitor, Smartphone, ArrowRight, Lock } from 'lucide-react'
+import { isPathBlocked } from '@/lib/feature-flags'
+import { useBlockedModal } from '@/components/blocked-feature-modal'
 import {
   LiveSwapPreview,
   VoiceTranslatorPreview,
@@ -141,16 +145,25 @@ function PreviewTile({ tool, className }: { tool: Tool; className?: string }) {
 }
 
 export function ToolsGrid() {
+  const { show, Modal } = useBlockedModal()
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-      {tools.map((tool) => (
-        <Link
+    <>
+      <Modal />
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {tools.map((tool) => {
+        const blocked = isPathBlocked(tool.href)
+        const CardWrapper = blocked ? 'button' : Link
+        const wrapperProps = blocked
+          ? { onClick: show, type: 'button' as const }
+          : { href: tool.href }
+        return (
+        <CardWrapper
           key={tool.href}
-          href={tool.href}
+          {...(wrapperProps as any)}
           style={{ ['--accent' as string]: tool.accent }}
-          className={`group relative flex flex-col overflow-hidden rounded-[26px] border border-white/[0.08] p-px transition-all duration-500 hover:-translate-y-1.5 hover:border-[var(--accent)]/40 hover:shadow-[0_30px_80px_-30px_var(--accent)] ${
+          className={`group relative flex w-full flex-col overflow-hidden rounded-[26px] border border-white/[0.08] p-px text-left transition-all duration-500 hover:-translate-y-1.5 hover:border-[var(--accent)]/40 hover:shadow-[0_30px_80px_-30px_var(--accent)] ${
             tool.featured ? 'sm:col-span-2 lg:col-span-1' : ''
-          }`}
+          } ${blocked ? 'opacity-70' : ''}`}
         >
           {/* Fond dégradé sombre teinté par l'accent */}
           <div
@@ -231,13 +244,15 @@ export function ToolsGrid() {
                   </p>
                 </div>
               </div>
-              <div className="mt-5">
+              <div className="mt-5 flex items-center gap-2">
                 <OpenCta accent={tool.accent} />
+                {blocked && <Lock className="h-4 w-4 text-amber-500" />}
               </div>
             </div>
           )}
-        </Link>
-      ))}
+        </CardWrapper>
+      )})}
     </div>
+    </>
   )
 }
