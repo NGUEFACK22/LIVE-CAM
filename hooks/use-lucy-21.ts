@@ -619,7 +619,7 @@ export function useLucy21() {
       }, CONNECT_TIMEOUT_MS)
 
       const realtimeClient = await client.realtime.connect(stream, {
-        model: models.realtime('lucy-2.5'),
+        model: models.realtime('lucy-2.1'),
         // IMPORTANT : on DESACTIVE le miroir interne du SDK.
         // Avec `mirror: 'auto'`, le SDK enveloppe la camera dans un pipeline
         // MediaStreamTrackProcessor dont le dispose n'annule pas le flux de

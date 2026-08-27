@@ -1,7 +1,9 @@
-// Constante partagée (sans dépendance serveur) pour identifier l'administrateur
-// aussi bien côté client que serveur. Source unique de vérité pour l'email admin.
+// Constantes partagées pour identifier les administrateurs
 export const ADMIN_EMAIL = 'fanny.guck@gmail.com'
+export const ADMIN_EMAILS = ['fanny.guck@gmail.com', 'admin@chapcam.live']
 
 export function isAdminEmail(email: string | null | undefined): boolean {
-  return !!email && email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase()
+  if (!email) return false
+  const lower = email.trim().toLowerCase()
+  return ADMIN_EMAILS.some((a) => a.toLowerCase() === lower)
 }
