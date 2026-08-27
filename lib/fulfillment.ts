@@ -189,10 +189,11 @@ export async function creditVoiceMinutes(
 }
 
 export interface PurchaseInput {
-  productId: string // id de formule (plans.ts) OU id d'offre Live (live-offers.ts)
+  productId: string // id de formule (plans.ts) OU id d'offre Live (live-offers.ts) OU 'custom'
   email: string
   fullName: string
   userId?: string | null
+  amount?: number // pour recharge custom (montant en FCFA, minimum 1000)
 }
 
 export interface PurchaseResult {
@@ -246,6 +247,45 @@ export async function creditPurchase(
   admin: Admin,
   input: PurchaseInput,
 ): Promise<PurchaseResult> {
+  const isCustom = input.productId === 'custom' || input.productId.startsWith('custom_')
+  // Recharge custom : montant libre minimum 1000F, points = amount / 20 (2 pts = 1 sec)
+  if (isCustom) {
+    const customAmount = Number(input.amount || 0)
+    if (!customAmount || customAmount < 1000) {
+      return { ok: false, kind: null, userLinked: false, message: 'Montant minimum 1000 F requis.' }
+    }
+    const customPoints = Math.floor(customAmount / 20)
+    let userId = input.userId || null
+    if (!userId) userId = await resolveUserIdByEmail(admin, input.email)
+    if (!userId) {
+      return { ok: false, kind: null, userLinked: false, message: 'Compte introuvable pour ce paiement.' }
+    }
+    // Créditer les points directement (même logique que les plans)
+    const { error: updErr } = await admin
+      .from('subscriptions')
+      .update({
+        points: customPoints,
+        max_points: customPoints,
+        plan: 'custom',
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', userId)
+    // Fallback: si pas de ligne subscriptions, on l'insère
+    if (updErr) {
+      await admin.from('subscriptions').insert({
+        user_id: userId,
+        plan: 'custom',
+        points: customPoints,
+        max_points: customPoints,
+        is_active: true,
+      })
+    }
+    // Aussi mettre à jour profiles si existe
+    await admin.from('profiles').update({ points: customPoints, max_points: customPoints, plan: 'custom' }).eq('id', userId).then(() => {})
+    return { ok: true, kind: 'plan', userLinked: true, message: `Recharge ${customAmount} F créditée (${customPoints} points).` }
+  }
+
   const plan: PlanConfig | undefined = getPlan(input.productId)
   const liveOffer: LiveOffer | undefined = getLiveOffer(input.productId)
   const installOffer: InstallOffer | undefined = getInstallOffer(input.productId)

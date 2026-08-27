@@ -18,6 +18,7 @@ interface Chooser {
   productId: string
   phoneNumber?: string
   loaderKey: string
+  amount?: number
 }
 
 const ENDPOINTS: Record<PaymentMethod, string> = {
@@ -36,12 +37,13 @@ export function usePaymentCheckout() {
   const [error, setError] = useState<string | null>(null)
   const [inAppUrl, setInAppUrl] = useState<string | null>(null)
 
-  const startCheckout = useCallback((productId: string, opts?: StartOptions) => {
+  const startCheckout = useCallback((productId: string, opts?: StartOptions & { amount?: number }) => {
     setError(null)
     setChooser({
       productId,
       phoneNumber: opts?.phoneNumber,
       loaderKey: opts?.loaderKey || productId,
+      amount: (opts as any)?.amount,
     })
   }, [])
 
@@ -64,6 +66,7 @@ export function usePaymentCheckout() {
           body: JSON.stringify({
             productId: chooser.productId,
             phoneNumber: chooser.phoneNumber,
+            amount: chooser.amount,
           }),
         })
         const data = await res.json().catch(() => null)

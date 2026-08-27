@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useRef, Suspense } from 'react'
-import { Check, Crown, Clock, Sparkles, Loader2, CreditCard, Droplet, DropletOff, Monitor, Palette } from 'lucide-react'
+import { useEffect, useRef, Suspense, useState } from 'react'
+import { Check, Crown, Clock, Sparkles, Loader2, CreditCard, Droplet, DropletOff, Monitor, Palette, Wallet } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -15,6 +15,7 @@ function PlansContent() {
   const searchParams = useSearchParams()
   // Paiement partage : ouvre le choix de methode (PayDunya / Crypto) puis redirige.
   const { startCheckout, pendingKey, error, modal } = usePaymentCheckout()
+  const [customAmount, setCustomAmount] = useState(1000)
   // evite de relancer le checkout auto plusieurs fois (ex: arrivee depuis l'accueil)
   const autoStarted = useRef(false)
 
@@ -133,6 +134,46 @@ function PlansContent() {
                 Changement de la couleur de peau
               </span>
             </div>
+          </div>
+        </motion.div>
+
+        {/* Recharge libre - minimum 1000F */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8 mx-auto max-w-2xl">
+          <div className="rounded-3xl border-2 border-primary bg-card p-6 md:p-8 shadow-[0_0_40px_rgba(0,255,136,0.15)]">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-black">
+                <Wallet className="h-5 w-5" />
+              </span>
+              <div>
+                <h3 className="text-lg font-bold text-foreground">Recharger des crédits</h3>
+                <p className="text-xs text-muted-foreground">Minimum 1000 F • 20 F = 1 point • 2 points = 1 sec</p>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 relative">
+                <input
+                  type="number"
+                  min={1000}
+                  step={500}
+                  value={customAmount}
+                  onChange={(e) => setCustomAmount(Math.max(1000, Number(e.target.value) || 1000))}
+                  className="w-full rounded-xl border border-hairline bg-muted px-4 py-3 pr-16 text-lg font-bold text-foreground focus:border-primary focus:outline-none"
+                  placeholder="1000"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">FCFA</span>
+              </div>
+              <button
+                onClick={() => startCheckout('custom', { amount: customAmount } as any)}
+                disabled={!!pendingKey || customAmount < 1000}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 font-bold text-black hover:bg-primary/90 disabled:opacity-50 shrink-0"
+              >
+                {pendingKey === 'custom' ? <Loader2 className="h-5 w-5 animate-spin" /> : <CreditCard className="h-5 w-5" />}
+                Recharger {customAmount.toLocaleString()} F
+              </button>
+            </div>
+            <p className="mt-3 text-xs text-center text-muted-foreground">
+              {Math.floor(customAmount / 20)} points • {Math.floor(Math.floor(customAmount / 20) / 2 / 60)} min {Math.floor((Math.floor(customAmount / 20) / 2) % 60)} sec de Live Swap
+            </p>
           </div>
         </motion.div>
 

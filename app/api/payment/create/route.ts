@@ -43,37 +43,54 @@ export async function POST(request: NextRequest) {
     const installOffer = getInstallOffer(productId)
     const pcOffer = getPcOffer(productId)
     const voiceOffer = getVoiceOffer(productId)
-    if (!plan && !liveOffer && !installOffer && !pcOffer && !voiceOffer) {
+    // Recharge custom (montant libre, minimum 1000F) - sans abonnement
+    const isCustom = productId === 'custom' || productId.startsWith('custom_')
+    let customAmount = 0
+    if (isCustom) {
+      customAmount = Number(body.amount || body.customAmount || 0)
+      if (!customAmount || customAmount < 1000) {
+        return NextResponse.json({ success: false, error: 'Montant minimum 1000 F requis.' }, { status: 400 })
+      }
+    }
+    if (!plan && !liveOffer && !installOffer && !pcOffer && !voiceOffer && !isCustom) {
       return NextResponse.json({ success: false, error: 'Produit inconnu.' }, { status: 400 })
     }
 
-    const amount = plan
-      ? plan.price
-      : liveOffer
-        ? liveOffer.price
-        : installOffer
-          ? installOffer.price
-          : pcOffer
-            ? pcOffer.price
-            : voiceOffer!.price
-    const kind: 'plan' | 'live' | 'installation' | 'pc' | 'voice' = plan
+    const amount = isCustom
+      ? customAmount
+      : plan
+        ? plan.price
+        : liveOffer
+          ? liveOffer.price
+          : installOffer
+            ? installOffer.price
+            : pcOffer
+              ? pcOffer.price
+              : voiceOffer!.price
+    const kind: 'plan' | 'live' | 'installation' | 'pc' | 'voice' = isCustom
       ? 'plan'
-      : liveOffer
-        ? 'live'
-        : installOffer
-          ? 'installation'
-          : pcOffer
-            ? 'pc'
-            : 'voice'
-    const label = plan
-      ? `Formule ${plan.name} (${plan.points} points, ${plan.duration})`
-      : liveOffer
-        ? `${liveOffer.name} (${liveOffer.windowMinutes} min d'acces Live)`
-        : installOffer
-          ? installOffer.name
-          : pcOffer
-            ? `${pcOffer.name} (licence a vie)`
-            : `${voiceOffer!.name} (${voiceOffer!.minutes} min de voix)`
+      : plan
+        ? 'plan'
+        : liveOffer
+          ? 'live'
+          : installOffer
+            ? 'installation'
+            : pcOffer
+              ? 'pc'
+              : 'voice'
+    const customPoints = isCustom ? Math.floor(customAmount / 20) : 0
+    const customMinutes = isCustom ? `${Math.floor(customPoints / 2 / 60)} min ${Math.floor((customPoints / 2) % 60)} sec` : ''
+    const label = isCustom
+      ? `Recharge ${customAmount.toLocaleString()} F (${customPoints} points, ${customMinutes})`
+      : plan
+        ? `Formule ${plan.name} (${plan.points} points, ${plan.duration})`
+        : liveOffer
+          ? `${liveOffer.name} (${liveOffer.windowMinutes} min d'acces Live)`
+          : installOffer
+            ? installOffer.name
+            : pcOffer
+              ? `${pcOffer.name} (licence a vie)`
+              : `${voiceOffer!.name} (${voiceOffer!.minutes} min de voix)`
 
     const headers = paydunyaHeaders()
     if (!headers) {
