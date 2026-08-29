@@ -2,6 +2,7 @@
   "name": "chapcam-desktop",
   "version": "1.0.23",
   "private": true,
+  "packageManager": "npm@11.6.2",
   "description": "ChapCam - Face Swap en Temps Reel",
   "author": "ChapCam <support@chapcam.com>",
   "main": "electron/main.js",
