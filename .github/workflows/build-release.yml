@@ -1,0 +1,110 @@
+name: Build & Release Desktop (Win + Mac)
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-build
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            script: node scripts/build-electron-win.mjs
+            artifact: ChapCam-Setup-*
+            asset: ChapCam-Setup-*.exe
+          - os: macos-latest
+            script: npm run electron:build:mac
+            artifact: ChapCam-*.dmg
+            asset: ChapCam-*.dmg
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Le build embarque .env.local (see electron-builder.yml). On cree un
+      # .env.local CLOUD a partir des secrets. Le build Windows le sanitize
+      # (secrets). Le god Mac embarquera la meme version nette.
+      - name: Generer .env.local clouden (NEXT_PUBLIC_* uniquement)
+        shell: bash
+        run: |
+          cat > .env.electron <<'EOF'
+          NEXT_PUBLIC_FREE_LIVE_SWAP=true
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
+          SUPABASE_SERVICE_ROLE_KEY=
+          EOF
+          cp .env.electron .env.local
+
+      - name: Build (${{ matrix.os }})
+        shell: bash
+        run: |
+          set -e
+          ${{ matrix.script }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.asset }}
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Windows setup
+        uses: actions/download-artifact@v4
+        with:
+          name: ChapCam-Setup-*
+          path: assets-win
+
+      - name: Download Mac dmg
+        uses: actions/download-artifact@v4
+        with:
+          name: ChapCam-*.dmg
+          path: assets-mac
+
+      - name: Lire la version
+        id: version
+        run: |
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Creer la Release GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: ChapCam Desktop v${{ steps.version.outputs.version }}
+          body: |
+            Build automatique Windows + Mac de ChapCam Desktop.
+            - Windows : installeur .exe (camera virtuelle incluse)
+            - macOS : .dmg (Intel + Apple Silicon)
+          files: |
+            assets-win/**
+            assets-mac/**
+          draft: true
