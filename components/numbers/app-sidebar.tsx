@@ -67,7 +67,7 @@ function SidebarInner({ onNavigate }: { onNavigate?: () => void }) {
           <Phone className="h-4 w-4 text-white" />
         </span>
         <span className="text-[15px] font-semibold tracking-tight text-white">
-          ChapCam <span className="text-slate-400">Numbers</span>
+          LIVECAM <span className="text-slate-400">Numbers</span>
         </span>
       </Link>
 
@@ -110,7 +110,7 @@ function SidebarInner({ onNavigate }: { onNavigate?: () => void }) {
           </Link>
         )}
         <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white">
-          <ArrowUpRight className="h-[18px] w-[18px]" /> Retour à ChapCam
+          <ArrowUpRight className="h-[18px] w-[18px]" /> Retour à LIVECAM
         </Link>
         <div className="mt-2 flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2563EB]/20 text-xs font-bold text-[#60a5fa]">
@@ -133,7 +133,7 @@ export function AppSidebar() {
       <div className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-white/10 bg-[#0a0e1a]/90 px-4 backdrop-blur md:hidden">
         <Link href="/numbers/app" className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#2563EB]"><Phone className="h-4 w-4 text-white" /></span>
-          <span className="text-sm font-semibold text-white">ChapCam Numbers</span>
+          <span className="text-sm font-semibold text-white">LIVECAM Numbers</span>
         </Link>
         <button onClick={() => setOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-white" aria-label="Open menu">
           <Menu className="h-5 w-5" />

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isAdminRequest } from '@/lib/admin-auth'
-import { confirmAndFulfillPaydunya } from '@/lib/fulfillment'
+import { confirmAndFulfillGeniusPay } from '@/lib/fulfillment'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-// Re-credit manuel d'un paiement PayDunya depuis l'admin.
-// Reconfirme la facture aupres de PayDunya puis credite de maniere idempotente
+// Re-credit manuel d'un paiement GeniusPay depuis l'admin.
+// Reconfirme le paiement aupres de GeniusPay puis credite de maniere idempotente
 // (ne double jamais un credit deja effectue). Trace dans payment_logs (source=manual).
 export async function POST(request: NextRequest) {
   if (!(await isAdminRequest())) {
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'token manquant.' }, { status: 400 })
   }
 
-  const outcome = await confirmAndFulfillPaydunya(token, 'manual')
+  const outcome = await confirmAndFulfillGeniusPay(token, 'manual')
 
   return NextResponse.json({
     ok: outcome.status === 'completed',

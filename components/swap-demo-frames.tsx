@@ -42,7 +42,7 @@ export function SwapDemoFrames() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Agrandir la galerie ChapCam en action"
+        aria-label="Agrandir la galerie LIVECAM en action"
         className="group relative block w-full overflow-hidden rounded-3xl border border-[#00ff88]/30 bg-black focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88]"
       >
         <div className="relative aspect-video w-full">
@@ -50,7 +50,7 @@ export function SwapDemoFrames() {
             <motion.img
               key={current.src}
               src={current.src}
-              alt={`ChapCam en action : ${current.label}`}
+              alt={`LIVECAM en action : ${current.label}`}
               initial={{ opacity: 0, scale: 1.04 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
@@ -154,7 +154,7 @@ export function SwapDemoFrames() {
                   <motion.img
                     key={`big-${current.src}`}
                     src={current.src}
-                    alt={`ChapCam en action : ${current.label}`}
+                    alt={`LIVECAM en action : ${current.label}`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}

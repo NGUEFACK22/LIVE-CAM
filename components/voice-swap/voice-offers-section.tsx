@@ -5,7 +5,7 @@ import { VOICE_OFFERS } from '@/lib/voice-offers'
 import { usePaymentCheckout } from '@/components/payment/use-payment-checkout'
 
 export function VoiceOffersSection() {
-  // Paiement partage : choix PayDunya (mobile money/carte) ou Crypto (Trybit).
+  // Paiement partage : ouvre la page de paiement securise GeniusPay puis redirige.
   const { startCheckout, pendingKey, error, modal } = usePaymentCheckout()
 
   return (

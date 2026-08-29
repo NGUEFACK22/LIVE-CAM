@@ -188,13 +188,13 @@ export default function SignUpPage() {
             <div className="flex justify-center mb-4">
               <Image
                 src="/favicon.jpg"
-                alt="ChapCam Logo"
+                alt="LIVECAM Logo"
                 width={80}
                 height={80}
                 className="rounded-xl"
               />
             </div>
-            <h1 className="text-3xl font-bold gradient-text">ChapCam</h1>
+            <h1 className="text-3xl font-bold gradient-text">LIVECAM</h1>
             <p className="text-gray-400 mt-2">Rejoins l&apos;aventure du face swap</p>
           </div>
 

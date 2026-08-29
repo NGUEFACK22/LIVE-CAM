@@ -203,7 +203,7 @@ export default function StatsPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-black uppercase tracking-widest text-foreground">STATISTIQUES</h1>
-        <p className="mt-2 text-muted-foreground">Ton historique de body swap ChapCam</p>
+        <p className="mt-2 text-muted-foreground">Ton historique de body swap LIVECAM</p>
       </div>
 
       {/* Stats Cards */}

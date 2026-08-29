@@ -2,9 +2,9 @@ import type { Metadata } from "next"
 import { LegalShell, LegalSection } from "@/components/legal/legal-shell"
 
 export const metadata: Metadata = {
-  title: "Politique de Confidentialité — ChapCam",
+  title: "Politique de Confidentialité — LIVECAM",
   description:
-    "Politique de Confidentialité de ChapCam : quelles données nous collectons, comment nous les utilisons et vos droits (RGPD).",
+    "Politique de Confidentialité de LIVECAM : quelles données nous collectons, comment nous les utilisons et vos droits (RGPD).",
 }
 
 export default function ConfidentialitePage() {
@@ -12,16 +12,13 @@ export default function ConfidentialitePage() {
     <LegalShell
       title="Politique de Confidentialité"
       updatedAt="5 juin 2026"
-      intro="La présente Politique de Confidentialité explique comment ChapCam collecte, utilise, conserve et protège vos données personnelles lorsque vous utilisez notre plateforme de transformation de visage en temps réel. Elle s'applique conformément au Règlement Général sur la Protection des Données (RGPD) et aux lois applicables en matière de protection des données."
+      intro="La présente Politique de Confidentialité explique comment LIVECAM collecte, utilise, conserve et protège vos données personnelles lorsque vous utilisez notre plateforme de transformation de visage en temps réel. Elle s'applique conformément au Règlement Général sur la Protection des Données (RGPD) et aux lois applicables en matière de protection des données."
     >
       <LegalSection title="1. Responsable du traitement">
         <p>
-          ChapCam est responsable du traitement de vos données personnelles dans le cadre de l&apos;utilisation de la
-          Plateforme. Pour toute question relative à vos données, vous pouvez nous contacter à{" "}
-          <a href="mailto:contact@chapcam.com" className="text-primary hover:underline">
-            contact@chapcam.com
-          </a>
-          .
+          LIVECAM est responsable du traitement de vos données personnelles dans le cadre de l&apos;utilisation de la
+          Plateforme. Pour toute question relative à vos données, vous pouvez utiliser le canal
+          d&apos;assistance disponible sur chapcam.com.
         </p>
       </LegalSection>
 
@@ -99,11 +96,8 @@ export default function ConfidentialitePage() {
           finalités décrites, puis nous les supprimons ou les anonymisons. Nous pouvons conserver certaines données plus
           longtemps lorsque la loi l&apos;exige (obligations légales, comptables ou fiscales) ou pour la constatation,
           l&apos;exercice ou la défense de droits en justice. Les données biométriques sont conservées uniquement le
-          temps strictement nécessaire à la fourniture du service. Vous pouvez demander la suppression de vos données à{" "}
-          <a href="mailto:contact@chapcam.com" className="text-primary hover:underline">
-            contact@chapcam.com
-          </a>
-          .
+          temps strictement nécessaire à la fourniture du service. Vous pouvez demander la suppression de vos
+          données via le canal d&apos;assistance disponible sur chapcam.com.
         </p>
       </LegalSection>
 
@@ -163,11 +157,8 @@ export default function ConfidentialitePage() {
           </li>
         </ul>
         <p>
-          Pour exercer vos droits, écrivez-nous à{" "}
-          <a href="mailto:contact@chapcam.com" className="text-primary hover:underline">
-            contact@chapcam.com
-          </a>
-          . Nous pourrons vous demander de vérifier votre identité avant de traiter votre demande.
+          Pour exercer vos droits, utilisez le canal d&apos;assistance disponible sur chapcam.com. Nous
+          pourrons vous demander de vérifier votre identité avant de traiter votre demande.
         </p>
       </LegalSection>
 
@@ -184,11 +175,8 @@ export default function ConfidentialitePage() {
         <p>
           La Plateforme n&apos;est pas destinée aux personnes de moins de dix-huit (18) ans et nous ne collectons pas
           sciemment de données auprès de mineurs. Si nous apprenons qu&apos;un mineur nous a transmis des données, nous
-          les supprimerons. Si vous pensez qu&apos;un mineur nous a fourni des données, contactez-nous à{" "}
-          <a href="mailto:contact@chapcam.com" className="text-primary hover:underline">
-            contact@chapcam.com
-          </a>
-          .
+          les supprimerons. Si vous pensez qu&apos;un mineur nous a fourni des données, prévenez-nous via le canal
+          d&apos;assistance disponible sur chapcam.com.
         </p>
       </LegalSection>
 
@@ -202,11 +190,8 @@ export default function ConfidentialitePage() {
 
       <LegalSection title="13. Nous contacter">
         <p>
-          Pour toute question relative à la présente Politique ou à vos données personnelles, contactez-nous à{" "}
-          <a href="mailto:contact@chapcam.com" className="text-primary hover:underline">
-            contact@chapcam.com
-          </a>
-          .
+          Pour toute question relative à la présente Politique ou à vos données personnelles, utilisez le
+          canal d&apos;assistance disponible sur chapcam.com.
         </p>
       </LegalSection>
     </LegalShell>

@@ -22,7 +22,7 @@ const features = [
   {
     icon: Monitor,
     title: "Camera virtuelle",
-    description: "Utilisez ChapCam dans Zoom, Teams, WhatsApp"
+    description: "Utilisez LIVECAM dans Zoom, Teams, WhatsApp"
   },
   {
     icon: Shield,
@@ -81,7 +81,7 @@ export default function DownloadPage() {
             </motion.div>
             
             <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
-              Telecharger <span className="text-[#00ff88]">ChapCam Desktop</span>
+              Telecharger <span className="text-[#00ff88]">LIVECAM Desktop</span>
             </h1>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               L&apos;application de face swap en temps reel pour votre ordinateur.
@@ -216,11 +216,11 @@ export default function DownloadPage() {
                   </li>
                   <li className="flex gap-3">
                     <span className="flex-shrink-0 w-6 h-6 bg-[#00ff88] rounded-full flex items-center justify-center text-black text-sm font-bold">2</span>
-                    <span>Glissez ChapCam dans le dossier Applications</span>
+                    <span>Glissez LIVECAM dans le dossier Applications</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="flex-shrink-0 w-6 h-6 bg-[#00ff88] rounded-full flex items-center justify-center text-black text-sm font-bold">3</span>
-                    <span>Ouvrez ChapCam et autorisez l&apos;acces a la camera</span>
+                    <span>Ouvrez LIVECAM et autorisez l&apos;acces a la camera</span>
                   </li>
                 </ol>
               </div>
@@ -238,7 +238,7 @@ export default function DownloadPage() {
                   </li>
                   <li className="flex gap-3">
                     <span className="flex-shrink-0 w-6 h-6 bg-[#00ff88] rounded-full flex items-center justify-center text-black text-sm font-bold">3</span>
-                    <span>Lancez ChapCam depuis le menu Demarrer</span>
+                    <span>Lancez LIVECAM depuis le menu Demarrer</span>
                   </li>
                 </ol>
               </div>
@@ -253,9 +253,6 @@ export default function DownloadPage() {
             className="text-center mt-12 text-gray-500"
           >
             <p>Version 1.0.0 | Derniere mise a jour: Mai 2026</p>
-            <p className="mt-2">
-              Besoin d&apos;aide? <a href="https://t.me/chapcam1" target="_blank" rel="noopener noreferrer" className="text-[#00ff88] hover:underline">Contactez-nous sur Telegram</a>
-            </p>
           </motion.div>
         </div>
       </div>

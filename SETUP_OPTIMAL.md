@@ -253,12 +253,11 @@ Exécutez ce mini-test avant d'appeler :
 1. Exécutez à nouveau `start-chapcam-desktop.ps1` ou `.bat`
 2. Vérifiez le fichier `chapcam-debug.log` situé à la racine du dossier
 3. Utilisez le bouton "Diagnostic" dans ChapCop → Copie des logs → Envoyez-nous
-4. Rejoignez le support Telegram : `t.me/chapcam1`
+4. Consultez la documentation d'aide sur `chapcam.com`
 
 **Ressources :**
 - Documentation : `http://localhost:3000/dashboard/mes-demandes` (une fois connecté)
 - Dépannage WhatsApp : `WHATSAPP_CAMERA_TROUBLESHOOTING.md` (fourni avec l'install)
-- Support direct : `@chapcam1` sur Telegram
 
 ---
 
@@ -280,4 +279,4 @@ Après ce setup complet :
 
 **Dernière mise à jour :** 2026-08-19  
 **Version :** Setup Optimale v2.0  
-**Support :** `t.me/chapcam1`
+**Support :** Documentation d'aide sur `chapcam.com`

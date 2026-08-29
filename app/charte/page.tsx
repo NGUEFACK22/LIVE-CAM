@@ -26,7 +26,7 @@ import {
 import { ReportForm } from '@/components/legal/report-form'
 
 export const metadata: Metadata = {
-  title: 'CHAPCAM AI — Utilisation responsable & conditions',
+  title: 'LIVECAM AI — Utilisation responsable & conditions',
   description:
     'Créez du contenu avec l’intelligence artificielle de manière responsable et conforme aux lois applicables. Utilisations autorisées, interdites, consentement, sécurité et signalement.',
 }
@@ -45,12 +45,12 @@ const FORBIDDEN = [
   {
     icon: UserX,
     title: 'Usurpation d’identité',
-    desc: 'Interdiction d’utiliser CHAPCAM pour tromper ou se faire passer pour une autre personne.',
+    desc: 'Interdiction d’utiliser LIVECAM pour tromper ou se faire passer pour une autre personne.',
   },
   {
     icon: Ban,
     title: 'Escroquerie et fraude',
-    desc: 'Interdiction d’utiliser CHAPCAM pour le broutage, l’ingénierie sociale ou toute activité frauduleuse.',
+    desc: 'Interdiction d’utiliser LIVECAM pour le broutage, l’ingénierie sociale ou toute activité frauduleuse.',
   },
   {
     icon: ShieldAlert,
@@ -114,7 +114,7 @@ export default function ChartePage() {
             </span>
 
             <h1 className="text-balance text-4xl font-bold leading-[1.05] tracking-tight md:text-6xl">
-              CHAPCAM <span className="text-primary">AI</span>
+              LIVECAM <span className="text-primary">AI</span>
             </h1>
 
             <p className="max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground md:text-xl">
@@ -146,7 +146,7 @@ export default function ChartePage() {
               eyebrow="Section 1"
               id="autorise-title"
               title="Utilisation autorisée"
-              desc="CHAPCAM est conçu pour la créativité et le divertissement. Vous pouvez l’utiliser pour :"
+              desc="LIVECAM est conçu pour la créativité et le divertissement. Vous pouvez l’utiliser pour :"
             />
             <ul className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
               {ALLOWED.map(({ icon: Icon, label }) => (
@@ -217,7 +217,7 @@ export default function ChartePage() {
           {/* ===== SECTION 4 — RESPONSABILITÉ ===== */}
           <InfoSection eyebrow="Section 4" icon={Scale} title="Responsabilité">
             <p className="text-muted-foreground">
-              CHAPCAM agit exclusivement comme fournisseur de technologies d’intelligence artificielle.
+              LIVECAM agit exclusivement comme fournisseur de technologies d’intelligence artificielle.
             </p>
             <p className="mt-3 text-muted-foreground">
               Chaque utilisateur demeure seul responsable des contenus qu’il importe, génère ou diffuse.
@@ -226,7 +226,7 @@ export default function ChartePage() {
 
           {/* ===== SECTION 5 — SÉCURITÉ ===== */}
           <InfoSection eyebrow="Section 5" icon={Lock} title="Sécurité">
-            <p className="text-muted-foreground">En cas de suspicion d’abus, CHAPCAM peut :</p>
+            <p className="text-muted-foreground">En cas de suspicion d’abus, LIVECAM peut :</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               {['Suspendre un compte', 'Supprimer un compte', 'Limiter l’accès à certaines fonctionnalités'].map(
                 (item) => (
@@ -251,7 +251,7 @@ export default function ChartePage() {
           {/* ===== SECTION 6 — COOPÉRATION AVEC LES AUTORITÉS ===== */}
           <InfoSection eyebrow="Section 6" icon={Building2} title="Coopération avec les autorités">
             <p className="text-muted-foreground">
-              CHAPCAM coopérera avec les autorités compétentes lorsque la loi l’exige.
+              LIVECAM coopérera avec les autorités compétentes lorsque la loi l’exige.
             </p>
           </InfoSection>
 
@@ -276,7 +276,7 @@ export default function ChartePage() {
                 <p className="text-muted-foreground">
                   En Côte d’Ivoire, l’escroquerie en ligne — communément appelée «&nbsp;broutage&nbsp;» — ainsi que
                   l’usurpation d’identité numérique et les arnaques sentimentales sont des infractions pénales
-                  sévèrement réprimées. L’utilisation de CHAPCAM à ces fins est{' '}
+                  sévèrement réprimées. L’utilisation de LIVECAM à ces fins est{' '}
                   <strong className="text-foreground">strictement interdite</strong>.
                 </p>
 
@@ -304,7 +304,7 @@ export default function ChartePage() {
                       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                         Quel que soit votre pays, vous demeurez responsable du respect des lois applicables sur votre
                         territoire (protection des données, droit à l’image, lutte contre la fraude, RGPD pour
-                        l’Union européenne, etc.). CHAPCAM est un outil de création&nbsp;: tout détournement à des fins
+                        l’Union européenne, etc.). LIVECAM est un outil de création&nbsp;: tout détournement à des fins
                         illégales engage votre seule responsabilité.
                       </p>
                     </div>
@@ -344,7 +344,7 @@ export default function ChartePage() {
             <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
               <div>
                 <p className="text-xl font-bold">
-                  CHAP<span className="text-primary">CAM</span>.COM
+                  LIVE<span className="text-primary">CAM</span>.COM
                 </p>
                 <p className="mt-2 max-w-xs text-sm text-muted-foreground">
                   Plateforme d’intelligence artificielle responsable.
@@ -360,19 +360,13 @@ export default function ChartePage() {
                 <Link href="/conditions#paiements" className="text-muted-foreground transition-colors hover:text-primary">
                   Politique de remboursement
                 </Link>
-                <a
-                  href="mailto:contact@chapcam.com"
-                  className="text-muted-foreground transition-colors hover:text-primary"
-                >
-                  Contact juridique
-                </a>
                 <a href="#signaler" className="text-muted-foreground transition-colors hover:text-primary">
                   Signaler un abus
                 </a>
               </nav>
             </div>
             <div className="mt-10 border-t border-hairline pt-6 text-sm text-text-faint">
-              © {new Date().getFullYear()} CHAPCAM.COM — Tous droits réservés.
+              © {new Date().getFullYear()} LIVECAM.COM — Tous droits réservés.
             </div>
           </div>
         </footer>

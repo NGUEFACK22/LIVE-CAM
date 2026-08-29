@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { ChevronDown, MessageCircle } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 
 export function Header() {
   return (
@@ -23,7 +23,7 @@ export function Header() {
           >
             <Image
               src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo%20chapcam-Zg2rUUnOrSECjteElTxoU1rcYfwF3i.jpg"
-              alt="ChapCam Logo"
+              alt="LIVECAM Logo"
               width={48}
               height={48}
               className="rounded-xl object-contain"
@@ -32,7 +32,7 @@ export function Header() {
           </motion.div>
           <div className="flex flex-col">
             <span className="text-xl font-bold flex items-center gap-2">
-              <span className="bg-gradient-to-r from-[#8b5cf6] via-[#00d4ff] via-[#22c55e] to-[#f97316] bg-clip-text text-transparent">ChapCam</span>
+              <span className="bg-gradient-to-r from-[#8b5cf6] via-[#00d4ff] via-[#22c55e] to-[#f97316] bg-clip-text text-transparent">LIVECAM</span>
               <svg width="20" height="14" viewBox="0 0 20 14" fill="none" className="text-[#00d4ff]">
                 <rect x="1" y="2" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.5"/>
                 <path d="M15 5L19 3V11L15 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -90,7 +90,7 @@ export function Header() {
               href="https://www.facebook.com/share/1BLApD4N6j/?mibextid=wwXIfr"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Communauté Facebook ChapCam"
+              aria-label="Communauté Facebook LIVECAM"
               title="Communauté Facebook"
               className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/[0.1] hover:shadow-[0_6px_18px_-6px_rgba(8,102,255,0.5)]"
             >
@@ -101,7 +101,7 @@ export function Header() {
               href="https://www.tiktok.com/@multivoix.ci"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Communauté TikTok ChapCam"
+              aria-label="Communauté TikTok LIVECAM"
               title="Communauté TikTok"
               className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/[0.1] hover:shadow-[0_6px_18px_-6px_rgba(0,212,255,0.5)]"
             >
@@ -112,7 +112,7 @@ export function Header() {
               href="https://www.instagram.com/chapcam_officiel"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Communauté Instagram ChapCam"
+              aria-label="Communauté Instagram LIVECAM"
               title="Communauté Instagram"
               className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/[0.1] hover:shadow-[0_6px_18px_-6px_rgba(233,30,140,0.5)]"
             >
@@ -120,23 +120,6 @@ export function Header() {
               <img src="/logos/instagram.svg" alt="Instagram" width={18} height={18} className="h-[18px] w-[18px] object-contain" />
             </a>
           </div>
-
-          {/* Bouton WhatsApp */}
-          <a
-            href="https://wa.me/2250555560189"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Contacter ChapCam sur WhatsApp"
-          >
-            <motion.span
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="hidden items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white shadow-[0_0_20px_-4px_rgba(37,211,102,0.6)] transition-all hover:bg-[#1ebe5a] hover:shadow-[0_0_28px_-4px_rgba(37,211,102,0.8)] sm:flex"
-            >
-              <MessageCircle className="h-4 w-4" />
-              WhatsApp
-            </motion.span>
-          </a>
 
           {/* Se connecter - contour */}
           <Link href="/auth/login">

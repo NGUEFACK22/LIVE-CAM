@@ -32,7 +32,7 @@ export function FounderSection() {
           </motion.div>
 
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            La vision derriere <span className="text-[#00ff88]">ChapCam</span>
+            La vision derriere <span className="text-[#00ff88]">LIVECAM</span>
           </h2>
         </motion.div>
 
@@ -63,7 +63,7 @@ export function FounderSection() {
               <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden">
                 <Image
                   src="/images/founder-meryl-kacou.png"
-                  alt="Meryl Kacou - CEO & Founder ChapCam"
+                  alt="Meryl Kacou - CEO & Founder LIVECAM"
                   fill
                   className="object-cover object-top"
                   priority
@@ -80,7 +80,7 @@ export function FounderSection() {
                         Meryl Kacou
                       </h3>
                       <p className="text-[#00ff88] font-semibold text-lg mb-3">
-                        CEO & Founder — ChapCam
+                        CEO & Founder — LIVECAM
                       </p>
                       <p className="text-gray-300 text-sm md:text-base max-w-xl">
                         Senior Developer & AI Builder focused on real-time face swap and immersive communication technologies.

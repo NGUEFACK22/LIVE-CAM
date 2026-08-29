@@ -6,6 +6,7 @@ import { Check, Zap, Crown, Star, Clock, CreditCard, Droplet, DropletOff, Sparkl
 import Link from "next/link"
 import Image from "next/image"
 import { ChapCamPcPromo } from "@/components/chapcam-pc-promo"
+import { geniusPayFeeFor, geniusPayTotalToCharge } from "@/lib/geniuspay-fees"
 
 // Statut du logo (watermark) par forfait :
 // - "with"   : rendu AVEC logo ChapCam (Starter, Standard)
@@ -124,7 +125,7 @@ export function PricingSection() {
           <h2 className="text-4xl lg:text-5xl font-black text-white mb-4">
             Changez d&apos;apparence en live
           </h2>
-          <p className="text-emerald-400 text-2xl font-medium">avec ChapCam</p>
+          <p className="text-emerald-400 text-2xl font-medium">avec LIVECAM</p>
           <p className="text-gray-400 mt-4 text-lg">
             2 points = 1 seconde de transformation du visage et corps entier
           </p>
@@ -156,11 +157,11 @@ export function PricingSection() {
                 Nouveau · Sorti le 17 juillet
               </div>
               <h3 className="text-xl font-bold text-white md:text-2xl">
-                Ces recharges alimentent ChapCam 2.0
+                Ces recharges alimentent LIVECAM 2.0
               </h3>
               <p className="mt-2 text-pretty text-gray-300 leading-relaxed">
                 Toutes les offres ci-dessous sont destinees a notre nouveau logiciel{" "}
-                <span className="font-semibold text-emerald-400">ChapCam 2.0</span>, qui fonctionne
+                <span className="font-semibold text-emerald-400">LIVECAM 2.0</span>, qui fonctionne
                 desormais avec <span className="font-semibold text-white">tout type de PC</span> et
                 permet meme de <span className="font-semibold text-white">changer la couleur de peau</span>.
               </p>
@@ -182,6 +183,11 @@ export function PricingSection() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {plans.map((plan, index) => {
             const Icon = plan.icon
+            // Frais a la charge du client : le prix affiche (net) est preserve,
+            // le client paie net + frais (100 F + 1% du total facture).
+            const priceNet = Number(plan.price.replace(/\./g, ""))
+            const totalNet = geniusPayTotalToCharge(priceNet)
+            const feeNet = geniusPayFeeFor(priceNet)
             return (
               <motion.div
                 key={plan.id}
@@ -250,6 +256,10 @@ export function PricingSection() {
                   </span>
                   <span className="text-gray-400 text-xl"> {plan.currency}</span>
                   <p className="text-gray-500 text-sm mt-1">{plan.validity}</p>
+                  <p className="text-gray-500 text-xs mt-1">
+                    Total à payer : {totalNet.toLocaleString("fr-FR")} {plan.currency}{" "}
+                    <span className="text-gray-600">(dont {feeNet.toLocaleString("fr-FR")} {plan.currency} de frais)</span>
+                  </p>
                 </div>
 
                 {/* Statut du logo (watermark) mis en avant */}
@@ -257,7 +267,7 @@ export function PricingSection() {
                   <div className="mb-6 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <Droplet className="w-5 h-5 text-gray-400 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-bold text-gray-300">Avec logo ChapCam</p>
+                      <p className="text-sm font-bold text-gray-300">Avec logo LIVECAM</p>
                       <p className="text-xs text-gray-500">Filigrane visible sur le rendu</p>
                     </div>
                   </div>
@@ -396,7 +406,8 @@ export function PricingSection() {
           </div>
 
           <p className="mt-8 text-center text-sm text-gray-500">
-            Paiement securise via PayDunya (mobile money &amp; carte) ou Trybit (crypto)
+            Paiement securise via GeniusPay (mobile money &amp; carte bancaire). Les frais de
+            paiement (100 FCFA + 1%) sont a la charge du client.
           </p>
         </motion.div>
       </div>

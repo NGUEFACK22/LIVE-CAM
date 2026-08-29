@@ -1,6 +1,6 @@
 {
   "name": "chapcam-desktop",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "private": true,
   "description": "ChapCam - Face Swap en Temps Reel",
   "author": "ChapCam <support@chapcam.com>",
@@ -70,7 +70,6 @@
     "next": "16.2.11",
     "next-themes": "^0.4.6",
     "nodemailer": "^9.0.3",
-    "paydunya": "^1.0.12",
     "pg": "^8.22.0",
     "react": "^19.2.8",
     "react-day-picker": "9.13.2",

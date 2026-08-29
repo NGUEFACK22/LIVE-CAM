@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 // Liste en lecture seule des clients dont l'abonnement a ete credite
-// (automatiquement via PayDunya ou manuellement par l'admin).
+// (automatiquement via GeniusPay ou manuellement par l'admin).
 // On lit directement la table `subscriptions` : un client = une ligne,
 // donc aucun doublon possible.
 export async function GET() {
@@ -61,8 +61,9 @@ export async function GET() {
     const paidInstalls = installList.filter((i) => i.paid)
     const installRevenue = paidInstalls.length * INSTALL_PRICE
 
-    // Journal PayDunya : on affiche seulement les 200 derniers (performance),
-    // mais les statistiques sont calculees sur TOUTE la table via des count().
+    // Journal des paiements automatiques : on affiche seulement les 200
+    // derniers (performance), mais les statistiques sont calculees sur
+    // TOUTE la table via des count().
     const startOfDay = new Date()
     startOfDay.setHours(0, 0, 0, 0)
     const startOfDayIso = startOfDay.toISOString()
@@ -97,9 +98,9 @@ export async function GET() {
         .eq('credited', false),
     ])
 
-    const paydunyaTodayCount = todayCountRes.count ?? 0
-    const paydunyaCreditedTodayCount = creditedTodayCountRes.count ?? 0
-    const paydunyaFailedCount = failedCountRes.count ?? 0
+    const autoTodayCount = todayCountRes.count ?? 0
+    const autoCreditedTodayCount = creditedTodayCountRes.count ?? 0
+    const autoFailedCount = failedCountRes.count ?? 0
 
     return NextResponse.json({
       clients,
@@ -114,7 +115,7 @@ export async function GET() {
         paidAt: i.paid_at,
         createdAt: i.created_at,
       })),
-      paydunyaLogs: logList.map((l) => ({
+      paymentLogs: logList.map((l) => ({
         id: l.id,
         source: l.source,
         token: l.token,
@@ -139,9 +140,9 @@ export async function GET() {
         installPaid: paidInstalls.length,
         installRevenue,
         totalRevenue: subRevenue + installRevenue,
-        paydunyaToday: paydunyaTodayCount,
-        paydunyaCreditedToday: paydunyaCreditedTodayCount,
-        paydunyaFailed: paydunyaFailedCount,
+        autoToday: autoTodayCount,
+        autoCreditedToday: autoCreditedTodayCount,
+        autoFailed: autoFailedCount,
       },
     })
   } catch (err: any) {

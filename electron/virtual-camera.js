@@ -215,7 +215,7 @@ function findObsExecutable() {
 
 // Titre de la fenetre ChapCam (fixe dans main.js pour rester stable, sinon
 // OBS ne retrouverait plus la fenetre a chaque changement de page).
-const CHAPCAM_WINDOW_TITLE = 'ChapCam - Face Swap en Temps Reel'
+const CHAPCAM_WINDOW_TITLE = 'LIVECAM - Face Swap en Temps Reel'
 
 // UUID du canvas "default" cree par OBS 32 (identifiant stable, copie depuis
 // une scene OBS existante fonctionnelle).

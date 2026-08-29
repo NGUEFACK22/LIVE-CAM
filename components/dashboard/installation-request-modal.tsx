@@ -28,7 +28,7 @@ export function InstallationRequestModal({ open, onClose }: Props) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
-  // Paiement partage : choix PayDunya (mobile money/carte) ou Crypto (Trybit).
+  // Paiement partage : ouvre la page de paiement securise GeniusPay puis redirige.
   const { startCheckout, pendingKey, error: payError, modal } = usePaymentCheckout()
   const paying = pendingKey === 'install'
 
@@ -167,7 +167,7 @@ export function InstallationRequestModal({ open, onClose }: Props) {
               <div>
                 <h3 className="text-lg font-bold text-foreground">Demande d&apos;installation</h3>
                 <p className="text-sm text-muted-foreground">
-                  Installez ChapCam avec vos apps d&apos;appel video
+                  Installez LIVECAM avec vos apps d&apos;appel video
                 </p>
               </div>
             </div>
@@ -180,7 +180,7 @@ export function InstallationRequestModal({ open, onClose }: Props) {
 
             {/* Apps */}
             <label className="mb-2 block text-sm font-medium text-foreground">
-              Applications a installer avec ChapCam
+              Applications a installer avec LIVECAM
             </label>
             <div className="mb-4 flex flex-wrap gap-2">
               {APPS.map((app) => {

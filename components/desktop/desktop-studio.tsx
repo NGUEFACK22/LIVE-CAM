@@ -23,7 +23,7 @@ const STATUS_LABEL: Record<Status, string> = {
 }
 
 const INITIAL_LOGS = [
-  'ChapCam PC 2.0 — Subscribers Edition',
+  'LIVECAM PC 2.0 — Subscribers Edition',
   'Detection du materiel...',
   'GPU detecte : NVIDIA GeForce RTX 4060 Laptop GPU',
   'CUDA 13.0 · PyTorch 2.10 · execution provider = CUDAExecutionProvider',
@@ -151,7 +151,7 @@ export function DesktopStudio() {
   const toggleLive = () => {
     setLive((v) => {
       const next = !v
-      pushLog(next ? 'Camera virtuelle ChapCam ACTIVEE (visible dans WhatsApp, Zoom...).' : 'Camera virtuelle desactivee.')
+      pushLog(next ? 'Camera virtuelle LIVECAM ACTIVEE (visible dans WhatsApp, Zoom...).' : 'Camera virtuelle desactivee.')
       return next
     })
   }
@@ -164,7 +164,7 @@ export function DesktopStudio() {
           <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#00ff88]/15">
             <Sparkles className="h-4 w-4 text-[#00ff88]" />
           </div>
-          <span className="text-sm font-semibold text-white">ChapCam PC</span>
+          <span className="text-sm font-semibold text-white">LIVECAM PC</span>
           <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-gray-400">
             2.0 — Subscribers Edition
           </span>

@@ -60,7 +60,7 @@ export function ResponsibleUsePopup() {
           </h2>
 
           <p className="mt-3 text-pretty text-sm leading-relaxed text-muted-foreground">
-            Les contenus générés avec CHAPCAM doivent respecter les lois applicables ainsi que les droits des tiers.
+            Les contenus générés avec LIVECAM doivent respecter les lois applicables ainsi que les droits des tiers.
           </p>
 
           <button

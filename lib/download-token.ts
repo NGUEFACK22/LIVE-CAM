@@ -29,7 +29,6 @@ function getSecret(): string {
   const secret =
     process.env.DOWNLOAD_SIGNING_SECRET ||
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.PAYDUNYA_MASTER_KEY ||
     ''
   if (!secret) {
     // Ne devrait pas arriver en prod (SERVICE_ROLE_KEY est toujours present).

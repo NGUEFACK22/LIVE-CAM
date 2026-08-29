@@ -5,7 +5,7 @@ import { PC_OFFER } from '@/lib/pc-offer'
 import { usePaymentCheckout } from '@/components/payment/use-payment-checkout'
 
 export function ChapCamPcCard() {
-  // Paiement partage : choix PayDunya (mobile money/carte) ou Crypto (Trybit).
+  // Paiement partage : ouvre la page de paiement securise GeniusPay puis redirige.
   const { startCheckout, pendingKey, error, modal } = usePaymentCheckout()
   const loading = pendingKey === PC_OFFER.id
 
@@ -23,7 +23,7 @@ export function ChapCamPcCard() {
         ) : (
           <>
             <Download className="h-5 w-5" />
-            Telecharger ChapCam PC
+            Telecharger LIVECAM PC
           </>
         )}
       </button>

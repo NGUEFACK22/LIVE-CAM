@@ -75,7 +75,7 @@ export default function AdminStatsPage() {
         <div className="flex items-center gap-4 mb-12">
           <Shield className="w-12 h-12 text-[#00ff88]" />
           <div>
-            <h1 className="text-4xl font-bold">Statistiques Privées ChapCam</h1>
+            <h1 className="text-4xl font-bold">Statistiques Privées LIVECAM</h1>
             <div className="mt-1 flex items-center gap-3">
               <p className="text-gray-400">Accès restreint • Visible uniquement par toi</p>
               <span className="flex items-center gap-1.5 rounded-full bg-[#00ff88]/10 px-2.5 py-0.5 text-xs font-medium text-[#00ff88]">

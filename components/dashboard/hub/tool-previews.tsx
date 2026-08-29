@@ -7,7 +7,7 @@ export function EsimPreview() {
     <div className="relative aspect-[785/346] w-full overflow-hidden rounded-xl border border-hairline bg-[#1d4ed8]">
       <Image
         src="/images/esim-apps.png"
-        alt="Plus de 1000 applications supportées par les numéros eSIM ChapCam"
+        alt="Plus de 1000 applications supportées par les numéros eSIM LIVECAM"
         fill
         sizes="260px"
         className="object-cover object-top"
@@ -48,7 +48,7 @@ export function LiveSwapPreview() {
           className="object-cover"
         />
         <span className="absolute bottom-0 left-0 right-0 bg-primary/80 py-0.5 text-center text-[9px] font-semibold text-black">
-          ChapCam
+          LIVECAM
         </span>
       </div>
     </div>

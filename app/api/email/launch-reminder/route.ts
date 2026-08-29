@@ -15,8 +15,8 @@ function getResend() {
 // Template email pour le rappel de lancement
 function getLaunchReminderEmail(userName: string, isReminder: 'friday' | 'saturday') {
   const subject = isReminder === 'friday' 
-    ? "J-1 avant le lancement de ChapCam !" 
-    : "C'est aujourd'hui ! ChapCam lance a 19h"
+    ? "J-1 avant le lancement de LIVECAM !" 
+    : "C'est aujourd'hui ! LIVECAM lance a 19h"
   
   return {
     subject,
@@ -51,14 +51,14 @@ function getLaunchReminderEmail(userName: string, isReminder: 'friday' | 'saturd
               
               ${isReminder === 'friday' ? `
               <p style="color: #a0a0a0; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                Plus qu'un jour avant le grand lancement de <span style="color: #00ff88; font-weight: bold;">ChapCam</span> !
+                Plus qu'un jour avant le grand lancement de <span style="color: #00ff88; font-weight: bold;">LIVECAM</span> !
               </p>
               <p style="color: #a0a0a0; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
                 Rendez-vous demain <strong style="color: white;">Samedi 31 Mai a 19h00</strong> pour decouvrir la revolution du face swap en temps reel.
               </p>
               ` : `
               <p style="color: #a0a0a0; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                Le moment est arrive ! <span style="color: #00ff88; font-weight: bold;">ChapCam</span> lance officiellement aujourd'hui a <strong style="color: white;">19h00</strong>.
+                Le moment est arrive ! <span style="color: #00ff88; font-weight: bold;">LIVECAM</span> lance officiellement aujourd'hui a <strong style="color: white;">19h00</strong>.
               </p>
               <p style="color: #a0a0a0; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
                 Sois parmi les premiers a telecharger l'application et profite des offres de lancement exclusives !
@@ -104,7 +104,7 @@ function getLaunchReminderEmail(userName: string, isReminder: 'friday' | 'saturd
           <tr>
             <td style="padding: 20px 40px; border-top: 1px solid rgba(255,255,255,0.1);">
               <p style="color: #666; font-size: 12px; text-align: center; margin: 0;">
-                ChapCam - Face Swap en Temps Reel<br>
+                LIVECAM - Face Swap en Temps Reel<br>
                 <a href="https://chapcam.com" style="color: #00ff88;">chapcam.com</a>
               </p>
             </td>
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
       const resend = getResend()
       
       const { data, error } = await resend.emails.send({
-        from: 'ChapCam <noreply@chapcam.com>',
+        from: 'LIVECAM <noreply@chapcam.com>',
         to: testEmail,
         subject: emailContent.subject,
         html: emailContent.html,
@@ -207,7 +207,7 @@ export async function POST(request: Request) {
         
         try {
           await resend.emails.send({
-            from: 'ChapCam <noreply@chapcam.com>',
+            from: 'LIVECAM <noreply@chapcam.com>',
             to: user.email!,
             subject: emailContent.subject,
             html: emailContent.html,

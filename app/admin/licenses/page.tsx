@@ -235,7 +235,7 @@ export default function AdminLicensesPage() {
               <Monitor className="h-6 w-6 text-[#00ff88]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Licences ChapCam PC</h1>
+              <h1 className="text-2xl font-bold text-white">Licences LIVECAM PC</h1>
               <p className="text-sm text-gray-400">
                 Gerez les cles du logiciel desktop (achat unique a vie).
               </p>
@@ -293,11 +293,11 @@ export default function AdminLicensesPage() {
           <div className="mb-2 flex items-center gap-2">
             <Mail className="h-4 w-4 text-[#00d4ff]" />
             <h2 className="text-sm font-semibold text-white">
-              Envoi manuel - email ChapCam PC (cle + liens Windows et MacBook)
+              Envoi manuel - email LIVECAM PC (cle + liens Windows et MacBook)
             </h2>
           </div>
           <p className="mb-3 text-xs text-gray-400">
-            Envoie a un client l&apos;email officiel ChapCam PC (50 000 FCFA) avec sa cle de licence
+            Envoie a un client l&apos;email officiel LIVECAM PC (50 000 FCFA) avec sa cle de licence
             et les liens de telechargement Windows ET MacBook. Si une licence active existe deja
             pour cet email, elle est reutilisee ; sinon une nouvelle cle est generee.
           </p>

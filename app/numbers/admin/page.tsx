@@ -123,7 +123,7 @@ export default function AdminPage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <ShieldAlert className="h-5 w-5 text-blue-400" />
-            <span className="font-semibold">ChapCam Admin</span>
+            <span className="font-semibold">LIVECAM Admin</span>
             <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-[11px] font-medium text-red-400">
               Restreint
             </span>

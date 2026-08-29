@@ -8,13 +8,13 @@ import { useState } from "react"
 const obsSteps = [
   {
     id: 1,
-    title: "Installer ChapCam Desktop + OBS Studio",
-    description: "OBS fournit la camera virtuelle, ChapCam diffuse dedans.",
+    title: "Installer LIVECAM Desktop + OBS Studio",
+    description: "OBS fournit la camera virtuelle, LIVECAM diffuse dedans.",
     icon: Download,
     details: [
-      "Telechargez et installez ChapCam Desktop",
+      "Telechargez et installez LIVECAM Desktop",
       "Installez OBS Studio (gratuit) sur obsproject.com si ce n'est pas deja fait",
-      "Ouvrez OBS : ajoutez une source 'Capture de fenetre' pointant sur la fenetre ChapCam"
+      "Ouvrez OBS : ajoutez une source 'Capture de fenetre' pointant sur la fenetre LIVECAM"
     ]
   },
   {
@@ -23,7 +23,7 @@ const obsSteps = [
     description: "Activez votre visage transforme.",
     icon: Play,
     details: [
-      "Ouvrez ChapCam Desktop et connectez-vous",
+      "Ouvrez LIVECAM Desktop et connectez-vous",
       "Allez dans le Live Swap",
       "Lancez le swap : l'app demarre la camera virtuelle OBS automatiquement"
     ]
@@ -57,24 +57,24 @@ const ndiSteps = [
   },
   {
     id: 2,
-    title: "Lancer ChapCam en mode NDI",
-    description: "Activez la sortie NDI dans ChapCam.",
+    title: "Lancer LIVECAM en mode NDI",
+    description: "Activez la sortie NDI dans LIVECAM.",
     icon: Monitor,
     details: [
-      "Ouvrez ChapCam et demarrez votre swap",
+      "Ouvrez LIVECAM et demarrez votre swap",
       "Dans les parametres, activez 'Sortie NDI'",
-      "ChapCam diffuse maintenant en NDI"
+      "LIVECAM diffuse maintenant en NDI"
     ]
   },
   {
     id: 3,
     title: "Configurer NDI Virtual Input",
-    description: "Selectionnez ChapCam comme source NDI.",
+    description: "Selectionnez LIVECAM comme source NDI.",
     icon: Play,
     details: [
       "Ouvrez 'NDI Virtual Input' (barre des taches)",
       "Cliquez droit sur l'icone NDI",
-      "Selectionnez 'ChapCam' comme source",
+      "Selectionnez 'LIVECAM' comme source",
       "La camera virtuelle NDI est active"
     ]
   },
@@ -115,7 +115,7 @@ export function TutorialSection() {
   const currentSteps = activeTab === 'obs' ? obsSteps : ndiSteps
   const currentApps = activeTab === 'obs' ? obsApps : ndiApps
   const downloadUrl = activeTab === 'obs' ? '#chapcam-download' : 'https://ndi.tv/tools/'
-  const downloadText = activeTab === 'obs' ? 'Telecharger ChapCam Desktop' : 'Telecharger NDI Tools'
+  const downloadText = activeTab === 'obs' ? 'Telecharger LIVECAM Desktop' : 'Telecharger NDI Tools'
 
   return (
     <section className="py-24 relative" id="guide">
@@ -134,7 +134,7 @@ export function TutorialSection() {
           </div>
           
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Comment utiliser ChapCam ?
+            Comment utiliser LIVECAM ?
           </h2>
           <p className="text-xl text-white/60 max-w-2xl mx-auto">
             Choisissez le guide adapte a votre utilisation
@@ -344,7 +344,7 @@ export function TutorialSection() {
                       : 'bg-[#2D8CFF]/10 border-[#2D8CFF]/30'
                   }`}>
                     <p className={`text-center font-medium ${activeTab === 'ndi' ? 'text-[#25D366]' : 'text-[#2D8CFF]'}`}>
-                      Vous etes pret a utiliser ChapCam!
+                      Vous etes pret a utiliser LIVECAM!
                     </p>
                   </div>
                 )}

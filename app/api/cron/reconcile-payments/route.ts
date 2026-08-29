@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { reconcilePendingPaydunya } from '@/lib/fulfillment'
+import { reconcilePendingGeniusPay } from '@/lib/fulfillment'
 import { reconcileWaitingActivations } from '@/lib/numbers/reconcile'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 // Tache de secours (toutes les 5 min via vercel.json). Deux roles :
-//   1) Paiements PayDunya "pending" : credite ceux reellement payes, annule les
+//   1) Paiements GeniusPay "pending" : credite ceux reellement payes, annule les
 //      abandonnes — garantit le credit meme si le client a ferme le navigateur.
 //   2) Activations "waiting" : recupere les SMS arrives et, surtout, rembourse
 //      AUTOMATIQUEMENT (idempotent) les numeros sans SMS / expires / rembourses
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const payments = await reconcilePendingPaydunya({ maxAgeDays: 3, limit: 100 })
+  const payments = await reconcilePendingGeniusPay({ maxAgeDays: 3, limit: 100 })
   const activations = await reconcileWaitingActivations(200).catch((e) => {
     console.log('[cron/reconcile-payments] activations error:', (e as Error)?.message)
     return null

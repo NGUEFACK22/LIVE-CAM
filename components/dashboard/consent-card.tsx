@@ -35,7 +35,7 @@ export function ConsentCard({ initiallyAccepted }: { initiallyAccepted: boolean 
           <div>
             <p className="text-sm font-bold text-foreground">Engagements d’utilisation confirmés</p>
             <p className="text-xs text-muted-foreground">
-              Vous avez accepté les conditions d’utilisation responsable de ChapCam.
+              Vous avez accepté les conditions d’utilisation responsable de LIVECAM.
             </p>
           </div>
         </div>
@@ -91,7 +91,7 @@ export function ConsentCard({ initiallyAccepted }: { initiallyAccepted: boolean 
         <div>
           <h2 className="text-lg font-bold text-foreground">Utilisation responsable</h2>
           <p className="text-sm text-muted-foreground">
-            Merci de confirmer ces engagements avant d’utiliser ChapCam.
+            Merci de confirmer ces engagements avant d’utiliser LIVECAM.
           </p>
         </div>
       </div>

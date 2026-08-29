@@ -77,7 +77,7 @@ export default function VirtualCameraPage() {
     try {
       setShareStatus('sharing')
       await navigator.share({
-        title: 'ChapCam Virtual Camera',
+        title: 'LIVECAM Virtual Camera',
         url: window.location.href,
       })
     } catch (e) {
@@ -137,7 +137,7 @@ export default function VirtualCameraPage() {
           {!isConnected && !isConnecting && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
               <Zap className="mb-4 h-16 w-16 text-primary" />
-              <p className="mb-2 text-xl font-bold text-foreground">Caméra ChapCam Virtuelle</p>
+              <p className="mb-2 text-xl font-bold text-foreground">Caméra LIVECAM Virtuelle</p>
               <p className="mb-6 text-sm text-muted-foreground">
                 Activez le swap pour transformer votre apparence
               </p>
@@ -188,7 +188,7 @@ export default function VirtualCameraPage() {
             <p className="text-xs font-semibold text-primary mb-1">Pour utiliser dans un appel vidéo :</p>
             <ol className="text-[11px] text-foreground/70 space-y-1">
               <li>1. Cliquez sur l&apos;icône &quot;Partager l&apos;écran&quot; dans votre app de visioconférence</li>
-              <li>2. Sélectionnez l&apos;onglet &quot;ChapCam Virtual Camera&quot; ou toute la fenêtre</li>
+              <li>2. Sélectionnez l&apos;onglet &quot;LIVECAM Virtual Camera&quot; ou toute la fenêtre</li>
               <li>3. Le flux transformé par l&apos;IA sera visible par les autres participants</li>
             </ol>
           </div>

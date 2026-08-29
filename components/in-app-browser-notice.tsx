@@ -5,7 +5,7 @@ import { Copy, Check, ExternalLink, AlertTriangle, MoreVertical, Share } from 'l
 import { getMobilePlatform } from '@/lib/in-app-browser'
 
 // Overlay affiche lorsqu'un client est dans un navigateur integre (TikTok,
-// Instagram, Facebook, WhatsApp...) ou la page de paiement PayDunya ne se
+// Instagram, Facebook, WhatsApp...) ou la page de paiement GeniusPay ne se
 // charge pas. On l'invite a ouvrir le lien dans son vrai navigateur.
 export function InAppBrowserNotice({
   url,

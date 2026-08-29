@@ -1,13 +1,13 @@
 // ============================================================
-// Logique de "fulfillment" partagee : crediter un achat ChapCam.
+// Logique de "fulfillment" partagee : crediter un achat LIVECAM.
 // Utilisee par :
 //   - l'approbation admin manuelle (app/api/admin/payments/action)
-//   - le paiement automatique PayDunya (callback IPN + verification statut)
+//   - le paiement automatique GeniusPay (verification statut serveur)
 // Tout passe par la cle service_role (createAdminClient).
 // ============================================================
 
-import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getGeniusPayPayment, normalizeGeniusPayStatus } from '@/lib/geniuspay'
 import { ADMIN_EMAIL } from '@/lib/admin-auth'
 import { getPlan, type PlanConfig } from '@/lib/plans'
 import { getLiveOffer, type LiveOffer } from '@/lib/live-offers'
@@ -29,7 +29,7 @@ function fmtDate(d: Date) {
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
-// Journalise chaque tentative de credit PayDunya dans payment_logs.
+// Journalise chaque tentative de credit dans payment_logs.
 // Ne fait jamais echouer le flux de credit si l'insert echoue.
 export async function logPaymentEvent(
   admin: Admin,
@@ -205,7 +205,7 @@ export interface PurchaseResult {
 }
 
 // Recharge du portefeuille ChapCam Numbers (solde Neon, en FCFA) apres un
-// paiement PayDunya. Independant du catalogue de produits ChapCam.
+// paiement GeniusPay. Independant du catalogue de produits ChapCam.
 // L'idempotence est assuree en amont par processed_payments (cle = token).
 export async function creditNumbersWallet(input: {
   userId: string | null
@@ -218,7 +218,7 @@ export async function creditNumbersWallet(input: {
       ok: false,
       kind: 'numbers_wallet',
       userLinked: false,
-      message: `Aucun compte ChapCam ne correspond a ${input.email}.`,
+      message: `Aucun compte LIVECAM ne correspond a ${input.email}.`,
     }
   }
   const amount = Math.round(input.amountXof)
@@ -228,7 +228,7 @@ export async function creditNumbersWallet(input: {
   const { adjustWallet } = await import('@/lib/numbers/db')
   await adjustWallet(input.userId, amount, {
     kind: 'deposit',
-    method: 'paydunya',
+    method: 'geniuspay',
     reference: input.token,
     status: 'completed',
   })
@@ -236,7 +236,7 @@ export async function creditNumbersWallet(input: {
     ok: true,
     kind: 'numbers_wallet',
     userLinked: true,
-    message: `Portefeuille ChapCam Numbers credite de ${amount} FCFA.`,
+    message: `Portefeuille LIVECAM Numbers credite de ${amount} FCFA.`,
   }
 }
 
@@ -325,7 +325,7 @@ export async function creditPurchase(
       ok: true,
       kind: 'pc',
       userLinked: !!userId,
-      message: 'Licence ChapCam PC generee.',
+      message: 'Licence LIVECAM PC generee.',
       licenseKey: created.key,
     }
   }
@@ -335,7 +335,7 @@ export async function creditPurchase(
       ok: false,
       kind: installOffer ? 'installation' : liveOffer ? 'live' : voiceOffer ? 'voice' : 'plan',
       userLinked: false,
-      message: `Aucun compte ChapCam ne correspond a ${input.email}.`,
+      message: `Aucun compte LIVECAM ne correspond a ${input.email}.`,
     }
   }
 
@@ -397,14 +397,13 @@ export async function creditPurchase(
 }
 
 // ------------------------------------------------------------
-// PayDunya : verification autoritaire du statut d'une facture.
-// On ne fait JAMAIS confiance au corps du callback : on reconfirme
-// toujours aupres de PayDunya avec nos cles serveur.
+// GeniusPay : verification autoritaire du statut d'un paiement.
+// On ne fait JAMAIS confiance au corps d'un callback/retour : on
+// reconfirme toujours aupres de l'API GeniusPay (server-to-server,
+// X-API-Key + X-API-Secret) avec nos cles serveur.
 // ------------------------------------------------------------
 
-const PAYDUNYA_BASE_URL = 'https://app.paydunya.com/api/v1'
-
-export interface PaydunyaConfirm {
+export interface GeniusPayConfirm {
   status: string // 'completed' | 'cancelled' | 'pending' | ...
   customData: Record<string, any>
   totalAmount: number
@@ -412,62 +411,8 @@ export interface PaydunyaConfirm {
   raw: any
 }
 
-export function paydunyaHeaders(): Record<string, string> | null {
-  const masterKey = process.env.PAYDUNYA_MASTER_KEY
-  const privateKey = process.env.PAYDUNYA_PRIVATE_KEY
-  const token = process.env.PAYDUNYA_TOKEN
-  if (!masterKey || !privateKey || !token) return null
-  return {
-    'Content-Type': 'application/json',
-    'PAYDUNYA-MASTER-KEY': masterKey,
-    'PAYDUNYA-PRIVATE-KEY': privateKey,
-    'PAYDUNYA-TOKEN': token,
-  }
-}
-
-// Interroge l'endpoint de confirmation PayDunya pour un token de facture.
-export async function confirmPaydunyaInvoice(token: string): Promise<PaydunyaConfirm | null> {
-  const headers = paydunyaHeaders()
-  if (!headers) {
-    console.error('[fulfillment] Cles PayDunya manquantes')
-    return null
-  }
-  try {
-    const res = await fetch(`${PAYDUNYA_BASE_URL}/checkout-invoice/confirm/${token}`, {
-      method: 'GET',
-      headers,
-      cache: 'no-store',
-    })
-    const data = await res.json()
-    // data.status reflete l'etat de la facture ; custom_data porte nos metadonnees.
-    const status = String(data?.status || '').toLowerCase()
-    const customData = data?.invoice?.custom_data || data?.custom_data || {}
-    const totalAmount = Number(data?.invoice?.total_amount || 0)
-    return { status, customData, totalAmount, token, raw: data }
-  } catch (e) {
-    console.error('[fulfillment] confirmPaydunyaInvoice echec:', e)
-    return null
-  }
-}
-
-// Verifie l'authenticite d'un IPN PayDunya via le hash SHA-512 de la Master Key.
-// PayDunya joint a chaque IPN un champ "hash" = sha512(MASTER_KEY).
-// Cette verification ne depend QUE de la Master Key (pas de la Private Key /
-// Token), donc le credit automatique fonctionne meme si la paire
-// Private Key + Token est mal configuree.
-export function verifyPaydunyaHash(receivedHash: string | null | undefined): boolean {
-  const masterKey = process.env.PAYDUNYA_MASTER_KEY
-  if (!masterKey || !receivedHash) return false
-  const expected = crypto.createHash('sha512').update(masterKey).digest('hex')
-  // Comparaison a temps constant pour eviter les attaques temporelles.
-  const a = Buffer.from(expected)
-  const b = Buffer.from(String(receivedHash))
-  if (a.length !== b.length) return false
-  return crypto.timingSafeEqual(a, b)
-}
-
-// Cœur partage : credite une facture confirmee (peu importe la source de la
-// confirmation : API PayDunya OU IPN verifie par hash). Idempotent.
+// Cœur partage : credite un paiement confirme (peu importe la source de la
+// confirmation : API GeniusPay). Idempotent.
 async function fulfillConfirmedInvoice(params: {
   token: string
   status: string
@@ -509,7 +454,7 @@ async function fulfillConfirmedInvoice(params: {
         credited: false,
         failureReason:
           mapped === 'cancelled'
-            ? 'Paiement annule ou abandonne cote PayDunya'
+            ? 'Paiement annule ou abandonne cote GeniusPay'
             : 'Paiement non complete (statut en attente)',
         raw: customData,
       })
@@ -536,11 +481,12 @@ async function fulfillConfirmedInvoice(params: {
     return { status: 'completed', alreadyDone: true }
   }
 
-  // Metadonnees : priorite a la ligne en base, repli sur custom_data PayDunya.
+  // Metadonnees : priorite a la ligne en base, repli sur custom_data du
+  // paiement GeniusPay.
   const cd = customData || {}
   const productId = String(reqRow?.plan || cd.product_id || cd.plan || '')
   const email = String(reqRow?.email || cd.email || cd.user_email || '')
-  const fullName = String(reqRow?.full_name || cd.full_name || cd.user_name || 'Client ChapCam')
+  const fullName = String(reqRow?.full_name || cd.full_name || cd.user_name || 'Client LIVECAM')
   const userId = (reqRow?.user_id as string | null) || (cd.user_id ? String(cd.user_id) : null)
 
   // Idempotence ATOMIQUE : on tente de "reserver" le token AVANT de crediter.
@@ -620,18 +566,26 @@ async function fulfillConfirmedInvoice(params: {
   }
 
   // Recharge de portefeuille ChapCam Numbers : pas un produit du catalogue,
-  // on credite directement le solde Neon (en FCFA = montant de la facture).
+  // on credite directement le solde Neon. Avec les frais a la charge du
+  // client, on credite le NET (metadata.amount_xof / net_amount), JAMAIS le
+  // total facture a GeniusPay (totalAmount = net + 100 F + 1% de frais).
   const isNumbersWallet = productId === 'numbers_wallet' || cd.kind === 'numbers_wallet'
+  const isCustomProduct = productId === 'custom' || productId.startsWith('custom_')
+  const netXof = Number(cd.amount_xof || cd.net_amount || reqRow?.amount || 0) || totalAmount
+  // Recharge custom : les points sont calcules sur le net (prix affiche).
+  const customNet = isCustomProduct && !isNumbersWallet
+    ? Number(cd.net_amount || cd.amount_xof || reqRow?.amount || 0) || totalAmount
+    : undefined
   let result: PurchaseResult
   try {
     result = isNumbersWallet
       ? await creditNumbersWallet({
           userId,
           email,
-          amountXof: totalAmount || Number(reqRow?.amount || cd.amount_xof || 0),
+          amountXof: netXof,
           token,
         })
-      : await creditPurchase(admin, { productId, email, fullName, userId })
+      : await creditPurchase(admin, { productId, email, fullName, userId, amount: customNet })
   } catch (e) {
     // Le credit a JETE une exception (ex: Neon indisponible). Sans ce catch, la
     // reservation processed_payments resterait orpheline (credited=false) et
@@ -696,7 +650,7 @@ async function fulfillConfirmedInvoice(params: {
       .neq('status', 'approved')
 
     await admin.from('admin_logs').insert({
-      action: 'paydunya_approve',
+      action: 'geniuspay_approve',
       payment_request_id: reqRow.id,
       admin_email: ADMIN_EMAIL,
       details: {
@@ -713,61 +667,32 @@ async function fulfillConfirmedInvoice(params: {
   return { status: 'completed', alreadyDone: false, result }
 }
 
-// Credite a partir d'un IPN PayDunya dont le hash a ete verifie.
-//
-// SECURITE (anti-fraude) : le hash SHA-512(Master Key) prouve seulement que
-// l'expediteur connait la Master Key. Or cette cle a fuite (elle etait embarquee
-// dans le code source du logiciel PC pirate). Un attaquant peut donc forger un
-// IPN "completed" avec un faux token et un custom_data arbitraire pour s'offrir
-// un abonnement gratuit. On NE fait donc PLUS confiance au corps de l'IPN :
-// on RECONFIRME systematiquement la facture aupres de l'API PayDunya
-// (server-to-server), qui est la seule source de verite. Un token forge (qui ne
-// correspond a aucune vraie facture payee) ne sera jamais confirme "completed".
-//
-// Le parametre `status`/`customData`/`totalAmount` du corps n'est plus utilise
-// pour crediter : il ne sert qu'a court-circuiter proprement les IPN non payes.
-export async function fulfillFromVerifiedIpn(payload: {
-  token: string
-  status: string
-  totalAmount: number
-  customData: Record<string, any>
-  transactionId?: string | null
-}) {
-  // Optimisation : si l'IPN annonce lui-meme un etat non paye, inutile
-  // d'appeler l'API — on trace comme pending/cancelled sans crediter.
-  const declared = String(payload.status || '').toLowerCase()
-  if (declared && declared !== 'completed') {
-    return fulfillConfirmedInvoice({
-      token: payload.token,
-      status: declared,
-      totalAmount: payload.totalAmount,
-      customData: payload.customData,
-      source: 'callback',
-      transactionId: payload.transactionId ?? null,
-    })
-  }
-  // IPN annonce "completed" : on ne le croit PAS sur parole, on reconfirme
-  // aupres de PayDunya avec nos cles serveur avant tout credit.
-  return confirmAndFulfillPaydunya(payload.token, 'callback')
-}
-
-// Confirme + credite une facture PayDunya de maniere idempotente.
-// Appele par la route de statut (resilience si l'IPN n'arrive jamais) :
-// reconfirme aupres de PayDunya avec nos cles serveur.
-export async function confirmAndFulfillPaydunya(
+// Confirme + credite un paiement GeniusPay de maniere idempotente.
+// Appele par la route de statut (resilience si le retour n'arrive jamais),
+// le callback et le cron de reconciliation : reconfirme toujours aupres de
+// l'API GeniusPay avec nos cles serveur (source de verite).
+// `token` = la reference GeniusPay stockee dans payment_requests.
+export async function confirmAndFulfillGeniusPay(
   token: string,
   source: string = 'status',
-): Promise<{ status: 'completed' | 'pending' | 'cancelled' | 'error'; alreadyDone: boolean; result?: PurchaseResult }> {
-  const confirm = await confirmPaydunyaInvoice(token)
-  if (!confirm) {
-    // Confirmation impossible (cles Private/Token invalides ou reseau) : on trace.
+): Promise<{
+  status: 'completed' | 'pending' | 'cancelled' | 'error'
+  alreadyDone: boolean
+  result?: PurchaseResult
+  chargedAmount?: number
+  netAmount?: number | null
+  fee?: number | null
+}> {
+  const info = await getGeniusPayPayment(token)
+  if (!info) {
+    // Confirmation impossible (cles invalides, transaction inconnue ou reseau) : on trace.
     try {
       await logPaymentEvent(createAdminClient(), {
         source,
         token,
         status: 'error',
         credited: false,
-        failureReason: 'Confirmation PayDunya impossible (cles Private/Token ou reseau)',
+        failureReason: 'Confirmation GeniusPay impossible (API/reseau ou transaction inconnue)',
       })
     } catch {
       /* noop */
@@ -775,34 +700,34 @@ export async function confirmAndFulfillPaydunya(
     return { status: 'error', alreadyDone: false }
   }
 
-  const transactionId =
-    String(
-      confirm.raw?.invoice?.receipt_url ||
-        confirm.raw?.receipt_identifier ||
-        confirm.customData?.transaction_id ||
-        '',
-    ) || null
+  // Montants pour affichage transparent des frais (net vs total facture).
+  const chargedAmount = info.amount
+  const net = Number(info.metadata?.net_amount || info.metadata?.amount_xof || 0)
+  const netAmount = Number.isFinite(net) && net > 0 ? net : null
+  const fee = netAmount != null ? Math.max(0, chargedAmount - netAmount) : null
 
-  return fulfillConfirmedInvoice({
+  const outcome = await fulfillConfirmedInvoice({
     token,
-    status: confirm.status,
-    totalAmount: confirm.totalAmount,
-    customData: confirm.customData,
+    status: normalizeGeniusPayStatus(info.status),
+    totalAmount: chargedAmount,
+    customData: info.metadata,
     source,
-    transactionId,
+    transactionId: info.reference,
   })
+
+  return { ...outcome, chargedAmount, netAmount, fee }
 }
 
 // ------------------------------------------------------------
 // RECONCILIATION : filet de securite pour le mobile money.
 // Beaucoup de clients paient puis ferment le navigateur sans revenir,
-// et l'IPN PayDunya n'arrive pas toujours. On interroge donc PayDunya
-// pour TOUTES les factures encore "pending" et on :
-//   - credite automatiquement celles "completed" (paye -> credite),
-//   - marque "cancelled" celles abandonnees (nettoie les doublons).
+// et le retour GeniusPay n'arrive pas toujours. On interroge donc
+// GeniusPay pour TOUS les paiements encore "pending" et on :
+//   - credite automatiquement ceux "completed" (paye -> credite),
+//   - marque "cancelled" ceux abandonnes (nettoie les doublons).
 // Idempotent : peut tourner aussi souvent qu'on veut.
 // ------------------------------------------------------------
-export async function reconcilePendingPaydunya(opts?: { maxAgeDays?: number; limit?: number }) {
+export async function reconcilePendingGeniusPay(opts?: { maxAgeDays?: number; limit?: number }) {
   const admin = createAdminClient()
   const maxAgeDays = opts?.maxAgeDays ?? 7
   const limit = opts?.limit ?? 200
@@ -811,7 +736,7 @@ export async function reconcilePendingPaydunya(opts?: { maxAgeDays?: number; lim
   const { data: rows, error } = await admin
     .from('payment_requests')
     .select('id, paydunya_token, created_at')
-    .eq('payment_method', 'paydunya')
+    .eq('payment_method', 'geniuspay')
     .eq('status', 'pending')
     .not('paydunya_token', 'is', null)
     .gte('created_at', since)
@@ -831,11 +756,11 @@ export async function reconcilePendingPaydunya(opts?: { maxAgeDays?: number; lim
   for (const row of rows || []) {
     const token = row.paydunya_token as string
     try {
-      const r = await confirmAndFulfillPaydunya(token, 'reconcile')
+      const r = await confirmAndFulfillGeniusPay(token, 'reconcile')
       if (r.status === 'completed') {
         credited++
       } else if (r.status === 'cancelled') {
-        // Nettoyer : la facture a ete annulee/abandonnee cote PayDunya.
+        // Nettoyer : le paiement a ete annule/abandonne cote GeniusPay.
         await admin
           .from('payment_requests')
           .update({ status: 'cancelled' })

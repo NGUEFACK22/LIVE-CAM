@@ -19,11 +19,11 @@ export function EngineComparison() {
         </span>
         <h2 className="mt-3 text-balance text-xl font-bold text-foreground md:text-2xl">
           L&apos;outil Live n&apos;est <span className="text-muted-foreground">pas le meme</span> que le logiciel
-          ChapCam de depart
+          LIVECAM de depart
         </h2>
         <p className="mx-auto mt-2 max-w-2xl text-pretty text-sm text-muted-foreground">
           Ici tu essaies l&apos;outil Live, fait pour aller vite pendant tes appels. Le vrai logiciel
-          ChapCam, lui, est bien meilleur : il te change <span className="font-semibold text-primary">en
+          LIVECAM, lui, est bien meilleur : il te change <span className="font-semibold text-primary">en
           entier</span>, en bien plus beau et sans bug.
         </p>
       </div>
@@ -70,7 +70,7 @@ export function EngineComparison() {
               <Crown className="h-5 w-5 text-primary" />
             </span>
             <div>
-              <p className="text-sm font-bold text-foreground">Le logiciel ChapCam</p>
+              <p className="text-sm font-bold text-foreground">Le logiciel LIVECAM</p>
               <p className="text-xs text-primary">Avec un abonnement</p>
             </div>
           </div>

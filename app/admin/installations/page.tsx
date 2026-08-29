@@ -127,7 +127,7 @@ export default function AdminInstallationsPage() {
             <div>
               <h1 className="text-2xl font-bold text-white">Demandes d&apos;installation</h1>
               <p className="text-sm text-gray-400">
-                Installez ChapCam chez vos clients (WhatsApp, Telegram, Teams...)
+                Installez LIVECAM chez vos clients (WhatsApp, Telegram, Teams...)
               </p>
             </div>
           </div>

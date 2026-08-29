@@ -187,7 +187,7 @@ export function ReportForm() {
       </button>
 
       <p className="mt-4 text-xs leading-relaxed text-text-faint">
-        CHAPCAM se réserve le droit de retirer tout contenu contraire à ses conditions d’utilisation.
+        LIVECAM se réserve le droit de retirer tout contenu contraire à ses conditions d’utilisation.
       </p>
     </form>
   )

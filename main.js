@@ -729,10 +729,7 @@ function createMenu() {
     {
       label: 'Aide',
       submenu: [
-        { label: 'Documentation', click: () => shell.openExternal('https://chapcam.com/docs') },
-        { label: 'Support', click: () => shell.openExternal('https://t.me/chapcam1') },
-        { type: 'separator' },
-        { label: 'Signaler un probleme...', click: () => shell.openExternal('https://t.me/chapcam1') }
+        { label: 'Documentation', click: () => shell.openExternal('https://chapcam.com/docs') }
       ]
     }
   ]

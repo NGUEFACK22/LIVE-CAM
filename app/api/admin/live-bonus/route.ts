@@ -32,7 +32,7 @@ function getResend() {
 
 // Template email du cadeau Live Pro.
 function getBonusEmail(userName: string) {
-  const subject = 'Cadeau : 1h de Live Pro offerte sur ChapCam !'
+  const subject = 'Cadeau : 1h de Live Pro offerte sur LIVECAM !'
   const html = `
 <!DOCTYPE html>
 <html>
@@ -43,7 +43,7 @@ function getBonusEmail(userName: string) {
 <body style="margin: 0; padding: 0; background-color: #0a0e1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
   <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
     <div style="text-align: center; margin-bottom: 30px;">
-      <h1 style="color: #00ff88; font-size: 32px; margin: 0;">ChapCam</h1>
+      <h1 style="color: #00ff88; font-size: 32px; margin: 0;">LIVECAM</h1>
       <p style="color: #888; font-size: 14px; margin-top: 5px;">Face Swap en Temps Reel</p>
     </div>
     <div style="background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 20px; padding: 32px; text-align: center;">
@@ -51,7 +51,7 @@ function getBonusEmail(userName: string) {
       <p style="color: #00ff88; font-size: 20px; font-weight: bold; margin: 0 0 20px 0;">1 heure de Live Pro offerte</p>
       <p style="color: #cccccc; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
         Bonjour ${userName || 'a toi'},<br><br>
-        Tu fais partie des tout premiers a avoir soutenu ChapCam. Pour te remercier,
+        Tu fais partie des tout premiers a avoir soutenu LIVECAM. Pour te remercier,
         on t'offre <strong style="color:#ffffff;">4 sessions de Live Pro (15 min chacune, soit 1h au total)</strong> :
         le face swap en temps reel, sans payer.
       </p>
@@ -66,7 +66,7 @@ function getBonusEmail(userName: string) {
     </div>
     <div style="text-align: center; margin-top: 30px;">
       <p style="color: #666666; font-size: 12px;">
-        Tu recois cet email car tu fais partie des premiers utilisateurs de ChapCam.<br>
+        Tu recois cet email car tu fais partie des premiers utilisateurs de LIVECAM.<br>
         <a href="https://chapcam.com" style="color: #00ff88;">chapcam.com</a>
       </p>
     </div>
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
         const batch = recipients.slice(i, i + batchSize)
         const payload = batch.map((b) => {
           const { subject, html } = getBonusEmail(b.name)
-          return { from: 'ChapCam <noreply@chapcam.com>', to: b.email, subject, html }
+          return { from: 'LIVECAM <noreply@chapcam.com>', to: b.email, subject, html }
         })
         try {
           const { data, error } = await resend.batch.send(payload)

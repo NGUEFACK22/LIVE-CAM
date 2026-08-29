@@ -20,10 +20,10 @@ export function EngineDifferenceSection() {
             A lire avant d&apos;essayer
           </span>
           <h2 className="mt-4 text-balance text-2xl font-bold text-white sm:text-3xl md:text-4xl">
-            L&apos;essai gratuit n&apos;est <span className="text-[#00ff88]">pas</span> le vrai logiciel ChapCam
+            L&apos;essai gratuit n&apos;est <span className="text-[#00ff88]">pas</span> le vrai logiciel LIVECAM
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-pretty text-sm text-gray-400 sm:text-base">
-            L&apos;essai te montre juste un apercu. Le vrai logiciel ChapCam, avec un abonnement, est
+            L&apos;essai te montre juste un apercu. Le vrai logiciel LIVECAM, avec un abonnement, est
             beaucoup plus puissant : il te change en entier, sans bug, et l&apos;image est bien plus belle.
           </p>
         </div>
@@ -62,7 +62,7 @@ export function EngineDifferenceSection() {
               <Crown className="h-5 w-5 text-[#00ff88]" />
               <p className="text-xs font-semibold uppercase tracking-widest text-[#00ff88]">Avec un abonnement</p>
             </div>
-            <h3 className="mt-1 text-lg font-bold text-white">Le vrai logiciel ChapCam</h3>
+            <h3 className="mt-1 text-lg font-bold text-white">Le vrai logiciel LIVECAM</h3>
             <ul className="mt-5 space-y-3 text-sm">
               <li className="flex items-start gap-2.5 text-gray-200">
                 <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#00ff88]" />

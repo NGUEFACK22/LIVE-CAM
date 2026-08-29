@@ -10,7 +10,7 @@ export function LegalPage({ title, updated, intro, sections }: { title: string; 
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-4 sm:px-6">
           <Link href="/numbers" className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2563EB]"><Phone className="h-4 w-4 text-white" /></span>
-            <span className="text-base font-semibold text-white">ChapCam Numbers</span>
+            <span className="text-base font-semibold text-white">LIVECAM Numbers</span>
           </Link>
           <Link href="/numbers" className="inline-flex items-center gap-1.5 text-sm text-slate-300 hover:text-white">
             <ArrowLeft className="h-4 w-4" /> Back

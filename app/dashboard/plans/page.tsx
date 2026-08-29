@@ -7,13 +7,13 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
 import { PLANS, getPlan } from '@/lib/plans'
-import { ChapCamPcPromo } from '@/components/chapcam-pc-promo'
 import { usePaymentCheckout } from '@/components/payment/use-payment-checkout'
 import { PaymentBadgePopup } from '@/components/payment-badge-popup'
+import { geniusPayFeeFor, geniusPayTotalToCharge } from '@/lib/geniuspay-fees'
 
 function PlansContent() {
   const searchParams = useSearchParams()
-  // Paiement partage : ouvre le choix de methode (PayDunya / Crypto) puis redirige.
+  // Paiement partage : ouvre la page de paiement securise puis redirige.
   const { startCheckout, pendingKey, error, modal } = usePaymentCheckout()
   const [customAmount, setCustomAmount] = useState(1000)
   // evite de relancer le checkout auto plusieurs fois (ex: arrivee depuis l'accueil)
@@ -48,20 +48,23 @@ function PlansContent() {
                 <Sparkles className="h-5 w-5 text-primary" />
               </div>
               <h3 className="mb-2 text-xl font-black text-foreground md:text-2xl">
-                Payez par <span className="text-primary">Carte bancaire, Wave, Orange, MTN, Moov ou Djamo</span> via PayDunya
-                {" "}ou en <span className="text-[#f7931a]">Cryptomonnaie</span> via Trybit
+                Payez par <span className="text-primary">Carte bancaire, Wave, Orange, MTN, Moov ou Djamo</span> via GeniusPay
               </h3>
               <p className="text-sm text-muted-foreground">
                 Activation automatique de votre compte des que le paiement est confirme.
               </p>
-              {/* Logos crypto acceptes (Bitcoin, Ethereum, USDT, TON, BNB) */}
+              {/* Paiement securise GeniusPay : mobile money et carte */}
               <div className="mt-4 flex items-center justify-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg">
-                  <Image src="/images/bitcoin-logo.png" alt="Bitcoin" width={32} height={32} className="max-h-full max-w-full object-contain" />
-                </span>
-                <span className="flex h-8 items-center justify-center overflow-hidden rounded-lg">
-                  <Image src="/images/crypto-accepted-logos.png" alt="Cryptomonnaies acceptees : Bitcoin, Ethereum, USDT, TON, BNB" width={120} height={32} className="max-h-full object-contain" />
-                </span>
+                {[
+                  { src: '/images/wave-logo.png', alt: 'Wave' },
+                  { src: '/images/orange-money-logo.png', alt: 'Orange Money' },
+                  { src: '/images/mtn-momo-logo.jpg', alt: 'MTN MoMo' },
+                  { src: '/images/djamo-logo.png', alt: 'Djamo' },
+                ].map((logo) => (
+                  <span key={logo.alt} className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-white">
+                    <Image src={logo.src} alt={logo.alt} width={28} height={28} className="max-h-full max-w-full object-contain" />
+                  </span>
+                ))}
               </div>
             </div>
           </div>
@@ -71,7 +74,7 @@ function PlansContent() {
           <h1 className="mb-4 text-4xl font-bold text-foreground md:text-5xl text-balance">
             Changez d&apos;apparence en live
           </h1>
-          <p className="text-3xl font-medium text-emerald-400">avec ChapCam</p>
+          <p className="text-3xl font-medium text-emerald-400">avec LIVECAM</p>
           <p className="mt-6 text-lg text-muted-foreground">
             2 points = 1 seconde de transformation du visage et corps entier
           </p>
@@ -80,7 +83,7 @@ function PlansContent() {
         <div className="mx-auto mb-8 max-w-2xl rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-center">
           <p className="text-sm font-semibold text-emerald-300">
             Paiement 100% securise et instantane. Apres avoir paye, patientez quelques secondes sur
-            la page PayDunya : votre compte est credite automatiquement des la confirmation.
+            la page de paiement GeniusPay : votre compte est credite automatiquement des la confirmation.
           </p>
         </div>
 
@@ -89,15 +92,6 @@ function PlansContent() {
             {error}
           </div>
         )}
-
-        {/* Offre ChapCam PC (logiciel a vie) - mise en avant au-dessus des offres a credit */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-10"
-        >
-          <ChapCamPcPromo />
-        </motion.div>
 
         {/* Annonce ChapCam 2.0 : les recharges concernent le nouveau logiciel */}
         <motion.div
@@ -114,11 +108,11 @@ function PlansContent() {
                 Nouveau · Sorti le 17 juillet
               </div>
               <h3 className="text-xl font-bold text-foreground md:text-2xl">
-                Ces recharges alimentent ChapCam 2.0
+                Ces recharges alimentent LIVECAM 2.0
               </h3>
               <p className="mt-2 text-pretty leading-relaxed text-muted-foreground">
                 Toutes les offres ci-dessous sont destinees a notre nouveau logiciel{' '}
-                <span className="font-semibold text-emerald-400">ChapCam 2.0</span>, qui fonctionne
+                <span className="font-semibold text-emerald-400">LIVECAM 2.0</span>, qui fonctionne
                 desormais avec <span className="font-semibold text-foreground">tout type de PC</span> et
                 permet meme de{' '}
                 <span className="font-semibold text-foreground">changer la couleur de peau</span>.
@@ -173,6 +167,9 @@ function PlansContent() {
             </div>
             <p className="mt-3 text-xs text-center text-muted-foreground">
               {Math.floor(customAmount / 20)} points • {Math.floor(Math.floor(customAmount / 20) / 2 / 60)} min {Math.floor((Math.floor(customAmount / 20) / 2) % 60)} sec de Live Swap
+            </p>
+            <p className="mt-2 text-center text-xs text-muted-foreground">
+              Total à payer : <span className="font-semibold text-foreground">{geniusPayTotalToCharge(customAmount).toLocaleString('fr-FR')} FCFA</span> (dont {geniusPayFeeFor(customAmount).toLocaleString('fr-FR')} FCFA de frais de paiement) — {customAmount.toLocaleString('fr-FR')} F crédités
             </p>
           </div>
         </motion.div>
@@ -247,7 +244,7 @@ function PlansContent() {
                   <div className="mt-8 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <Droplet className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-bold text-foreground">Avec logo ChapCam</p>
+                      <p className="text-sm font-bold text-foreground">Avec logo LIVECAM</p>
                       <p className="text-xs text-muted-foreground">Filigrane visible sur le rendu</p>
                     </div>
                   </div>

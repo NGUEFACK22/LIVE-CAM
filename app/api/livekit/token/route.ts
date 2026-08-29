@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}))
-    const participantName = String(body.participantName || 'ChapCam Cloud Swap')
+    const participantName = String(body.participantName || 'LIVECAM Cloud Swap')
     const roomName = String(body.roomName || '').trim() || `chapcam-${user.id}-${Date.now()}`
 
     // Creer un token d'acces (identite = utilisateur verifie)

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Mail, Send, Users, Calendar, Clock, CheckCircle, XCircle, Loader2, Rocket, Bell, CalendarDays, Gift, Eye, Monitor, Video, LifeBuoy, MessageCircle, Phone } from "lucide-react"
+import { Mail, Send, Users, Calendar, Clock, CheckCircle, XCircle, Loader2, Rocket, Bell, CalendarDays, Gift, Eye, Monitor, Video, LifeBuoy } from "lucide-react"
 import Link from "next/link"
 
 export default function AdminCampaignPage() {
@@ -71,8 +71,8 @@ export default function AdminCampaignPage() {
   }
 
   const sendCampaign = async (type: "D2" | "D1" | "DJ" | "PC" | "VIDEO" | "SUPPORT" | "V2") => {
-    if (type === "V2" && !confirm("Envoyer la campagne 'ChapCam 2.0 disponible' a TOUS les utilisateurs inscrits ?")) return
-    if (type === "PC" && !confirm("Envoyer la campagne 'ChapCam PC a vie - 50 000 FCFA' a TOUS les utilisateurs inscrits ?")) return
+    if (type === "V2" && !confirm("Envoyer la campagne 'LIVECAM 2.0 disponible' a TOUS les utilisateurs inscrits ?")) return
+    if (type === "PC" && !confirm("Envoyer la campagne 'LIVECAM PC a vie - 50 000 FCFA' a TOUS les utilisateurs inscrits ?")) return
     if (type === "VIDEO" && !confirm("Envoyer la campagne 'Appels video' a TOUS les utilisateurs inscrits ?")) return
     if (type === "SUPPORT" && !confirm("Envoyer la campagne 'Assistance / Besoin d'aide ?' a TOUS les utilisateurs inscrits ?")) return
     setSending(type)
@@ -123,7 +123,7 @@ export default function AdminCampaignPage() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00d4ff] to-[#e91e8c] flex items-center justify-center">
               <span className="text-white font-bold text-sm">C</span>
             </div>
-            <span className="text-white font-bold">ChapCam Admin</span>
+            <span className="text-white font-bold">LIVECAM Admin</span>
           </Link>
           <Link 
             href="/dashboard" 
@@ -147,7 +147,7 @@ export default function AdminCampaignPage() {
           </motion.div>
           
           <h1 className="text-3xl md:text-4xl font-black text-white mb-4">
-            Lancement ChapCam
+            Lancement LIVECAM
           </h1>
           <p className="text-gray-400 max-w-xl mx-auto">
             Envoie les emails de rappel aux utilisateurs inscrits pour le lancement du <span className="text-[#00ff88] font-bold">Samedi 30 Mai a 19h GMT</span>
@@ -166,13 +166,13 @@ export default function AdminCampaignPage() {
                 <Rocket className="w-6 h-6 text-[#a855f7]" />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-1">Campagne ChapCam 2.0 - Nouvelle version</h3>
+                <h3 className="text-xl font-bold text-white mb-1">Campagne LIVECAM 2.0 - Nouvelle version</h3>
                 <p className="text-gray-400 text-sm">
-                  Annonce a tous les inscrits la sortie de <strong className="text-white">ChapCam 2.0</strong> (17 juillet) :
+                  Annonce a tous les inscrits la sortie de <strong className="text-white">LIVECAM 2.0</strong> (17 juillet) :
                   fonctionne desormais sur <strong className="text-[#00ff88]">tout type de PC</strong> (plus besoin de PC Gamer),
                   transformation du visage, du corps et de la <strong className="text-white">couleur de peau</strong>.
                   L&apos;email contient un bouton <strong className="text-white">Tester (recharges)</strong> et un bouton
-                  <strong className="text-[#25D366]"> WhatsApp</strong>.
+                  <strong className="text-white"> vers chapcam.com</strong>.
                 </p>
               </div>
             </div>
@@ -184,7 +184,7 @@ export default function AdminCampaignPage() {
               </span>
               <span className="inline-flex items-center gap-1.5 text-gray-300">
                 <Clock className="w-4 h-4 text-[#a855f7]" />
-                Sujet : &quot;ChapCam 2.0 est disponible&quot;
+                Sujet : &quot;LIVECAM 2.0 est disponible&quot;
               </span>
             </div>
 
@@ -201,7 +201,7 @@ export default function AdminCampaignPage() {
               ) : (
                 <>
                   <Send className="w-5 h-5" />
-                  Envoyer la campagne ChapCam 2.0
+                  Envoyer la campagne LIVECAM 2.0
                 </>
               )}
             </button>
@@ -312,8 +312,7 @@ export default function AdminCampaignPage() {
                 <p className="text-gray-400 text-sm">
                   Demande a tous les inscrits s&apos;ils <strong className="text-white">rencontrent un probleme</strong> pour
                   utiliser le logiciel IA. L&apos;email contient un bouton
-                  <strong className="text-[#25D366]"> WhatsApp</strong> et un bouton
-                  <strong className="text-white"> appel</strong> vers le +225 05 55 56 01 89.
+                  <strong className="text-white"> vers chapcam.com</strong>.
                 </p>
               </div>
             </div>
@@ -324,12 +323,8 @@ export default function AdminCampaignPage() {
                 Tous les utilisateurs inscrits
               </span>
               <span className="inline-flex items-center gap-1.5 text-gray-300">
-                <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                Contact WhatsApp
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-gray-300">
-                <Phone className="w-4 h-4 text-[#00d4ff]" />
-                Appel direct
+                <LifeBuoy className="w-4 h-4 text-[#00ff88]" />
+                Bouton vers chapcam.com
               </span>
             </div>
 
@@ -365,7 +360,7 @@ export default function AdminCampaignPage() {
                 <Monitor className="w-6 h-6 text-[#00d4ff]" />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-1">Campagne ChapCam PC - Logiciel a VIE</h3>
+                <h3 className="text-xl font-bold text-white mb-1">Campagne LIVECAM PC - Logiciel a VIE</h3>
                 <p className="text-gray-400 text-sm">
                   Annonce a tous les inscrits : <strong className="text-[#00ff88]">50 000 FCFA a vie</strong> (paiement unique)
                   pour les premiers utilisateurs. A partir du <strong className="text-white">dimanche 14 juin</strong>, l&apos;offre
@@ -381,7 +376,7 @@ export default function AdminCampaignPage() {
               </span>
               <span className="inline-flex items-center gap-1.5 text-gray-300">
                 <Clock className="w-4 h-4 text-[#00d4ff]" />
-                Sujet : &quot;ChapCam PC a VIE pour 50 000 FCFA&quot;
+                Sujet : &quot;LIVECAM PC a VIE pour 50 000 FCFA&quot;
               </span>
             </div>
 
@@ -398,7 +393,7 @@ export default function AdminCampaignPage() {
               ) : (
                 <>
                   <Send className="w-5 h-5" />
-                  Envoyer la campagne ChapCam PC a vie
+                  Envoyer la campagne LIVECAM PC a vie
                 </>
               )}
             </button>
@@ -487,7 +482,7 @@ export default function AdminCampaignPage() {
               </div>
               <div className="flex items-center gap-2 text-gray-300 text-sm">
                 <Clock className="w-4 h-4 text-[#a855f7]" />
-                <span>Sujet: &quot;J-2 Lancement ChapCam&quot;</span>
+                <span>Sujet: &quot;J-2 Lancement LIVECAM&quot;</span>
               </div>
             </div>
 
@@ -589,7 +584,7 @@ export default function AdminCampaignPage() {
               </div>
               <div className="flex items-center gap-2 text-gray-300 text-sm">
                 <Clock className="w-4 h-4 text-[#e91e8c]" />
-                <span>Sujet: &quot;ChapCam est LIVE!&quot;</span>
+                <span>Sujet: &quot;LIVECAM est LIVE!&quot;</span>
               </div>
             </div>
 
@@ -642,7 +637,7 @@ export default function AdminCampaignPage() {
                     )}
                     <div>
                       <span className="text-white font-medium">
-                        {result.type === "D2" ? "Rappel J-2" : result.type === "D1" ? "Rappel J-1" : result.type === "PC" ? "ChapCam PC a vie" : result.type === "VIDEO" ? "Appels video" : result.type === "SUPPORT" ? "Assistance / Support" : "Lancement Jour J"}
+                        {result.type === "D2" ? "Rappel J-2" : result.type === "D1" ? "Rappel J-1" : result.type === "PC" ? "LIVECAM PC a vie" : result.type === "VIDEO" ? "Appels video" : result.type === "SUPPORT" ? "Assistance / Support" : "Lancement Jour J"}
                       </span>
                       <span className="text-gray-400 mx-2">-</span>
                       <span className={result.success ? "text-[#00ff88]" : "text-red-400"}>

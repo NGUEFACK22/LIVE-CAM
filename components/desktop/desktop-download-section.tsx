@@ -56,7 +56,7 @@ export function DesktopDownloadSection() {
 
   return (
     <section
-      aria-label="Deja client ChapCam PC"
+      aria-label="Deja client LIVECAM PC"
       className="rounded-2xl border border-hairline bg-card p-6 md:p-8"
     >
       <div className="mb-1 flex items-center gap-2">
@@ -64,7 +64,7 @@ export function DesktopDownloadSection() {
         <h2 className="text-lg font-bold text-foreground">Deja client ?</h2>
       </div>
       <p className="mb-5 text-sm text-muted-foreground text-pretty">
-        Entre la cle de licence recue par email pour telecharger ChapCam PC.
+        Entre la cle de licence recue par email pour telecharger LIVECAM PC.
       </p>
 
       <div className="flex flex-col gap-3 sm:flex-row">

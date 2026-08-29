@@ -106,7 +106,7 @@ Une fois ces 5 étapes terminées :
 4. 🌐 Ça fonctionne sur les versions Web (Chrome/Edge)
 5. 🔄 Vous pouvez basculer entre les apps librement
 
-**Besoin d'aide ?** Rejoignez le support : `t.me/chapcam1`
+**Besoin d'aide ?** Consultez la documentation d'aide sur `chapcam.com`
 
 ---
 

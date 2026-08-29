@@ -5,6 +5,7 @@ import { useNumbers } from '@/components/numbers/numbers-provider'
 import { FUNDING_METHODS } from '@/lib/numbers/data'
 import { formatXOF } from '@/lib/numbers/types'
 import { Wallet, Plus, X, ArrowDownLeft, ArrowUpRight, Smartphone, CreditCard, Coins, Loader2 } from 'lucide-react'
+import { geniusPayFeeFor, geniusPayTotalToCharge } from '@/lib/geniuspay-fees'
 
 const card = 'rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl'
 
@@ -38,11 +39,15 @@ export default function WalletPage() {
   const [amount, setAmount] = useState(2500)
   const [loading, setLoading] = useState(false)
 
+  // Frais GeniusPay a la charge du client : total facture = net + frais.
+  const chargeAmount = geniusPayTotalToCharge(amount)
+  const feePaid = geniusPayFeeFor(amount)
+
   const deposits = transactions.filter((t) => t.kind === 'deposit').reduce((s, t) => s + t.amountXof, 0)
   const spend = transactions.filter((t) => t.kind === 'purchase').reduce((s, t) => s + Math.abs(t.amountXof), 0)
 
-  // Au retour de PayDunya (?topup=success), on rafraichit le solde : le credit
-  // reel arrive via l'IPN, donc on relance quelques rafraichissements.
+  // Au retour de GeniusPay (?topup=success), on rafraichit le solde : le credit
+  // reel arrive via la reconfirmation, donc on relance quelques rafraichissements.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const topup = params.get('topup')
@@ -79,7 +84,7 @@ export default function WalletPage() {
         setLoading(false)
         return
       }
-      // En iframe (preview), on ouvre PayDunya dans un nouvel onglet ;
+      // En iframe (preview), on ouvre GeniusPay dans un nouvel onglet ;
       // sinon on redirige l'onglet courant vers la page de paiement.
       if (window.self !== window.top) {
         window.open(data.invoice_url, '_blank', 'noopener,noreferrer')
@@ -159,7 +164,7 @@ export default function WalletPage() {
           })}
         </div>
         <p className="mt-3 text-xs text-white/40">
-          Les recharges sont traitées en ligne et sécurisées via PayDunya (Mobile Money, carte bancaire).
+          Les recharges sont traitées en ligne et sécurisées via GeniusPay (Mobile Money, carte bancaire).
           Votre solde est crédité automatiquement dès la confirmation du paiement.
         </p>
       </div>
@@ -270,9 +275,18 @@ export default function WalletPage() {
                 <Smartphone className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-white">Paiement sécurisé via PayDunya</p>
+                <p className="text-sm font-medium text-white">Paiement sécurisé via GeniusPay</p>
                 <p className="text-xs text-white/40">Mobile Money (Orange, MTN, Moov, Wave) et carte bancaire</p>
               </div>
+            </div>
+
+            <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.02] p-3 text-center">
+              <p className="text-sm text-white">
+                Total à payer : <span className="font-semibold text-white">{chargeAmount.toLocaleString('fr-FR')} FCFA</span>
+              </p>
+              <p className="mt-0.5 text-xs text-white/40">
+                dont {feePaid.toLocaleString('fr-FR')} FCFA de frais de paiement · {amount.toLocaleString('fr-FR')} FCFA crédités au portefeuille
+              </p>
             </div>
 
             <button
@@ -282,14 +296,14 @@ export default function WalletPage() {
             >
               {loading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> Redirection vers PayDunya...
+                  <Loader2 className="h-4 w-4 animate-spin" /> Redirection vers GeniusPay...
                 </>
               ) : (
-                <>Payer {formatXOF(amount)} avec PayDunya</>
+                <>Payer {chargeAmount.toLocaleString('fr-FR')} FCFA avec GeniusPay</>
               )}
             </button>
             <p className="mt-2 text-center text-xs text-white/40">
-              Vous serez redirigé vers PayDunya pour finaliser le paiement en toute sécurité.
+              Vous serez redirigé vers GeniusPay pour finaliser le paiement en toute sécurité.
             </p>
           </div>
         </div>

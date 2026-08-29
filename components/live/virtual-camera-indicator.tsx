@@ -71,7 +71,7 @@ export function VirtualCameraIndicator({ className = '' }: { className?: string 
           <Video className="h-4 w-4 shrink-0 text-primary" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-primary">
-              {obsMode ? 'OBS Virtual Camera active' : 'ChapCam Camera active'}
+              {obsMode ? 'OBS Virtual Camera active' : 'LIVECAM Camera active'}
             </p>
             <p className="truncate text-[11px] text-muted-foreground">
               {obsMode
@@ -84,7 +84,7 @@ export function VirtualCameraIndicator({ className = '' }: { className?: string 
               onClick={() => handleLaunchObs({ force: true })}
               disabled={launching}
               className="flex h-6 items-center gap-1 rounded px-1.5 text-[10px] text-muted-foreground hover:text-primary hover:bg-white/10 transition-colors disabled:opacity-60"
-              title="Recréer la source OBS ChapCam (utile si l'image est noire pendant l'appel)"
+              title="Recréer la source OBS LIVECAM (utile si l'image est noire pendant l'appel)"
             >
               {launching ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -117,11 +117,11 @@ export function VirtualCameraIndicator({ className = '' }: { className?: string 
                   <ul className="space-y-1 list-disc list-inside text-muted-foreground">
                     <li>
                       <strong>WhatsApp Web</strong> (Chrome/Edge) → sélectionne{' '}
-                      <strong>{obsMode ? '« OBS Virtual Camera »' : '« ChapCam Camera »'}</strong> ✅
+                      <strong>{obsMode ? '« OBS Virtual Camera »' : '« LIVECAM Camera »'}</strong> ✅
                     </li>
                     <li>
                       <strong>WhatsApp Desktop .exe</strong> (site officiel) → sélectionne{' '}
-                      <strong>{obsMode ? '« OBS Virtual Camera »' : '« ChapCam Camera »'}</strong> ✅
+                      <strong>{obsMode ? '« OBS Virtual Camera »' : '« LIVECAM Camera »'}</strong> ✅
                     </li>
                     <li>
                       <strong>WhatsApp Microsoft Store</strong> →{' '}
@@ -131,8 +131,8 @@ export function VirtualCameraIndicator({ className = '' }: { className?: string 
                   </ul>
                   <p className="mt-2 text-[10px] text-muted-foreground">
                     {obsMode
-                      ? 'Garde la fenêtre ChapCam visible (non minimisée) pendant l\'appel, sinon le flux capturé par OBS est noir.'
-                      : 'Garde la fenêtre ChapCam visible (non minimisée) pendant l\'appel, sinon le flux est noir.'}
+                      ? 'Garde la fenêtre LIVECAM visible (non minimisée) pendant l\'appel, sinon le flux capturé par OBS est noir.'
+                      : 'Garde la fenêtre LIVECAM visible (non minimisée) pendant l\'appel, sinon le flux est noir.'}
                   </p>
                 </div>
               </div>
@@ -189,7 +189,7 @@ export function VirtualCameraIndicator({ className = '' }: { className?: string 
             </button>
             {sceneReady && (
               <span className="inline-flex items-center gap-1 rounded bg-green-500/10 px-1.5 py-0.5 text-[10px] font-medium text-green-400">
-                <CheckCircle className="h-2.5 w-2.5" /> Scène « ChapCam » créée
+                <CheckCircle className="h-2.5 w-2.5" /> Scène « LIVECAM » créée
               </span>
             )}
           </div>
@@ -266,7 +266,7 @@ export function VirtualCameraIndicator({ className = '' }: { className?: string 
             onClick={() => handleLaunchObs({ force: true })}
             disabled={launching}
             className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-blue-500/20 px-2.5 py-1.5 text-[11px] font-semibold text-blue-300 transition-colors hover:bg-blue-500/30 disabled:opacity-60"
-            title="Lance OBS et crée la source « ChapCam » automatiquement"
+            title="Lance OBS et crée la source « LIVECAM » automatiquement"
           >
             {launching ? (
               <>
@@ -289,7 +289,7 @@ export function VirtualCameraIndicator({ className = '' }: { className?: string 
             <button
               onClick={fallbackToDriver}
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-[10px] text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 transition-colors"
-              title="Basculer sur ChapCam Camera"
+              title="Basculer sur LIVECAM Camera"
             >
               <AlertTriangle className="h-3.5 w-3.5" />
             </button>

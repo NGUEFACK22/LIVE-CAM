@@ -10,7 +10,6 @@ import { FAQSection } from "@/components/faq-section"
 import { TutorialSection } from "@/components/tutorial-section"
 import { FounderSection } from "@/components/founder-section"
 import { AnimatedBackground } from "@/components/animated-background"
-import { TelegramSupport } from "@/components/telegram-support"
 import { LiveActivity } from "@/components/live-activity"
 import { PaymentBadgePopup } from "@/components/payment-badge-popup"
 import { SiteFooter } from "@/components/site-footer"
@@ -40,9 +39,6 @@ export default function Home() {
         <FounderSection />
         <SiteFooter />
       </div>
-
-      {/* Telegram Support Button */}
-      <TelegramSupport />
 
       {/* Notifications d'activite en direct */}
       <LiveActivity />

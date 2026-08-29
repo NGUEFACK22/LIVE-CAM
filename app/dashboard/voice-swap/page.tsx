@@ -186,7 +186,7 @@ export default function VoiceSwapPage() {
             <p className="mt-1 text-xs text-amber-200/80 text-pretty">
               Tu peux convertir ta voix en direct dans le navigateur et l&apos;ecouter sur ta sortie
               audio. Pour l&apos;envoyer comme micro vers WhatsApp, Telegram ou Discord, installe
-              VB-Cable et selectionne-le comme sortie (disponible dans l&apos;app de bureau ChapCam PC).
+              VB-Cable et selectionne-le comme sortie (disponible dans l&apos;app de bureau LIVECAM PC).
             </p>
           </div>
         </div>
@@ -248,7 +248,7 @@ export default function VoiceSwapPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
             <span className="text-xs font-medium text-text-faint">
-              Voix cible ChapCam
+              Voix cible LIVECAM
               <span className="ml-2 font-normal text-text-faint/70">
                 {voices.length} voix disponibles
               </span>
@@ -410,7 +410,7 @@ export default function VoiceSwapPage() {
         </p>
       )}
 
-      {/* Offres ChapVoice : recharge des minutes via PayDunya */}
+      {/* Offres ChapVoice : recharge des minutes via GeniusPay */}
       <VoiceOffersSection />
     </div>
   )

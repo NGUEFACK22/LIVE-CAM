@@ -79,7 +79,7 @@ export function useCloudSwap(config: CloudSwapConfig): CloudSwapResult {
   }))
   const sessionStartTime = useRef<number>(0)
   const frameCount = useRef(0)
-  const processingInterval = useRef<NodeJS.Timeout | null>(null)
+  const processingInterval = useRef<ReturnType<typeof setInterval> | null>(null)
   const gpuEndpoint = useRef<string>('')
 
   // Refs vers les fonctions recreees a chaque rendu (processFrame, disconnect,

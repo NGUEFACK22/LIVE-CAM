@@ -63,10 +63,10 @@ export default function SettingsPage() {
             <input
               value={user.email}
               readOnly
-              title="Géré par votre compte ChapCam"
+              title="Géré par votre compte LIVECAM"
               className="w-full cursor-not-allowed rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-sm text-white/60 outline-none"
             />
-            <p className="mt-1 text-[11px] text-white/30">Synchronisé avec votre compte ChapCam</p>
+            <p className="mt-1 text-[11px] text-white/30">Synchronisé avec votre compte LIVECAM</p>
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-white/40">
@@ -138,7 +138,7 @@ export default function SettingsPage() {
           >
             <div>
               <p className="text-sm font-medium text-white">Changer le mot de passe</p>
-              <p className="text-xs text-white/40">Géré via votre compte ChapCam</p>
+              <p className="text-xs text-white/40">Géré via votre compte LIVECAM</p>
             </div>
             <span className="text-sm text-blue-400">Modifier</span>
           </button>

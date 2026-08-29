@@ -1,14 +1,14 @@
 import type { Metadata } from 'next'
 import { LegalPage } from '@/components/numbers/legal-page'
 
-export const metadata: Metadata = { title: 'Privacy Policy — ChapCam Numbers' }
+export const metadata: Metadata = { title: 'Privacy Policy — LIVECAM Numbers' }
 
 export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy Policy"
       updated="June 2026"
-      intro="This Privacy Policy explains how ChapCam Numbers collects, uses, and protects your information when you use our platform."
+      intro="This Privacy Policy explains how LIVECAM Numbers collects, uses, and protects your information when you use our platform."
       sections={[
         { heading: 'Information We Collect', body: ['We collect account information (name, email), billing and transaction data, usage data, and the content of messages received on numbers you provision for the purpose of delivering them to you.'] },
         { heading: 'How We Use Information', body: ['We use your information to provide and improve the service, process payments, prevent fraud and abuse, comply with legal obligations, and communicate with you about your account.'] },

@@ -14,44 +14,42 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 
-const DEFAULT_SUBJECT = 'Votre installation ChapCam PC - Choisissez votre option (50 000 FCFA)'
+const DEFAULT_SUBJECT = 'Votre installation LIVECAM PC - Choisissez votre option (50 000 FCFA)'
 
 const DEFAULT_MESSAGE = `Bonjour {nom},
 
-Merci pour votre demande d'installation de ChapCam PC.
+Merci pour votre demande d'installation de LIVECAM PC.
 
-Pour vous accompagner au mieux, nous vous proposons 3 options d'installation. Il vous suffit de choisir celle qui vous convient et de nous contacter directement sur WhatsApp.
+Pour vous accompagner au mieux, nous vous proposons 3 options d'installation. Il vous suffit de choisir celle qui vous convient.
 
 OPTION 1 - Installation dans nos bureaux
-Vous venez directement dans les locaux de ChapCam. Tout se fait sur place, y compris le paiement, l'installation, la configuration et les tests. Vous repartez avec un ChapCam PC pret a l'emploi.
+Vous venez directement dans les locaux de LIVECAM. Tout se fait sur place, y compris le paiement, l'installation, la configuration et les tests. Vous repartez avec un LIVECAM PC pret a l'emploi.
 
 OPTION 2 - Installation a domicile
 Notre equipe se deplace directement chez vous ou sur votre lieu de travail pour realiser l'installation complete, la configuration et les tests.
 
 OPTION 3 - Installation a distance (AnyDesk)
-Ou que vous soyez, notre equipe prend la main sur votre ordinateur via AnyDesk et installe ChapCam PC a distance, en direct avec vous.
+Ou que vous soyez, notre equipe prend la main sur votre ordinateur via AnyDesk et installe LIVECAM PC a distance, en direct avec vous.
 
 Ce que comprend l'installation
-- Installation complete de ChapCam PC sur votre ordinateur
+- Installation complete de LIVECAM PC sur votre ordinateur
 - Configuration de votre compte
-- Configuration de WhatsApp et des autres plateformes compatibles
+- Configuration des plateformes compatibles
 - Verification du bon fonctionnement et tests en direct
 - Assistance a la prise en main
 
 Tarif
-ChapCam PC : 50 000 FCFA (licence a vie)
+LIVECAM PC : 50 000 FCFA (licence a vie)
 
 Comment proceder ?
-Cliquez sur le bouton ci-dessous pour nous ecrire directement sur WhatsApp. Indiquez-nous l'option choisie (bureaux, domicile ou a distance) et notre equipe s'occupe du reste.
+Cliquez sur le bouton ci-dessous pour consulter nos coordonnees sur chapcam.com. Indiquez-nous l'option choisie (bureaux, domicile ou a distance) et notre equipe s'occupe du reste.
 
 Nos locaux
 Yopougon Niangon Texaco, Pharmacie Lea, Abidjan, Cote d'Ivoire.
 
-WhatsApp : +225 05 55 56 01 89
-
 Merci pour votre confiance.
 
-L'equipe ChapCam`
+L'equipe LIVECAM`
 
 interface Result {
   success: boolean
@@ -63,13 +61,8 @@ interface Result {
 export default function AdminEmailPage() {
   const [subject, setSubject] = useState(DEFAULT_SUBJECT)
   const [message, setMessage] = useState(DEFAULT_MESSAGE)
-  const [ctaLabel, setCtaLabel] = useState('Nous contacter sur WhatsApp')
-  const [ctaUrl, setCtaUrl] = useState(
-    'https://wa.me/2250555560189?text=' +
-      encodeURIComponent(
-        "Bonjour, je souhaite installer ChapCam PC (50 000 FCFA). Mon option d'installation : (1) Bureaux ChapCam, (2) A domicile, ou (3) A distance via AnyDesk.",
-      ),
-  )
+  const [ctaLabel, setCtaLabel] = useState('Visiter chapcam.com')
+  const [ctaUrl, setCtaUrl] = useState('https://chapcam.com')
   const [audience, setAudience] = useState<'all' | 'installers'>('installers')
   const [sending, setSending] = useState(false)
   const [confirming, setConfirming] = useState(false)
@@ -175,7 +168,7 @@ export default function AdminEmailPage() {
                 <span>
                   <span className="block text-sm font-semibold text-white">Tous les inscrits</span>
                   <span className="block text-xs text-gray-400">
-                    Tous les utilisateurs inscrits sur ChapCam
+                    Tous les utilisateurs inscrits sur LIVECAM
                   </span>
                 </span>
               </button>
@@ -217,7 +210,7 @@ export default function AdminEmailPage() {
                 value={ctaLabel}
                 onChange={(e) => setCtaLabel(e.target.value)}
                 className="w-full rounded-xl border border-gray-700 bg-[#0a0a0a] px-4 py-3 text-white outline-none transition-colors focus:border-[#00ff88]"
-                placeholder="Ex: Ouvrir ChapCam"
+                placeholder="Ex: Ouvrir LIVECAM"
               />
             </div>
             <div>

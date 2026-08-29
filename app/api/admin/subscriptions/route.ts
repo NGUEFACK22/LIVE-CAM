@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       if (!liveUserId) {
         return NextResponse.json(
           {
-            error: `Aucun compte ChapCam ne correspond a "${email}". L'utilisateur doit d'abord creer un compte avec cet email.`,
+            error: `Aucun compte LIVECAM ne correspond a "${email}". L'utilisateur doit d'abord creer un compte avec cet email.`,
           },
           { status: 404 },
         )
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         {
-          error: `Aucun compte ChapCam ne correspond a "${email}". L'utilisateur doit d'abord creer un compte avec cet email.`,
+          error: `Aucun compte LIVECAM ne correspond a "${email}". L'utilisateur doit d'abord creer un compte avec cet email.`,
         },
         { status: 404 },
       )
@@ -215,7 +215,7 @@ export async function DELETE(req: NextRequest) {
     const userId = await resolveUserIdByEmail(admin, email)
     if (!userId) {
       return NextResponse.json(
-        { error: `Aucun compte ChapCam ne correspond a "${email}".` },
+        { error: `Aucun compte LIVECAM ne correspond a "${email}".` },
         { status: 404 },
       )
     }
@@ -292,7 +292,7 @@ export async function PATCH(req: NextRequest) {
     const userId = await resolveUserIdByEmail(admin, email)
     if (!userId) {
       return NextResponse.json(
-        { error: `Aucun compte ChapCam ne correspond a "${email}".` },
+        { error: `Aucun compte LIVECAM ne correspond a "${email}".` },
         { status: 404 },
       )
     }

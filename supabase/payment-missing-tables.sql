@@ -1,8 +1,9 @@
 -- ChapCam — Tables manquantes pour paiement (à exécuter sur nouveau projet qmoljckzxpjospsylmkl)
--- Ce fichier crée les tables utilisées par lib/fulfillment.ts, lib/trybit.ts, lib/nowpayments.ts
+-- Ce fichier crée les tables utilisées par lib/fulfillment.ts et le client de
+-- paiement GeniusPay.
 -- qui ne sont pas dans supabase/init.sql
 
--- processed_payments : idempotence des crédits (token = paydunya_token / trybit_invoice / nowpayments_paymentId)
+-- processed_payments : idempotence des crédits (token = reference GeniusPay)
 CREATE TABLE IF NOT EXISTS public.processed_payments (
   token text PRIMARY KEY,
   email text,

@@ -82,7 +82,7 @@ export function HeaderActions() {
                 Demande d&apos;installation
               </span>
               <span className="block truncate text-[11px] text-text-faint">
-                On installe ChapCam pour toi
+                On installe LIVECAM pour toi
               </span>
             </span>
             <ChevronRight className="h-4 w-4 shrink-0 text-text-faint transition-transform duration-300 group-hover:translate-x-0.5 group-hover:text-[#3b82f6]" />

@@ -62,7 +62,7 @@ export default function AvatarsPage() {
 
     if (error) {
       console.error('Error fetching avatars:', error)
-      toast({ title: 'Erreur', description: 'Impossible de charger les avatars', variant: 'destructive' })
+      toast({ title: 'Erreur', description: `Impossible de charger les avatars: ${error.message}`, variant: 'destructive' })
       return
     }
 
@@ -152,7 +152,7 @@ export default function AvatarsPage() {
 
       if (uploadError) {
         console.error('Upload error:', uploadError)
-        toast({ title: 'Erreur', description: 'Impossible d\'uploader l\'image. Verifiez que le bucket "avatars" existe dans Supabase Storage.', variant: 'destructive' })
+        toast({ title: 'Erreur', description: `Impossible d'uploader l'image: ${uploadError.message}. Verifiez que le bucket "avatars" existe et que la migration SQL a ete executee.`, variant: 'destructive' })
         return
       }
 
@@ -177,7 +177,7 @@ export default function AvatarsPage() {
         console.error('Error saving avatar:', error)
         // Delete uploaded file if DB insert fails
         await supabase.storage.from('avatars').remove([fileName])
-        toast({ title: 'Erreur', description: 'Impossible de sauvegarder', variant: 'destructive' })
+        toast({ title: 'Erreur', description: `Impossible de sauvegarder: ${error.message}. Verifiez que la table "user_avatars" existe (migration SQL).`, variant: 'destructive' })
         return
       }
 

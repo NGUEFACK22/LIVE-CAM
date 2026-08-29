@@ -31,7 +31,7 @@ function getResend() {
 // 50 000 FCFA paiement unique a vie pour les premiers, puis 50 000 FCFA/mois
 // a partir du dimanche 14 juin.
 function getPcLifetimeEmail(userName: string) {
-  const subject = "ChapCam PC a VIE pour 50 000 FCFA - l'offre se termine bientot !"
+  const subject = "LIVECAM PC a VIE pour 50 000 FCFA - l'offre se termine bientot !"
 
   const html = `
 <!DOCTYPE html>
@@ -49,7 +49,7 @@ function getPcLifetimeEmail(userName: string) {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(90deg, #7c3aed, #2563eb, #00ff88); padding: 22px; text-align: center;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: 800;">ChapCam PC - Logiciel a VIE</h1>
+              <h1 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: 800;">LIVECAM PC - Logiciel a VIE</h1>
             </td>
           </tr>
 
@@ -97,7 +97,7 @@ function getPcLifetimeEmail(userName: string) {
                 <tr>
                   <td align="center" style="padding: 28px 0 8px;">
                     <a href="https://chapcam.com/dashboard/chapcam-pc" style="display: inline-block; background: linear-gradient(90deg, #00ff88, #00d4ff); color: #000000; font-size: 16px; font-weight: bold; text-decoration: none; padding: 16px 44px; border-radius: 12px;">
-                      J'obtiens ChapCam PC a vie
+                      J'obtiens LIVECAM PC a vie
                     </a>
                   </td>
                 </tr>
@@ -113,7 +113,7 @@ function getPcLifetimeEmail(userName: string) {
           <tr>
             <td style="padding: 20px 38px; border-top: 1px solid rgba(255,255,255,0.1);">
               <p style="color: #666; font-size: 12px; text-align: center; margin: 0;">
-                Tu recois cet email car tu es inscrit sur ChapCam.<br>
+                Tu recois cet email car tu es inscrit sur LIVECAM.<br>
                 <a href="https://chapcam.com" style="color: #00ff88;">chapcam.com</a>
               </p>
             </td>
@@ -134,7 +134,7 @@ function getPcLifetimeEmail(userName: string) {
 // pendant les appels video sur les reseaux sociaux). Installation sur place a
 // Yopougon Niangon (station Texaco) ou assistance a distance. CTA: telecharger.
 function getVideoCallEmail(userName: string) {
-  const subject = "Change ton apparence pendant tes appels video - ChapCam"
+  const subject = "Change ton apparence pendant tes appels video - LIVECAM"
 
   const html = `
 <!DOCTYPE html>
@@ -152,7 +152,7 @@ function getVideoCallEmail(userName: string) {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(90deg, #00ff88, #00d4ff); padding: 20px; text-align: center;">
-              <h1 style="margin: 0; color: #001b12; font-size: 24px; font-weight: 800;">ChapCam - Face Swap en temps reel</h1>
+              <h1 style="margin: 0; color: #001b12; font-size: 24px; font-weight: 800;">LIVECAM - Face Swap en temps reel</h1>
             </td>
           </tr>
 
@@ -165,7 +165,7 @@ function getVideoCallEmail(userName: string) {
                 <span style="color: #00ff88;">appels video</span> sur les reseaux sociaux ?
               </h2>
               <p style="color: #a0a0a0; font-size: 16px; line-height: 1.6; margin: 0;">
-                Avec ChapCam, transforme ton visage <strong style="color:#ffffff;">en direct</strong> sur WhatsApp,
+                Avec LIVECAM, transforme ton visage <strong style="color:#ffffff;">en direct</strong> sur WhatsApp,
                 Messenger, Zoom, TikTok Live et plus encore. Simple, rapide, et bluffant de realisme.
               </p>
             </td>
@@ -175,7 +175,7 @@ function getVideoCallEmail(userName: string) {
           <tr>
             <td style="padding: 22px 38px;">
               <a href="https://chapcam.com/download" style="text-decoration: none;">
-                <img src="https://chapcam.com/campagne/temoignage-chapcam.jpg" alt="Temoignage client ChapCam" width="524" style="width: 100%; max-width: 524px; border-radius: 16px; display: block; border: 1px solid rgba(255,255,255,0.1);">
+                <img src="https://chapcam.com/campagne/temoignage-chapcam.jpg" alt="Temoignage client LIVECAM" width="524" style="width: 100%; max-width: 524px; border-radius: 16px; display: block; border: 1px solid rgba(255,255,255,0.1);">
               </a>
             </td>
           </tr>
@@ -199,14 +199,14 @@ function getVideoCallEmail(userName: string) {
           <tr>
             <td align="center" style="padding: 26px 38px 10px;">
               <a href="https://chapcam.com/download" style="display: inline-block; background: linear-gradient(90deg, #00ff88, #00d4ff); color: #000000; font-size: 16px; font-weight: bold; text-decoration: none; padding: 16px 44px; border-radius: 12px;">
-                Telecharger ChapCam maintenant
+                Telecharger LIVECAM maintenant
               </a>
             </td>
           </tr>
           <tr>
             <td align="center" style="padding: 0 38px 30px;">
               <p style="color: #888888; font-size: 13px; margin: 8px 0 0;">
-                Besoin d'aide ? Ecris-nous sur WhatsApp au <strong style="color:#e5e5e5;">+225 05 55 56 01 89</strong>
+                Besoin d'aide ? Consulte la documentation sur <a href="https://chapcam.com/docs" style="color:#00ff88; text-decoration:none;">chapcam.com</a>
               </p>
             </td>
           </tr>
@@ -215,7 +215,7 @@ function getVideoCallEmail(userName: string) {
           <tr>
             <td style="padding: 20px 38px; border-top: 1px solid rgba(255,255,255,0.1);">
               <p style="color: #666; font-size: 12px; text-align: center; margin: 0;">
-                Tu recois cet email car tu es inscrit sur ChapCam.<br>
+                Tu recois cet email car tu es inscrit sur LIVECAM.<br>
                 <a href="https://chapcam.com" style="color: #00ff88;">chapcam.com</a>
               </p>
             </td>
@@ -233,15 +233,10 @@ function getVideoCallEmail(userName: string) {
 }
 
 // Template email pour la campagne "Assistance / Support".
-// Objectif : savoir si le client arrive a utiliser le logiciel IA et lui proposer
-// une aide immediate via WhatsApp ou un appel telephonique.
+// Objectif : savoir si le client arrive a utiliser le logiciel IA et le rediriger
+// vers la documentation d'aide sur chapcam.com.
 function getSupportEmail(userName: string) {
-  const subject = 'Rencontres-tu un problème avec ChapCam ? On t\'aide'
-  const WHATSAPP_URL =
-    'https://wa.me/2250555560189?text=' +
-    encodeURIComponent(
-      'Bonjour ChapCam, je rencontre un problème pour utiliser le logiciel et j’ai besoin d’aide.',
-    )
+  const subject = 'Rencontres-tu un problème avec LIVECAM ? On t\'aide'
 
   const html = `
 <!DOCTYPE html>
@@ -259,7 +254,7 @@ function getSupportEmail(userName: string) {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(90deg, #00ff88, #00d4ff); padding: 22px; text-align: center;">
-              <h1 style="margin: 0; color: #001b12; font-size: 24px; font-weight: 800;">Besoin d'aide avec ChapCam ?</h1>
+              <h1 style="margin: 0; color: #001b12; font-size: 24px; font-weight: 800;">Besoin d'aide avec LIVECAM ?</h1>
             </td>
           </tr>
 
@@ -273,31 +268,24 @@ function getSupportEmail(userName: string) {
               </h2>
 
               <p style="color: #a0a0a0; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-                On veut s'assurer que tu profites pleinement de ChapCam. Si tu bloques quelque part
+                On veut s'assurer que tu profites pleinement de LIVECAM. Si tu bloques quelque part
                 (installation, face swap, camera virtuelle, connexion...), notre équipe est là pour
                 t'aider <strong style="color:#ffffff;">en direct</strong>.
               </p>
 
-              <!-- CTA WhatsApp -->
+              <!-- CTA Documentation -->
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center" style="padding: 4px 0 12px;">
-                    <a href="${WHATSAPP_URL}" style="display: inline-block; width: 80%; background: linear-gradient(90deg, #25D366, #128C7E); color: #ffffff; font-size: 16px; font-weight: bold; text-decoration: none; padding: 16px 24px; border-radius: 12px; text-align: center;">
-                      Nous écrire sur WhatsApp
-                    </a>
-                  </td>
-                </tr>
-                <tr>
-                  <td align="center" style="padding: 0 0 4px;">
-                    <a href="tel:+2250555560189" style="display: inline-block; width: 80%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #ffffff; font-size: 16px; font-weight: bold; text-decoration: none; padding: 16px 24px; border-radius: 12px; text-align: center;">
-                      Nous appeler : +225 05 55 56 01 89
+                    <a href="https://chapcam.com" style="display: inline-block; width: 80%; background: linear-gradient(90deg, #00ff88, #00d4ff); color: #001b12; font-size: 16px; font-weight: bold; text-decoration: none; padding: 16px 24px; border-radius: 12px; text-align: center;">
+                      Visiter chapcam.com
                     </a>
                   </td>
                 </tr>
               </table>
 
               <p style="color: #888888; font-size: 13px; text-align: center; margin: 18px 0 0;">
-                Réponse rapide du lundi au dimanche. On règle ton problème ensemble.
+                Consulte la documentation d&apos;aide sur chapcam.com, réponds-y du lundi au dimanche.
               </p>
             </td>
           </tr>
@@ -306,7 +294,7 @@ function getSupportEmail(userName: string) {
           <tr>
             <td style="padding: 20px 38px; border-top: 1px solid rgba(255,255,255,0.1);">
               <p style="color: #666; font-size: 12px; text-align: center; margin: 0;">
-                Tu recois cet email car tu es inscrit sur ChapCam.<br>
+                Tu recois cet email car tu es inscrit sur LIVECAM.<br>
                 <a href="https://chapcam.com" style="color: #00ff88;">chapcam.com</a>
               </p>
             </td>
@@ -325,12 +313,9 @@ function getSupportEmail(userName: string) {
 
 // Template email pour la campagne "ChapCam 2.0" (nouveau moteur IA, base sur
 // Decart AI 2.5). Message cle : plus besoin de PC gamer / GPU dedie, ca tourne
-// sur tout type de PC. Sorti le 17 juillet. CTA vers les recharges + WhatsApp.
+// sur tout type de PC. Sorti le 17 juillet. CTA vers les recharges + chapcam.com.
 function getChapCam2Email(userName: string) {
-  const subject = 'ChapCam 2.0 est disponible - fonctionne desormais sur TOUT type de PC'
-  const WHATSAPP_URL =
-    'https://wa.me/2250555560189?text=' +
-    encodeURIComponent('Bonjour ChapCam, je veux tester la nouvelle version ChapCam 2.0.')
+  const subject = 'LIVECAM 2.0 est disponible - fonctionne desormais sur TOUT type de PC'
 
   const html = `
 <!DOCTYPE html>
@@ -349,7 +334,7 @@ function getChapCam2Email(userName: string) {
           <tr>
             <td style="background: linear-gradient(90deg, #7c3aed, #2563eb, #00ff88); padding: 22px; text-align: center;">
               <p style="margin: 0 0 4px; color: rgba(255,255,255,0.85); font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Nouvelle version - 17 juillet</p>
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">ChapCam 2.0 est la</h1>
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">LIVECAM 2.0 est la</h1>
             </td>
           </tr>
 
@@ -359,7 +344,7 @@ function getChapCam2Email(userName: string) {
               <p style="color: #ffffff; font-size: 18px; margin: 0 0 18px;">Salut ${userName || 'toi'},</p>
 
               <p style="color: #a0a0a0; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                On vient de sortir <strong style="color: #ffffff;">ChapCam 2.0</strong>, notre nouveau moteur IA
+                On vient de sortir <strong style="color: #ffffff;">LIVECAM 2.0</strong>, notre nouveau moteur IA
                 bien plus rapide et realiste. Le plus gros changement :
                 <strong style="color: #00ff88;">plus besoin d'un PC Gamer ni d'une carte graphique dediee</strong>.
               </p>
@@ -379,7 +364,7 @@ function getChapCam2Email(userName: string) {
               </table>
 
               <p style="color: #a0a0a0; font-size: 15px; line-height: 1.6; margin: 0 0 8px;">
-                Recharge tes points et teste ChapCam 2.0 des maintenant.
+                Recharge tes points et teste LIVECAM 2.0 des maintenant.
               </p>
 
               <!-- CTA principal -->
@@ -387,22 +372,21 @@ function getChapCam2Email(userName: string) {
                 <tr>
                   <td align="center" style="padding: 22px 0 10px;">
                     <a href="https://chapcam.com/dashboard/plans" style="display: inline-block; background: linear-gradient(90deg, #00ff88, #00d4ff); color: #000000; font-size: 16px; font-weight: bold; text-decoration: none; padding: 16px 44px; border-radius: 12px;">
-                      Tester ChapCam 2.0
+                      Tester LIVECAM 2.0
                     </a>
                   </td>
                 </tr>
-                <!-- CTA WhatsApp -->
                 <tr>
                   <td align="center" style="padding: 4px 0 0;">
-                    <a href="${WHATSAPP_URL}" style="display: inline-block; background: rgba(37, 211, 102, 0.15); border: 1px solid rgba(37, 211, 102, 0.5); color: #25D366; font-size: 15px; font-weight: bold; text-decoration: none; padding: 14px 36px; border-radius: 12px;">
-                      Une question ? Ecris-nous sur WhatsApp
+                    <a href="https://chapcam.com/docs" style="display: inline-block; background: rgba(0, 212, 255, 0.12); border: 1px solid rgba(0, 212, 255, 0.5); color: #00d4ff; font-size: 15px; font-weight: bold; text-decoration: none; padding: 14px 36px; border-radius: 12px;">
+                      Documentation et aide sur chapcam.com
                     </a>
                   </td>
                 </tr>
               </table>
 
               <p style="color: #888888; font-size: 13px; text-align: center; margin: 18px 0 0;">
-                Support WhatsApp : <strong style="color:#e5e5e5;">+225 05 55 56 01 89</strong>
+                Consulte la documentation d&apos;aide sur chapcam.com.
               </p>
             </td>
           </tr>
@@ -411,7 +395,7 @@ function getChapCam2Email(userName: string) {
           <tr>
             <td style="padding: 20px 38px; border-top: 1px solid rgba(255,255,255,0.1);">
               <p style="color: #666; font-size: 12px; text-align: center; margin: 0;">
-                Tu recois cet email car tu es inscrit sur ChapCam.<br>
+                Tu recois cet email car tu es inscrit sur LIVECAM.<br>
                 <a href="https://chapcam.com" style="color: #00ff88;">chapcam.com</a>
               </p>
             </td>
@@ -431,9 +415,9 @@ function getChapCam2Email(userName: string) {
 // Template email pour le rappel de lancement
 function getLaunchReminderEmail(userName: string, type: 'D2' | 'D1' | 'DJ') {
   const subjects = {
-    D2: "J-2 - Lancement ChapCam Samedi a 19h GMT !",
-    D1: "DEMAIN - Lancement ChapCam a 19h GMT !",
-    DJ: "MAINTENANT - ChapCam est LIVE !"
+    D2: "J-2 - Lancement LIVECAM Samedi a 19h GMT !",
+    D1: "DEMAIN - Lancement LIVECAM a 19h GMT !",
+    DJ: "MAINTENANT - LIVECAM est LIVE !"
   }
   
   const titles = {
@@ -461,7 +445,7 @@ function getLaunchReminderEmail(userName: string, type: 'D2' | 'D1' | 'DJ') {
   <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
     <!-- Header -->
     <div style="text-align: center; margin-bottom: 30px;">
-      <h1 style="color: #00ff88; font-size: 32px; margin: 0;">ChapCam</h1>
+      <h1 style="color: #00ff88; font-size: 32px; margin: 0;">LIVECAM</h1>
       <p style="color: #888; font-size: 14px; margin-top: 5px;">Face Swap en Temps Reel</p>
     </div>
     
@@ -480,7 +464,7 @@ function getLaunchReminderEmail(userName: string, type: 'D2' | 'D1' | 'DJ') {
       </p>
       
       <p style="color: #cccccc; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
-        Salut ${userName || 'toi'} ! Le lancement officiel de ChapCam ${messages[type]}. 
+        Salut ${userName || 'toi'} ! Le lancement officiel de LIVECAM ${messages[type]}. 
         Ne rate pas les offres exceptionnelles de lancement !
       </p>
       
@@ -505,7 +489,7 @@ function getLaunchReminderEmail(userName: string, type: 'D2' | 'D1' | 'DJ') {
     <!-- Footer -->
     <div style="text-align: center; margin-top: 30px;">
       <p style="color: #666666; font-size: 12px;">
-        Tu recois cet email car tu es inscrit sur ChapCam.<br>
+        Tu recois cet email car tu es inscrit sur LIVECAM.<br>
         <a href="https://chapcam.com" style="color: #00ff88;">chapcam.com</a>
       </p>
     </div>
@@ -613,7 +597,7 @@ export async function POST(request: NextRequest) {
                     ? getChapCam2Email(user.name || '')
                     : getLaunchReminderEmail(user.name || '', type as 'D2' | 'D1' | 'DJ')
           return {
-            from: 'ChapCam <noreply@chapcam.com>',
+            from: 'LIVECAM <noreply@chapcam.com>',
             to: user.email,
             subject,
             html,

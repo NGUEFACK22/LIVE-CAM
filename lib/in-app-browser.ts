@@ -2,13 +2,13 @@
 //
 // Probleme resolu : quand un client ouvre un lien depuis TikTok, Instagram,
 // Facebook, Messenger, Snapchat, WhatsApp, etc., la page s'ouvre dans un
-// navigateur integre (webview). La page de paiement PayDunya (application
+// navigateur integre (webview). La page de paiement GeniusPay (application
 // React protegee par Cloudflare) ne se charge PAS correctement dans ces
 // webviews : l'utilisateur voit une page blanche / un chargement infini.
 //
 // La solution standard (Stripe, PayPal, etc.) est de detecter ce contexte et
 // d'inviter l'utilisateur a ouvrir le lien dans son vrai navigateur
-// (Chrome / Safari), ou la page PayDunya fonctionne normalement.
+// (Chrome / Safari), ou la page GeniusPay fonctionne normalement.
 
 export function isInAppBrowser(): boolean {
   if (typeof navigator === 'undefined') return false

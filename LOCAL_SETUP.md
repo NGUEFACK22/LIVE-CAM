@@ -402,7 +402,8 @@ mise en dur retirée, l'app exige ces variables (sinon erreur explicite au déma
 | `RUNPOD_API_KEY` / `RUNPOD_ENDPOINT_ID` | Face swap RunPod | Endpoints serverless |
 | `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` | Cloud swap | Tokens LiveKit |
 | `FAL_KEY` | `/api/swap` | Face swap photo fal.ai (jamais exposée au client) |
-| `TRYBIT_*` / `PAYDUNYA_*` / `NOWPAYMENTS_*` | Paiements | Clés des passerelles |
+| `GENIUSPAY_API_KEY` | Paiements | Clé API publique GeniusPay (header X-API-Key) |
+| `GENIUSPAY_API_SECRET` | Paiements | Clé API secrète GeniusPay (header X-API-Secret) |
 | `NEXT_PUBLIC_FREE_LIVE_SWAP` | ⚠️ Prod | `false` en production pour réactiver forfaits/points |
 
 > ⚠️ **Mode gratuit en production** : `isFreeLiveSwap()` renvoie `true` par défaut.

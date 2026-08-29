@@ -64,7 +64,7 @@ export function ChapCam2Announcement() {
             Nouveau · Sorti le 17 juillet
           </span>
           <h2 className="text-balance text-2xl font-bold text-foreground">
-            ChapCam 2.0 est disponible
+            LIVECAM 2.0 est disponible
           </h2>
           <p className="mt-2 text-pretty text-sm leading-relaxed text-muted-foreground">
             Notre nouveau logiciel est teste et pret. Recharge ton compte pour en profiter des

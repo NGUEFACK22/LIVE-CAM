@@ -526,7 +526,7 @@ export function PhoneMockup() {
         >
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo%20chapcam-Zg2rUUnOrSECjteElTxoU1rcYfwF3i.jpg"
-            alt="ChapCam"
+            alt="LIVECAM"
             width={48}
             height={48}
             className="rounded-xl object-contain"

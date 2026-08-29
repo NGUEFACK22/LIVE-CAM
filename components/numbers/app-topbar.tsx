@@ -100,7 +100,7 @@ export function AppTopbar() {
               <div className="p-1.5">
                 <ProfileLink href="/numbers/app/settings" icon={User} label="Profil" onClick={() => setProfileOpen(false)} />
                 <ProfileLink href="/numbers/app/settings" icon={Settings} label="Paramètres" onClick={() => setProfileOpen(false)} />
-                <ProfileLink href="/dashboard" icon={LogOut} label="Retour à ChapCam" onClick={() => setProfileOpen(false)} />
+                <ProfileLink href="/dashboard" icon={LogOut} label="Retour à LIVECAM" onClick={() => setProfileOpen(false)} />
               </div>
             </div>
           )}

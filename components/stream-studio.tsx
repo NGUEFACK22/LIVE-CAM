@@ -26,7 +26,7 @@ const CHAT = [
   { user: "NeoKiller", msg: "Wshh c'est trop réel", color: "#00ff88" },
   { user: "GameMaster", msg: "La qualité est insane !", color: "#e91e8c" },
   { user: "ShadowZ", msg: "Tu utilises quel setup ?", color: "#f97316" },
-  { user: "CyberVibes", msg: "ChapCam best tool", color: "#8b5cf6" },
+  { user: "CyberVibes", msg: "LIVECAM best tool", color: "#8b5cf6" },
   { user: "PixelQueen", msg: "on dirait un vrai jeu", color: "#00d4ff" },
 ]
 
@@ -79,7 +79,7 @@ export function StreamStudio() {
               <span className="h-2 w-2 rounded-full bg-white" />
             </span>
             <span className="text-xs font-bold text-white">
-              ChapCam <span className="font-medium text-gray-400">Studio</span>
+              LIVECAM <span className="font-medium text-gray-400">Studio</span>
             </span>
             <span className="cc-blink ml-1.5 flex items-center gap-1 rounded bg-[#ff2d2d] px-1.5 py-0.5 text-[9px] font-bold text-white">
               LIVE
@@ -110,7 +110,7 @@ export function StreamStudio() {
                 {/* APRES (fond, pleine largeur) */}
                 <Image
                   src="/images/hero/studio-after.png"
-                  alt="Apres transformation ChapCam"
+                  alt="Apres transformation LIVECAM"
                   fill
                   className="object-cover"
                   sizes="480px"

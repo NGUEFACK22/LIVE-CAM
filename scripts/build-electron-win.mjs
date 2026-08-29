@@ -111,7 +111,7 @@ try {
         if (/^\s*DECART_API_KEY\s*=/.test(line)) return '# DECART_API_KEY= (retirée du build — fournie via Supabase app_config)'
         if (/^\s*DECART_API_KEY_NO_WATERMARK\s*=/.test(line)) return '# DECART_API_KEY_NO_WATERMARK= (retirée du build)'
         if (/^\s*SUPABASE_SERVICE_ROLE_KEY\s*=/.test(line) && !/^\s*SUPABASE_SERVICE_ROLE_KEY\s*=\s*$/.test(line)) return 'SUPABASE_SERVICE_ROLE_KEY='
-        if (/^\s*(LIVE_GPU_SHARED_SECRET|RUNPOD_API_KEY|LIVEKIT_API_SECRET|RESEND_API_KEY|PAYDUNYA_|TRYBIT_|NOWPAYMENTS_|TURNSTILE_SECRET_KEY)\s*=/.test(line)) {
+        if (/^\s*(LIVE_GPU_SHARED_SECRET|RUNPOD_API_KEY|LIVEKIT_API_SECRET|RESEND_API_KEY|TURNSTILE_SECRET_KEY)\s*=/.test(line)) {
           return line.replace(/=.*/, '=')
         }
         return line

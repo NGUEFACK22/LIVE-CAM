@@ -38,7 +38,7 @@ export default function MesDemandesPage() {
   const [requests, setRequests] = useState<InstallRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  // Paiement partage : choix PayDunya (mobile money/carte) ou Crypto (Trybit).
+  // Paiement partage : ouvre la page de paiement securise GeniusPay puis redirige.
   const { startCheckout, pendingKey, error: payError, modal } = usePaymentCheckout()
 
   const load = useCallback(async () => {

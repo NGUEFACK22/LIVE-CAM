@@ -204,8 +204,8 @@ function SidebarContent({
 
           <span className="min-w-0">
             <span className="block text-2xl font-extrabold leading-none tracking-tight">
-              <span className="text-foreground">Chap</span>
-              <span className="text-primary">Cam</span>
+              <span className="text-foreground">LIVE</span>
+              <span className="text-primary">CAM</span>
             </span>
             <span className="mt-1.5 flex items-center gap-1.5">
               <span className="relative flex h-1.5 w-1.5">
@@ -253,7 +253,7 @@ function SidebarContent({
                     </span>
                     <span className="min-w-0 flex-1 text-left">
                       <span className="flex items-center gap-1.5">
-                        <span className="truncate text-[13px] font-bold uppercase">ChapCam PC</span>
+                        <span className="truncate text-[13px] font-bold uppercase">LIVECAM PC</span>
                         <span className="shrink-0 rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] font-extrabold text-white">À vie</span>
                       </span>
                       <span className="mt-0.5 block truncate text-[10px] font-medium text-white/75">Windows · licence à vie</span>
@@ -462,8 +462,8 @@ export function DashboardSidebar({
 
       <header className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center justify-between border-b border-hairline bg-sidebar px-4 md:hidden">
         <h1 className="text-xl font-bold">
-          <span className="text-foreground">Chap</span>
-          <span className="text-primary">Cam</span>
+          <span className="text-foreground">LIVE</span>
+          <span className="text-primary">CAM</span>
         </h1>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1 rounded-full bg-muted px-3 py-1">

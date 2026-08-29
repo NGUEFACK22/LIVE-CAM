@@ -8,9 +8,9 @@ import { DesktopDownloadSection } from '@/components/desktop/desktop-download-se
 import { PC_OFFER } from '@/lib/pc-offer'
 
 export const metadata: Metadata = {
-  title: 'ChapCam PC — Logiciel Premium à vie',
+  title: 'LIVECAM PC — Logiciel Premium à vie',
   description:
-    'ChapCam PC : face swap en temps reel sur ton GPU local, camera virtuelle, paiement unique a vie. Telecharge, paie une fois, recois ta cle de licence par email.',
+    'LIVECAM PC : face swap en temps reel sur ton GPU local, camera virtuelle, paiement unique a vie. Telecharge, paie une fois, recois ta cle de licence par email.',
 }
 
 const HIGHLIGHTS = [
@@ -58,7 +58,7 @@ export default function ChapCamPcPage() {
             </div>
 
             <h1 className="mt-5 text-4xl font-black leading-[1.05] text-foreground text-balance md:text-5xl">
-              ChapCam PC
+              LIVECAM PC
               <span className="block bg-gradient-to-r from-primary to-emerald-300 bg-clip-text text-transparent">
                 Logiciel a vie
               </span>
@@ -121,7 +121,7 @@ export default function ChapCamPcPage() {
             <div className="relative overflow-hidden rounded-2xl border border-hairline shadow-2xl shadow-primary/10">
               <Image
                 src="/chapcam-pc-hero.png"
-                alt="Setup gamer avec le logiciel ChapCam PC affichant un face swap en temps reel"
+                alt="Setup gamer avec le logiciel LIVECAM PC affichant un face swap en temps reel"
                 width={900}
                 height={700}
                 className="h-full w-full object-cover"

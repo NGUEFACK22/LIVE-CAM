@@ -48,7 +48,7 @@ export function InActionSection() {
           </motion.div>
 
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-tight">
-            Regardez ChapCam{" "}
+            Regardez LIVECAM{" "}
             <span className="text-[#00ff88]">transformer</span>
             <br />
             en temps reel
@@ -93,7 +93,7 @@ export function InActionSection() {
               transition={{ delay: 1 }}
               className="text-center text-gray-500 text-sm mt-4"
             >
-              Clique sur la galerie pour l&apos;agrandir - ChapCam en action
+              Clique sur la galerie pour l&apos;agrandir - LIVECAM en action
             </motion.p>
           </div>
         </motion.div>

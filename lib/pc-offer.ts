@@ -19,7 +19,7 @@ export interface PcOffer {
 
 export const PC_OFFER: PcOffer = {
   id: 'pc',
-  name: 'ChapCam PC — Logiciel a vie',
+  name: 'LIVECAM PC — Logiciel a vie',
   price: 50000,
   originalPrice: 100000,
   discountPercent: 50,

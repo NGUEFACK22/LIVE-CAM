@@ -41,8 +41,8 @@ const tools: Tool[] = [
   {
     href: '/dashboard/chapcam-pc',
     icon: Monitor,
-    title: 'ChapCam PC',
-    description: 'Le logiciel ChapCam sur ton PC, sans cloud. Achat unique, licence à vie.',
+    title: 'LIVECAM PC',
+    description: 'Le logiciel LIVECAM sur ton PC, sans cloud. Achat unique, licence à vie.',
     badge: 'NEW',
     accent: '#00ff88',
     gradient: 'linear-gradient(135deg, rgba(0,255,136,0.16), rgba(20,184,166,0.10))',
@@ -51,7 +51,7 @@ const tools: Tool[] = [
   {
     href: '/numbers',
     icon: Smartphone,
-    title: 'ESIM ChapCam',
+    title: 'ESIM LIVECAM',
     description: 'Achète des numéros virtuels dans 150+ pays et reçois tes SMS en ligne.',
     badge: 'NEW',
     accent: '#2563eb',

@@ -35,7 +35,7 @@ export function SwapConsent({
         aria-label="Je certifie disposer des autorisations necessaires"
       />
       <span className="text-xs leading-relaxed text-muted-foreground">
-        Je certifie disposer des autorisations nécessaires et utiliser CHAPCAM conformément aux lois applicables.
+        Je certifie disposer des autorisations nécessaires et utiliser LIVECAM conformément aux lois applicables.
       </span>
     </label>
   )
@@ -49,7 +49,7 @@ export function GenerateNotice({ className = '' }: { className?: string }) {
       <Link href="/charte" className="text-muted-foreground underline-offset-2 hover:text-primary hover:underline">
         Conditions d’utilisation
       </Link>{' '}
-      de CHAPCAM.
+      de LIVECAM.
     </p>
   )
 }

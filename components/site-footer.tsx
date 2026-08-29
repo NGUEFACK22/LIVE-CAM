@@ -9,10 +9,10 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 text-center md:flex-row md:justify-between md:text-left">
         <div>
           <p className="text-lg font-bold text-foreground">
-            Chap<span className="text-primary">Cam</span>
+            LIVE<span className="text-primary">CAM</span>
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Plateforme d&apos;intelligence artificielle responsable. © {year} ChapCam. Tous droits réservés.
+            Plateforme d&apos;intelligence artificielle responsable. © {year} LIVECAM. Tous droits réservés.
           </p>
 
           <div className="mt-4 flex flex-col items-center gap-2 md:items-start">
@@ -35,7 +35,7 @@ export function SiteFooter() {
 
         <nav aria-label="Liens légaux" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
           <Link href="/numbers" className="font-semibold text-[#2563EB] transition-colors hover:text-[#1d4ed8]">
-            ESIM ChapCam
+            ESIM LIVECAM
           </Link>
           <Link href="/conditions" className="text-muted-foreground transition-colors hover:text-primary">
             Conditions d&apos;utilisation
@@ -46,12 +46,6 @@ export function SiteFooter() {
           <Link href="/conditions#paiements" className="text-muted-foreground transition-colors hover:text-primary">
             Politique de remboursement
           </Link>
-          <a
-            href="mailto:contact@chapcam.com"
-            className="text-muted-foreground transition-colors hover:text-primary"
-          >
-            Contact juridique
-          </a>
           <Link href="/charte#signaler" className="text-muted-foreground transition-colors hover:text-primary">
             Signaler un abus
           </Link>

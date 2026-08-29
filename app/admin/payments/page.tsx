@@ -48,7 +48,7 @@ interface Installation {
   createdAt: string | null
 }
 
-interface PaydunyaLog {
+interface PaymentLog {
   id: string
   source: string
   token: string | null
@@ -74,9 +74,9 @@ interface Stats {
   installPaid: number
   installRevenue: number
   totalRevenue: number
-  paydunyaToday: number
-  paydunyaCreditedToday: number
-  paydunyaFailed: number
+  autoToday: number
+  autoCreditedToday: number
+  autoFailed: number
 }
 
 function fmtDate(d: string | null) {
@@ -97,9 +97,9 @@ function fmtDateTime(d: string | null) {
 export default function AdminPaymentsPage() {
   const [clients, setClients] = useState<CreditedClient[]>([])
   const [installations, setInstallations] = useState<Installation[]>([])
-  const [paydunyaLogs, setPaydunyaLogs] = useState<PaydunyaLog[]>([])
+  const [paymentLogs, setPaymentLogs] = useState<PaymentLog[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
-  const [tab, setTab] = useState<'abonnements' | 'installations' | 'paydunya'>('abonnements')
+  const [tab, setTab] = useState<'abonnements' | 'installations' | 'paiements'>('abonnements')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
@@ -120,7 +120,7 @@ export default function AdminPaymentsPage() {
       }
       setClients(data.clients || [])
       setInstallations(data.installations || [])
-      setPaydunyaLogs(data.paydunyaLogs || [])
+      setPaymentLogs(data.paymentLogs || [])
       setStats(data.stats || null)
     } catch {
       setError('Erreur de connexion.')
@@ -185,15 +185,15 @@ export default function AdminPaymentsPage() {
 
   const filteredLogs = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return paydunyaLogs
-    return paydunyaLogs.filter(
+    if (!q) return paymentLogs
+    return paymentLogs.filter(
       (l) =>
         l.email?.toLowerCase().includes(q) ||
         l.productId?.toLowerCase().includes(q) ||
         l.token?.toLowerCase().includes(q) ||
         l.transactionId?.toLowerCase().includes(q),
     )
-  }, [paydunyaLogs, search])
+  }, [paymentLogs, search])
 
   return (
     <div className="min-h-screen bg-[#050505] px-4 py-8 md:px-8">
@@ -253,17 +253,17 @@ export default function AdminPaymentsPage() {
           <TabButton active={tab === 'installations'} onClick={() => setTab('installations')}>
             Installations ({installations.length})
           </TabButton>
-          <TabButton active={tab === 'paydunya'} onClick={() => setTab('paydunya')}>
-            Paiements PayDunya ({paydunyaLogs.length})
+          <TabButton active={tab === 'paiements'} onClick={() => setTab('paiements')}>
+            Paiements automatiques ({paymentLogs.length})
           </TabButton>
         </div>
 
-        {/* Stats PayDunya (onglet dedie) */}
-        {tab === 'paydunya' && stats && (
+        {/* Stats paiements automatiques (onglet dedie) */}
+        {tab === 'paiements' && stats && (
           <div className="mb-6 grid grid-cols-3 gap-4">
-            <StatCard icon={Receipt} label="Recus aujourd'hui" value={stats.paydunyaToday.toString()} color="text-white" />
-            <StatCard icon={CheckCircle2} label="Credites aujourd'hui" value={stats.paydunyaCreditedToday.toString()} color="text-[#00ff88]" />
-            <StatCard icon={AlertTriangle} label="Echecs de credit" value={stats.paydunyaFailed.toString()} color="text-red-400" />
+            <StatCard icon={Receipt} label="Recus aujourd'hui" value={stats.autoToday.toString()} color="text-white" />
+            <StatCard icon={CheckCircle2} label="Credites aujourd'hui" value={stats.autoCreditedToday.toString()} color="text-[#00ff88]" />
+            <StatCard icon={AlertTriangle} label="Echecs de credit" value={stats.autoFailed.toString()} color="text-red-400" />
           </div>
         )}
 
@@ -415,7 +415,7 @@ export default function AdminPaymentsPage() {
           </div>
         )
         ) : filteredLogs.length === 0 ? (
-          <EmptyState text="Aucun paiement PayDunya enregistre." />
+          <EmptyState text="Aucun paiement automatique enregistre." />
         ) : (
           <div className="space-y-3">
             {filteredLogs.map((l) => {

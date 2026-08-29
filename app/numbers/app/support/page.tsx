@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useNumbers } from '@/components/numbers/numbers-provider'
 import { timeAgo, type SupportTicket } from '@/lib/numbers/data'
-import { LifeBuoy, Plus, X, MessageCircle, BookOpen, Mail, ChevronRight } from 'lucide-react'
+import { LifeBuoy, Plus, X, MessageCircle, BookOpen, ChevronRight } from 'lucide-react'
 
 const card = 'rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl'
 
@@ -72,10 +72,9 @@ export default function SupportPage() {
       </div>
 
       {/* Quick channels */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {[
           { icon: MessageCircle, title: 'Chat en direct', desc: 'Réponse moyenne en moins de 5 min' },
-          { icon: Mail, title: 'E-mail', desc: 'support@chapcam.io' },
           { icon: BookOpen, title: 'Documentation', desc: 'Guides et référence API' },
         ].map((c) => (
           <div key={c.title} className={`${card} flex items-center gap-3 p-4`}>

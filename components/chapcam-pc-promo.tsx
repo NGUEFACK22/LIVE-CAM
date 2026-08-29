@@ -24,7 +24,7 @@ export function ChapCamPcPromo() {
             <div className="relative h-28 w-44 flex-shrink-0 overflow-hidden rounded-xl border border-white/10 shadow-lg">
               <Image
                 src="/chapcam-pc-hero.png"
-                alt="Logiciel ChapCam PC en cours d'utilisation"
+                alt="Logiciel LIVECAM PC en cours d'utilisation"
                 fill
                 className="object-cover"
               />
@@ -34,7 +34,7 @@ export function ChapCamPcPromo() {
                 <InfinityIcon className="h-3.5 w-3.5" />
                 Logiciel a vie · Edition PC
               </div>
-              <h3 className="text-2xl font-black text-white md:text-3xl">ChapCam PC</h3>
+              <h3 className="text-2xl font-black text-white md:text-3xl">LIVECAM PC</h3>
               <p className="mt-1 max-w-md text-sm text-gray-300">
                 Le logiciel complet sur ton ordinateur pour le changement de visage. Tu paies une
                 seule fois et il est a toi pour toujours : aucun abonnement, cle de licence envoyee
@@ -92,7 +92,7 @@ export function ChapCamPcPromo() {
             </div>
             <span className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#00ff88] py-4 text-base font-bold text-black transition-all group-hover:bg-[#00dd77]">
               <Download className="h-5 w-5" />
-              Telecharger ChapCam PC
+              Telecharger LIVECAM PC
             </span>
           </div>
         </div>

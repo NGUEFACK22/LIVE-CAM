@@ -258,7 +258,7 @@ function createSplashScreen() {
     <body>
       <div class="container">
         <div class="glow-circle"></div>
-        <div class="logo">ChapCam</div>
+        <div class="logo">LIVECAM</div>
         <div class="subtitle">Face Swap en Temps Reel</div>
         <div class="loader"><div class="loader-bar"></div></div>
         <div class="status">Chargement...</div>
@@ -311,6 +311,20 @@ function createWindow() {
   // titre du BrowserWindow pour que la capture soit toujours fiable.
   mainWindow.on('page-title-updated', (e) => e.preventDefault())
   mainWindow.setTitle(CHAPCAM_WINDOW_TITLE)
+
+  // Barre de menu masquée en plein écran (l'utilisateur ne veut pas voir la
+  // barre "Edition / Camera / Aide" lorsqu'il diffuse en plein écran). Elle
+  // réapparait quand on quitte le plein écran.
+  mainWindow.on('enter-full-screen', () => {
+    try {
+      mainWindow.setMenuBarVisibility(false)
+    } catch (_) {}
+  })
+  mainWindow.on('leave-full-screen', () => {
+    try {
+      mainWindow.setMenuBarVisibility(true)
+    } catch (_) {}
+  })
 
   // La capture OBS (WGC) ne peut PAS capturer une fenetre MINIMISEE : si
   // l'utilisateur minimise ChapCam pendant l'appel video (pour voir WhatsApp
@@ -517,7 +531,7 @@ function loadFallbackPage() {
     <html>
     <head>
       <meta charset="UTF-8">
-      <title>ChapCam - Erreur de chargement</title>
+      <title>LIVECAM - Erreur de chargement</title>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -563,7 +577,7 @@ function loadFallbackPage() {
     </head>
     <body>
       <div class="container">
-        <div class="logo">ChapCam</div>
+        <div class="logo">LIVECAM</div>
         <h1>Impossible de charger l'application</h1>
         <p>Verifiez votre connexion internet ou reessayez.</p>
         <button class="btn" onclick="location.reload()">Reessayer</button>
@@ -632,7 +646,7 @@ function createTray() {
   
   const contextMenu = Menu.buildFromTemplate([
     { 
-      label: 'Ouvrir ChapCam', 
+      label: 'Ouvrir LIVECAM', 
       click: () => {
         if (mainWindow) {
           mainWindow.show()
@@ -659,7 +673,7 @@ function createTray() {
     }
   ])
   
-  tray.setToolTip('ChapCam - Face Swap en Temps Reel')
+  tray.setToolTip('LIVECAM - Face Swap en Temps Reel')
   tray.setContextMenu(contextMenu)
   
   tray.on('click', () => {
@@ -673,13 +687,13 @@ function createTray() {
 function createMenu() {
   const template = [
     {
-      label: 'ChapCam',
+      label: 'LIVECAM',
       submenu: [
-        { label: 'A propos de ChapCam', role: 'about' },
+        { label: 'A propos de LIVECAM', role: 'about' },
         { type: 'separator' },
         { label: 'Preferences...', accelerator: 'CmdOrCtrl+,', click: () => openPreferences() },
         { type: 'separator' },
-        { label: 'Masquer ChapCam', role: 'hide' },
+        { label: 'Masquer LIVECAM', role: 'hide' },
         { label: 'Masquer les autres', role: 'hideOthers' },
         { label: 'Tout afficher', role: 'unhide' },
         { type: 'separator' },
@@ -748,10 +762,7 @@ function createMenu() {
     {
       label: 'Aide',
       submenu: [
-        { label: 'Documentation', click: () => shell.openExternal('https://chapcam.com/docs') },
-        { label: 'Support', click: () => shell.openExternal('https://t.me/chapcam1') },
-        { type: 'separator' },
-        { label: 'Signaler un probleme...', click: () => shell.openExternal('https://t.me/chapcam1') }
+        { label: 'Documentation', click: () => shell.openExternal('https://chapcam.com/docs') }
       ]
     }
   ]

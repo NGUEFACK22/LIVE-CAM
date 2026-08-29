@@ -15,7 +15,7 @@ export const INSTALL_FEE: InstallOffer = {
   name: "Frais d'installation a domicile",
   price: 8500,
   description:
-    "Deplacement de l'equipe ChapCam, installation et configuration completes (WhatsApp, reseaux sociaux), tests en direct et assistance a la prise en main.",
+    "Deplacement de l'equipe LIVECAM, installation et configuration completes (WhatsApp, reseaux sociaux), tests en direct et assistance a la prise en main.",
 }
 
 export function getInstallOffer(id: string): InstallOffer | undefined {

@@ -32,7 +32,7 @@ export function ProxyProClient({ products }: Props) {
               <ShieldCheck className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground sm:text-3xl">ChapCam Proxy Pro</h1>
+              <h1 className="text-2xl font-bold text-foreground sm:text-3xl">LIVECAM Proxy Pro</h1>
               <p className="text-sm text-muted-foreground">
                 Proxies résidentiels, ISP et mobiles — anonymat et fiabilité de niveau pro.
               </p>

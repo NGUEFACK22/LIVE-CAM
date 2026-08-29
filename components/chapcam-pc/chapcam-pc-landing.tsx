@@ -59,7 +59,7 @@ export function ChapCamPcLanding() {
             className="mt-6 text-lg text-gray-300 leading-relaxed max-w-2xl mx-auto text-pretty"
           >
             Tu veux changer d&apos;apparence sans payer des credits a chaque fois ?
-            Telecharge <span className="text-white font-semibold">ChapCam PC</span>, le logiciel
+            Telecharge <span className="text-white font-semibold">LIVECAM PC</span>, le logiciel
             a vie.             Installe-le une seule fois et transforme ton visage en direct dans tous tes appels video.
           </motion.p>
 
@@ -72,7 +72,7 @@ export function ChapCamPcLanding() {
             <PcCountdown />
             <Button className="btn-gradient rounded-full font-bold text-base px-10 py-6 hover:scale-105 transition-transform border-0 glow-magenta">
               <Download className="w-5 h-5 mr-2" />
-              Telecharger ChapCam PC a vie
+              Telecharger LIVECAM PC a vie
             </Button>
             <p className="text-sm text-gray-500">
               Prix de lancement <span className="text-[#fbbf24] font-semibold">50.000F</span> pendant 7 jours,
@@ -104,7 +104,7 @@ export function ChapCamPcLanding() {
                   <Monitor className="w-5 h-5 text-[#22c55e]" />
                 </div>
                 <span className="text-sm font-bold tracking-wider uppercase text-[#22c55e]">
-                  ChapCam PC
+                  LIVECAM PC
                 </span>
               </div>
 
@@ -154,7 +154,7 @@ export function ChapCamPcLanding() {
               Credits classiques
             </div>
             <div className="bg-[#111827] p-4 text-sm font-bold text-[#22c55e] text-center">
-              ChapCam PC
+              LIVECAM PC
             </div>
             {comparison.map((row) => (
               <FragmentRow key={row.label} row={row} />

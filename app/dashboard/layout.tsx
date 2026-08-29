@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardSidebar, PlanGuardBanner } from '@/components/dashboard/sidebar'
-import { TelegramSupport } from '@/components/telegram-support'
 import { ChapCam2Announcement } from '@/components/dashboard/chapcam-2-announcement'
 import { BlockedGuard } from '@/components/dashboard/blocked-guard'
 import { FREE_UNLIMITED_POINTS, isFreeLiveSwap } from '@/lib/free-mode'
@@ -108,9 +107,6 @@ export default async function DashboardLayout({
           <BlockedGuard>{children}</BlockedGuard>
         </div>
       </main>
-
-      {/* Telegram Support Button */}
-      <TelegramSupport />
 
       {/* Popup d'annonce ChapCam 2.0 (affiche une fois apres connexion) */}
       <ChapCam2Announcement />

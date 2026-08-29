@@ -22,7 +22,7 @@ export function SiteNav() {
             <Phone className="h-4 w-4 text-white" />
           </span>
           <span className="text-base font-semibold text-white">
-            ChapCam <span className="text-[#60a5fa]">Numbers</span>
+            LIVECAM <span className="text-[#60a5fa]">Numbers</span>
           </span>
         </Link>
 

@@ -24,7 +24,7 @@ const EMPTY: VoiceSubscription = {
 
 /**
  * Lit le solde de minutes Voice Swap (ChapVoice) de l'utilisateur via
- * /api/voice-subscription. Source : table voice_subscriptions (credit PayDunya).
+ * /api/voice-subscription. Source : table voice_subscriptions (credit GeniusPay).
  */
 export function useVoiceSubscription() {
   const [data, setData] = useState<VoiceSubscription>(EMPTY)

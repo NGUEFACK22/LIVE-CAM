@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 
 /**
  * Retourne le solde de minutes Voice Swap (ChapVoice) de l'utilisateur courant.
- * Source : table voice_subscriptions (creditee par le paiement PayDunya).
+ * Source : table voice_subscriptions (creditee par le paiement GeniusPay).
  * Distinct des "points" de Face Swap (table subscriptions).
  */
 export async function GET() {

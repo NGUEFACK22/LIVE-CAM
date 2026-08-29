@@ -97,13 +97,13 @@ export const LiveStage = forwardRef<HTMLDivElement, Props>(function LiveStage(
               ) : (
                 <>
                   <Sparkles className="h-10 w-10" />
-                  <span className="text-sm">Resultat ChapCam</span>
+                  <span className="text-sm">Resultat LIVECAM</span>
                 </>
               )}
             </div>
           )}
           <span className="absolute left-3 top-3 flex items-center gap-2 rounded-full border border-primary/40 bg-primary/15 px-3 py-1.5 text-xs font-bold text-primary backdrop-blur-sm">
-            <Sparkles className="h-3.5 w-3.5" /> ChapCam Live
+            <Sparkles className="h-3.5 w-3.5" /> LIVECAM Live
           </span>
         </div>
       </div>

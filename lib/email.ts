@@ -137,7 +137,7 @@ export async function sendWelcomeEmail(to: string, userName: string) {
     const { data, error } = await client.emails.send({
       from: FROM_EMAIL,
       to: [to],
-      subject: 'Bienvenue sur ChapCam - Votre compte est pret!',
+      subject: 'Bienvenue sur LIVECAM - Votre compte est pret!',
       html: `
         <!DOCTYPE html>
         <html>
@@ -149,23 +149,23 @@ export async function sendWelcomeEmail(to: string, userName: string) {
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
             <tr>
               <td style="text-align: center; padding-bottom: 30px;">
-                <img src="https://chapcam.com/favicon.jpg" alt="ChapCam" width="80" height="80" style="border-radius: 16px;">
+                <img src="https://chapcam.com/favicon.jpg" alt="LIVECAM" width="80" height="80" style="border-radius: 16px;">
               </td>
             </tr>
             <tr>
               <td style="background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); border-radius: 16px; padding: 40px; border: 1px solid #222;">
-                <h1 style="color: #00ff88; margin: 0 0 20px 0; font-size: 28px; text-align: center;">Bienvenue sur ChapCam!</h1>
+                <h1 style="color: #00ff88; margin: 0 0 20px 0; font-size: 28px; text-align: center;">Bienvenue sur LIVECAM!</h1>
                 <p style="color: #ffffff; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
                   Bonjour <strong>${userName}</strong>,
                 </p>
                 <p style="color: #cccccc; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-                  Votre compte ChapCam a ete cree avec succes! Vous pouvez maintenant profiter de notre technologie de transformation faciale en temps reel.
+                  Votre compte LIVECAM a ete cree avec succes! Vous pouvez maintenant profiter de notre technologie de transformation faciale en temps reel.
                 </p>
                 <div style="background: #00ff8815; border-radius: 12px; padding: 20px; margin: 20px 0;">
                   <p style="color: #00ff88; font-size: 14px; margin: 0 0 10px 0; font-weight: bold;">Ce que vous pouvez faire:</p>
                   <ul style="color: #cccccc; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
                     <li>Transformer votre visage en temps reel</li>
-                    <li>Utiliser ChapCam avec WhatsApp, Zoom, Teams</li>
+                    <li>Utiliser LIVECAM avec WhatsApp, Zoom, Teams</li>
                     <li>Creer des avatars personnalises</li>
                   </ul>
                 </div>
@@ -179,7 +179,7 @@ export async function sendWelcomeEmail(to: string, userName: string) {
             <tr>
               <td style="text-align: center; padding-top: 30px;">
                 <p style="color: #666666; font-size: 12px; margin: 0;">
-                  ChapCam - Face Swap en Temps Reel<br>
+                  LIVECAM - Face Swap en Temps Reel<br>
                   <a href="https://chapcam.com" style="color: #00ff88; text-decoration: none;">chapcam.com</a>
                 </p>
               </td>
@@ -326,7 +326,7 @@ export async function sendPasswordResetEmail(to: string, resetLink: string) {
     const { data, error } = await client.emails.send({
       from: FROM_EMAIL,
       to: [to],
-      subject: 'ChapCam - Reinitialisation de votre mot de passe',
+      subject: 'LIVECAM - Reinitialisation de votre mot de passe',
       html: `
         <!DOCTYPE html>
         <html>
@@ -338,14 +338,14 @@ export async function sendPasswordResetEmail(to: string, resetLink: string) {
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
             <tr>
               <td style="text-align: center; padding-bottom: 30px;">
-                <img src="https://chapcam.com/favicon.jpg" alt="ChapCam" width="80" height="80" style="border-radius: 16px;">
+                <img src="https://chapcam.com/favicon.jpg" alt="LIVECAM" width="80" height="80" style="border-radius: 16px;">
               </td>
             </tr>
             <tr>
               <td style="background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); border-radius: 16px; padding: 40px; border: 1px solid #222;">
                 <h1 style="color: #00ff88; margin: 0 0 20px 0; font-size: 24px; text-align: center;">Reinitialisation du mot de passe</h1>
                 <p style="color: #cccccc; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-                  Vous avez demande la reinitialisation de votre mot de passe ChapCam. Cliquez sur le bouton ci-dessous pour creer un nouveau mot de passe.
+                  Vous avez demande la reinitialisation de votre mot de passe LIVECAM. Cliquez sur le bouton ci-dessous pour creer un nouveau mot de passe.
                 </p>
                 <div style="text-align: center; margin: 30px 0;">
                   <a href="${resetLink}" style="display: inline-block; background: #00ff88; color: #000000; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px;">
@@ -362,7 +362,7 @@ export async function sendPasswordResetEmail(to: string, resetLink: string) {
             <tr>
               <td style="text-align: center; padding-top: 30px;">
                 <p style="color: #666666; font-size: 12px; margin: 0;">
-                  ChapCam - Face Swap en Temps Reel<br>
+                  LIVECAM - Face Swap en Temps Reel<br>
                   <a href="https://chapcam.com" style="color: #00ff88; text-decoration: none;">chapcam.com</a>
                 </p>
               </td>
@@ -406,7 +406,7 @@ export async function sendPaymentConfirmationEmail(
     const { data, error } = await client.emails.send({
       from: FROM_EMAIL,
       to: [to],
-      subject: `ChapCam - Confirmation de paiement - Plan ${plan}`,
+      subject: `LIVECAM - Confirmation de paiement - Plan ${plan}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -418,7 +418,7 @@ export async function sendPaymentConfirmationEmail(
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
             <tr>
               <td style="text-align: center; padding-bottom: 30px;">
-                <img src="https://chapcam.com/favicon.jpg" alt="ChapCam" width="80" height="80" style="border-radius: 16px;">
+                <img src="https://chapcam.com/favicon.jpg" alt="LIVECAM" width="80" height="80" style="border-radius: 16px;">
               </td>
             </tr>
             <tr>
@@ -472,10 +472,10 @@ export async function sendPaymentConfirmationEmail(
             <tr>
               <td style="text-align: center; padding-top: 30px;">
                 <p style="color: #666666; font-size: 12px; margin: 0 0 10px 0;">
-                  Besoin d'aide? Contactez-nous sur WhatsApp: +225 05 55 56 01 89
+                  Besoin d'aide? Consultez la documentation sur chapcam.com
                 </p>
                 <p style="color: #666666; font-size: 12px; margin: 0;">
-                  ChapCam - Face Swap en Temps Reel<br>
+                  LIVECAM - Face Swap en Temps Reel<br>
                   <a href="https://chapcam.com" style="color: #00ff88; text-decoration: none;">chapcam.com</a>
                 </p>
               </td>
@@ -519,7 +519,7 @@ export async function sendSubscriptionApprovedEmail(
     const { data, error } = await client.emails.send({
       from: FROM_EMAIL,
       to: [to],
-      subject: `ChapCam - Votre abonnement ${plan} est active !`,
+      subject: `LIVECAM - Votre abonnement ${plan} est active !`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -527,7 +527,7 @@ export async function sendSubscriptionApprovedEmail(
         <body style="margin:0;padding:0;background-color:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:40px 20px;">
             <tr><td style="text-align:center;padding-bottom:30px;">
-              <img src="https://chapcam.com/favicon.jpg" alt="ChapCam" width="80" height="80" style="border-radius:16px;">
+              <img src="https://chapcam.com/favicon.jpg" alt="LIVECAM" width="80" height="80" style="border-radius:16px;">
             </td></tr>
             <tr><td style="background:linear-gradient(135deg,#1a1a1a 0%,#0d0d0d 100%);border-radius:16px;padding:40px;border:1px solid #222;">
               <div style="text-align:center;margin-bottom:20px;">
@@ -552,7 +552,7 @@ export async function sendSubscriptionApprovedEmail(
               </div>
             </td></tr>
             <tr><td style="text-align:center;padding-top:30px;">
-              <p style="color:#666;font-size:12px;margin:0;">ChapCam - Face Swap en Temps Reel<br><a href="https://chapcam.com" style="color:#00ff88;text-decoration:none;">chapcam.com</a></p>
+              <p style="color:#666;font-size:12px;margin:0;">LIVECAM - Face Swap en Temps Reel<br><a href="https://chapcam.com" style="color:#00ff88;text-decoration:none;">chapcam.com</a></p>
             </td></tr>
           </table>
         </body>
@@ -589,7 +589,7 @@ export async function sendSubscriptionRejectedEmail(
     const { data, error } = await client.emails.send({
       from: FROM_EMAIL,
       to: [to],
-      subject: `ChapCam - Probleme avec votre paiement ${plan}`,
+      subject: `LIVECAM - Probleme avec votre paiement ${plan}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -597,7 +597,7 @@ export async function sendSubscriptionRejectedEmail(
         <body style="margin:0;padding:0;background-color:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:40px 20px;">
             <tr><td style="text-align:center;padding-bottom:30px;">
-              <img src="https://chapcam.com/favicon.jpg" alt="ChapCam" width="80" height="80" style="border-radius:16px;">
+              <img src="https://chapcam.com/favicon.jpg" alt="LIVECAM" width="80" height="80" style="border-radius:16px;">
             </td></tr>
             <tr><td style="background:linear-gradient(135deg,#1a1a1a 0%,#0d0d0d 100%);border-radius:16px;padding:40px;border:1px solid #222;">
               <h1 style="color:#ff6b6b;margin:0 0 20px 0;font-size:22px;text-align:center;">Paiement non valide</h1>
@@ -607,14 +607,14 @@ export async function sendSubscriptionRejectedEmail(
                 ${reason ? `<br><br><span style="color:#ff9966;">Motif : ${reason}</span>` : ''}
               </p>
               <p style="color:#cccccc;font-size:14px;line-height:1.6;margin:0 0 20px 0;">
-                Si vous pensez qu'il s'agit d'une erreur, contactez-nous sur WhatsApp : +225 05 55 56 01 89 avec votre reference de transaction.
+                Si vous pensez qu'il s'agit d'une erreur, consultez la documentation d'aide sur chapcam.com en precisant votre reference de transaction.
               </p>
               <div style="text-align:center;margin-top:30px;">
                 <a href="https://chapcam.com/dashboard/plans" style="display:inline-block;background:#00ff88;color:#000;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:bold;font-size:16px;">Reessayer</a>
               </div>
             </td></tr>
             <tr><td style="text-align:center;padding-top:30px;">
-              <p style="color:#666;font-size:12px;margin:0;">ChapCam - Face Swap en Temps Reel<br><a href="https://chapcam.com" style="color:#00ff88;text-decoration:none;">chapcam.com</a></p>
+              <p style="color:#666;font-size:12px;margin:0;">LIVECAM - Face Swap en Temps Reel<br><a href="https://chapcam.com" style="color:#00ff88;text-decoration:none;">chapcam.com</a></p>
             </td></tr>
           </table>
         </body>
@@ -652,7 +652,7 @@ export async function sendLiveAccessApprovedEmail(
     const { data, error } = await client.emails.send({
       from: FROM_EMAIL,
       to: [to],
-      subject: `ChapCam - Votre acces ${offerName} est active !`,
+      subject: `LIVECAM - Votre acces ${offerName} est active !`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -660,7 +660,7 @@ export async function sendLiveAccessApprovedEmail(
         <body style="margin:0;padding:0;background-color:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:40px 20px;">
             <tr><td style="text-align:center;padding-bottom:30px;">
-              <img src="https://chapcam.com/favicon.jpg" alt="ChapCam" width="80" height="80" style="border-radius:16px;">
+              <img src="https://chapcam.com/favicon.jpg" alt="LIVECAM" width="80" height="80" style="border-radius:16px;">
             </td></tr>
             <tr><td style="background:linear-gradient(135deg,#1a1a1a 0%,#0d0d0d 100%);border-radius:16px;padding:40px;border:1px solid #222;">
               <div style="text-align:center;margin-bottom:20px;">
@@ -684,7 +684,7 @@ export async function sendLiveAccessApprovedEmail(
               </div>
             </td></tr>
             <tr><td style="text-align:center;padding-top:30px;">
-              <p style="color:#666;font-size:12px;margin:0;">ChapCam - Face Swap en Temps Reel<br><a href="https://chapcam.com" style="color:#00ff88;text-decoration:none;">chapcam.com</a></p>
+              <p style="color:#666;font-size:12px;margin:0;">LIVECAM - Face Swap en Temps Reel<br><a href="https://chapcam.com" style="color:#00ff88;text-decoration:none;">chapcam.com</a></p>
             </td></tr>
           </table>
         </body>
@@ -716,7 +716,7 @@ export async function sendInstallationPaidEmail(to: string, userName: string, am
     const { data, error } = await client.emails.send({
       from: FROM_EMAIL,
       to: [to],
-      subject: 'ChapCam - Vos frais d\'installation sont confirmes',
+      subject: 'LIVECAM - Vos frais d\'installation sont confirmes',
       html: `
         <!DOCTYPE html>
         <html>
@@ -724,7 +724,7 @@ export async function sendInstallationPaidEmail(to: string, userName: string, am
         <body style="margin:0;padding:0;background-color:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:40px 20px;">
             <tr><td style="text-align:center;padding-bottom:30px;">
-              <img src="https://chapcam.com/favicon.jpg" alt="ChapCam" width="80" height="80" style="border-radius:16px;">
+              <img src="https://chapcam.com/favicon.jpg" alt="LIVECAM" width="80" height="80" style="border-radius:16px;">
             </td></tr>
             <tr><td style="background:linear-gradient(135deg,#1a1a1a 0%,#0d0d0d 100%);border-radius:16px;padding:40px;border:1px solid #222;">
               <div style="text-align:center;margin-bottom:20px;">
@@ -733,8 +733,8 @@ export async function sendInstallationPaidEmail(to: string, userName: string, am
               <h1 style="color:#00ff88;margin:0 0 20px 0;font-size:24px;text-align:center;">Frais d'installation confirmes !</h1>
               <p style="color:#ffffff;font-size:16px;line-height:1.6;margin:0 0 20px 0;">Bonjour <strong>${userName}</strong>,</p>
               <p style="color:#cccccc;font-size:16px;line-height:1.6;margin:0 0 20px 0;">
-                Nous avons bien recu le paiement de vos frais d'installation. Un membre de l'equipe ChapCam va vous contacter tres prochainement
-                pour fixer un rendez-vous et proceder a l'installation complete (logiciel, configuration de votre compte, WhatsApp et autres plateformes).
+                Nous avons bien recu le paiement de vos frais d'installation. Un membre de l'equipe LIVECAM va vous contacter tres prochainement
+                pour fixer un rendez-vous et proceder a l'installation complete (logiciel, configuration de votre compte et plateformes compatibles).
               </p>
               <div style="background:#111111;border-radius:12px;padding:20px;margin:20px 0;border:1px solid #333;">
                 <table width="100%" cellspacing="0" cellpadding="8">
@@ -743,7 +743,7 @@ export async function sendInstallationPaidEmail(to: string, userName: string, am
                 </table>
               </div>
               <p style="color:#cccccc;font-size:14px;line-height:1.6;margin:0 0 20px 0;">
-                Rappel : l'installation necessite un abonnement ChapCam actif pour utiliser le service.
+                Rappel : l'installation necessite un abonnement LIVECAM actif pour utiliser le service.
                 Les demandes sont traitees par ordre de paiement et selon les disponibilites de notre equipe.
               </p>
               <div style="text-align:center;margin-top:30px;">
@@ -751,7 +751,7 @@ export async function sendInstallationPaidEmail(to: string, userName: string, am
               </div>
             </td></tr>
             <tr><td style="text-align:center;padding-top:30px;">
-              <p style="color:#666;font-size:12px;margin:0;">ChapCam - Face Swap en Temps Reel<br><a href="https://chapcam.com" style="color:#00ff88;text-decoration:none;">chapcam.com</a></p>
+              <p style="color:#666;font-size:12px;margin:0;">LIVECAM - Face Swap en Temps Reel<br><a href="https://chapcam.com" style="color:#00ff88;text-decoration:none;">chapcam.com</a></p>
             </td></tr>
           </table>
         </body>
@@ -791,7 +791,7 @@ export async function sendPcLicenseEmail(
     const { data, error } = await client.emails.send({
       from: FROM_EMAIL,
       to: [to],
-      subject: 'ChapCam PC - Ta cle de licence + telechargement',
+      subject: 'LIVECAM PC - Ta cle de licence + telechargement',
       html: `
         <!DOCTYPE html>
         <html>
@@ -799,13 +799,13 @@ export async function sendPcLicenseEmail(
         <body style="margin:0;padding:0;background-color:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:40px 20px;">
             <tr><td style="text-align:center;padding-bottom:30px;">
-              <img src="https://chapcam.com/favicon.jpg" alt="ChapCam" width="80" height="80" style="border-radius:16px;">
+              <img src="https://chapcam.com/favicon.jpg" alt="LIVECAM" width="80" height="80" style="border-radius:16px;">
             </td></tr>
             <tr><td style="background:linear-gradient(135deg,#1a1a1a 0%,#0d0d0d 100%);border-radius:16px;padding:40px;border:1px solid #222;">
               <div style="text-align:center;margin-bottom:20px;">
                 <div style="display:inline-block;background:#00ff8820;border-radius:50%;padding:16px;"><span style="font-size:32px;">&#127942;</span></div>
               </div>
-              <h1 style="color:#00ff88;margin:0 0 20px 0;font-size:24px;text-align:center;">Bienvenue sur ChapCam PC !</h1>
+              <h1 style="color:#00ff88;margin:0 0 20px 0;font-size:24px;text-align:center;">Bienvenue sur LIVECAM PC !</h1>
               <p style="color:#ffffff;font-size:16px;line-height:1.6;margin:0 0 20px 0;">Bonjour <strong>${userName}</strong>,</p>
               <p style="color:#cccccc;font-size:16px;line-height:1.6;margin:0 0 24px 0;">
                 Merci pour ton achat ! Voici ta cle de licence <strong>a vie</strong>. Garde-la precieusement :
@@ -832,7 +832,7 @@ export async function sendPcLicenseEmail(
               <div style="background:#111111;border-radius:12px;padding:20px;margin:0 0 20px 0;border:1px solid #333;">
                 <p style="color:#fff;font-size:14px;font-weight:bold;margin:0 0 12px 0;">Comment installer :</p>
                 <ol style="color:#cccccc;font-size:14px;line-height:1.8;margin:0;padding-left:20px;">
-                  <li>Telecharge et installe ChapCam PC (Windows ou MacBook).</li>
+                  <li>Telecharge et installe LIVECAM PC (Windows ou MacBook).</li>
                   <li>Lance le logiciel et colle ta cle de licence.</li>
                   <li>Choisis un visage, active la camera virtuelle et c'est parti !</li>
                 </ol>
@@ -840,7 +840,7 @@ export async function sendPcLicenseEmail(
 
               <div style="background:#111111;border-radius:12px;padding:16px;margin:0 0 20px 0;border:1px solid #333;">
                 <table width="100%" cellspacing="0" cellpadding="6">
-                  <tr><td style="color:#888;font-size:14px;">Produit</td><td style="color:#fff;font-size:14px;text-align:right;font-weight:bold;">ChapCam PC — Logiciel a vie</td></tr>
+                  <tr><td style="color:#888;font-size:14px;">Produit</td><td style="color:#fff;font-size:14px;text-align:right;font-weight:bold;">LIVECAM PC — Logiciel a vie</td></tr>
                   <tr><td style="color:#888;font-size:14px;">Montant regle</td><td style="color:#00ff88;font-size:14px;text-align:right;font-weight:bold;">${amount.toLocaleString()} FCFA</td></tr>
                   <tr><td style="color:#888;font-size:14px;">Licence</td><td style="color:#fff;font-size:14px;text-align:right;">A vie, 1 PC</td></tr>
                 </table>
@@ -851,7 +851,7 @@ export async function sendPcLicenseEmail(
               </p>
             </td></tr>
             <tr><td style="text-align:center;padding-top:30px;">
-              <p style="color:#666;font-size:12px;margin:0;">ChapCam - Face Swap en Temps Reel<br><a href="https://chapcam.com" style="color:#00ff88;text-decoration:none;">chapcam.com</a></p>
+              <p style="color:#666;font-size:12px;margin:0;">LIVECAM - Face Swap en Temps Reel<br><a href="https://chapcam.com" style="color:#00ff88;text-decoration:none;">chapcam.com</a></p>
             </td></tr>
           </table>
         </body>

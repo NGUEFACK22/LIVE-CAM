@@ -75,7 +75,7 @@ export default async function NumbersAdminPage() {
         <div>
           <h1 className="text-xl font-semibold text-white">Administration</h1>
           <p className="text-sm text-white/50">
-            Vue d&apos;ensemble de ChapCam Numbers — réservé à {ADMIN_EMAIL}
+            Vue d&apos;ensemble de LIVECAM Numbers — réservé à {ADMIN_EMAIL}
           </p>
         </div>
       </div>

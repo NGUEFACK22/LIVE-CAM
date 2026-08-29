@@ -7,7 +7,7 @@ const steps = [
   {
     number: 1,
     title: "Inscris-toi",
-    description: "Cree ton compte et accede instantanement a ChapCam.",
+    description: "Cree ton compte et accede instantanement a LIVECAM.",
     icon: UserPlus,
     color: "#8b5cf6",
     glowColor: "rgba(139,92,246,0.5)"
@@ -23,7 +23,7 @@ const steps = [
   {
     number: 3,
     title: "Lance ton stream ou appel",
-    description: "Utilise ChapCam sur toutes tes plateformes preferees en temps reel.",
+    description: "Utilise LIVECAM sur toutes tes plateformes preferees en temps reel.",
     icon: Video,
     color: "#22c55e",
     glowColor: "rgba(34,197,94,0.5)"

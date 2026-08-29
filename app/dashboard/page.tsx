@@ -4,10 +4,9 @@ import { ToolsGrid } from '@/components/dashboard/hub/tools-grid'
 import { HeaderActions } from '@/components/dashboard/hub/header-actions'
 import { EsimPromo } from '@/components/dashboard/esim-promo'
 import { ConsentCard } from '@/components/dashboard/consent-card'
-import { SupportBanner } from '@/components/dashboard/support-banner'
 import { Sparkles, Crown, Check, Zap, Timer, Users, Hourglass, ArrowRight, Clock } from 'lucide-react'
 import { getUserAvatar } from '@/lib/user-avatar'
-import { isFreeLiveSwap } from '@/lib/free-mode'
+import { isFreeLiveSwap, FREE_UNLIMITED_POINTS } from '@/lib/free-mode'
 
 const POINTS_PER_SECOND = 2
 
@@ -65,7 +64,7 @@ export default async function DashboardHubPage() {
   )
   const minutesToday = Math.floor(secondsToday / 60)
 
-  const points = subscription?.points ?? 0
+  const points = freeMode ? FREE_UNLIMITED_POINTS : (subscription?.points ?? 0)
   const plan = subscription?.plan ?? 'free'
   const isPro = plan !== 'free' && (subscription?.is_active ?? false)
   const displayName =
@@ -98,7 +97,7 @@ export default async function DashboardHubPage() {
         <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <div className="flex items-center gap-4 md:gap-5">
-              {/* Avatar de profil ChapCam */}
+              {/* Avatar de profil LIVECAM */}
               <div className="relative shrink-0">
                 <div
                   aria-hidden
@@ -108,7 +107,7 @@ export default async function DashboardHubPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={avatarUrl || "/placeholder.svg"}
-                  alt="Ton avatar ChapCam"
+                  alt="Ton avatar LIVECAM"
                   width={80}
                   height={80}
                   className="relative h-16 w-16 rounded-full border-2 border-primary/40 object-cover shadow-[0_8px_30px_-8px_rgba(99,102,241,0.6)] md:h-20 md:w-20"
@@ -124,7 +123,7 @@ export default async function DashboardHubPage() {
                     <>
                       <span className="mx-1 h-3 w-px bg-hairline" />
                       <Clock className="h-3 w-3" />
-                      {fmtMinutes(points)} restantes
+                      {points.toLocaleString('fr-FR')} points
                     </>
                   )}
                 </span>
@@ -167,18 +166,15 @@ export default async function DashboardHubPage() {
         </div>
       </header>
 
-      {/* ===== Bannière assistance / support ===== */}
-      <SupportBanner />
-
       {/* ===== Bannière utilisation responsable (compacte) ===== */}
       <ConsentCard initiallyAccepted={consentAccepted} />
 
-      {/* ===== OUTILS (highlight) ===== */}
-      <section aria-label="Outils ChapCam" className="mt-2">
+{/* ===== OUTILS (highlight) ===== */}
+      <section aria-label="Outils LIVECAM" className="mt-2">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl text-balance">
-              Tous les outils ChapCam
+              Tous les outils LIVECAM
             </h2>
             <p className="mt-1.5 text-sm text-muted-foreground md:text-base">
               Choisis l’outil que tu souhaites utiliser.
@@ -194,7 +190,7 @@ export default async function DashboardHubPage() {
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
             { icon: Zap, label: "Swaps aujourd'hui", value: String(swapsToday), color: '#00ff88' },
-            { icon: Timer, label: 'Minutes restantes', value: fmtMinutes(points), color: '#22d3ee' },
+            { icon: Timer, label: 'Solde de points', value: points.toLocaleString('fr-FR'), color: '#22d3ee' },
             { icon: Users, label: 'Avatars créés', value: String(avatarCount ?? 0), color: '#8b5cf6' },
             { icon: Hourglass, label: "Temps aujourd'hui", value: `${minutesToday} min`, color: '#f97316' },
           ].map((s) => (
@@ -236,7 +232,7 @@ export default async function DashboardHubPage() {
               <div className="mb-3 flex items-center gap-2">
                 <Crown className="h-6 w-6 text-primary" />
                 <h3 className="text-xl font-bold text-foreground md:text-2xl text-balance">
-                  Passe en Pro et débloque tout ChapCam
+                  Passe en Pro et débloque tout LIVECAM
                 </h3>
               </div>
               <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground md:text-base">

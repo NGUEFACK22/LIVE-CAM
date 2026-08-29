@@ -1,14 +1,14 @@
 import type { Metadata } from 'next'
 import { LegalPage } from '@/components/numbers/legal-page'
 
-export const metadata: Metadata = { title: 'Acceptable Use Policy — ChapCam Numbers' }
+export const metadata: Metadata = { title: 'Acceptable Use Policy — LIVECAM Numbers' }
 
 export default function AcceptableUsePage() {
   return (
     <LegalPage
       title="Acceptable Use Policy"
       updated="June 2026"
-      intro="This Acceptable Use Policy defines the activities that are prohibited on the ChapCam Numbers platform. It exists to keep the service safe, lawful, and reliable for everyone."
+      intro="This Acceptable Use Policy defines the activities that are prohibited on the LIVECAM Numbers platform. It exists to keep the service safe, lawful, and reliable for everyone."
       sections={[
         { heading: 'Lawful Use Only', body: ['You may only use virtual numbers for lawful purposes and in compliance with all applicable laws and regulations, including telecommunications, anti-spam, and data protection laws in the relevant jurisdictions.'] },
         { heading: 'Prohibited Activities', body: ['You must not use the service to commit fraud, impersonate a person or business, evade lawful identity or age verification, harass or threaten others, or distribute malware or phishing content.', 'You must not use numbers to create fake accounts on third-party services in violation of their terms.'] },

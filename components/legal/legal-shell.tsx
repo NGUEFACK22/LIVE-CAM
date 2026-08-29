@@ -36,11 +36,8 @@ export function LegalShell({ title, updatedAt, intro, children }: LegalShellProp
 
         <footer className="mt-16 border-t border-white/10 pt-8 text-sm text-muted-foreground">
           <p>
-            ChapCam — Pour toute question juridique ou relative à vos données, contactez-nous à{" "}
-            <a href="mailto:contact@chapcam.com" className="text-primary hover:underline">
-              contact@chapcam.com
-            </a>
-            .
+            LIVECAM — Pour toute question juridique ou relative à vos données, consultez la
+            documentation concernée ou visitez chapcam.com.
           </p>
           <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
             <Link href="/conditions" className="hover:text-primary">

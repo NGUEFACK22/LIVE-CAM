@@ -7,7 +7,7 @@ import { AppTopbar } from '@/components/numbers/app-topbar'
 import { ToastHost } from '@/components/numbers/toast-host'
 
 export const metadata: Metadata = {
-  title: 'Espace — ChapCam Numbers',
+  title: 'Espace — LIVECAM Numbers',
   description: 'Gérez vos numéros virtuels, recevez vos SMS et accédez aux API développeur.',
 }
 

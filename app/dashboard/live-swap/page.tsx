@@ -772,7 +772,7 @@ export default function DashboardPage() {
                   if (!api?.getDebugLog) return
                   const log = await api.getDebugLog()
                   const prefix =
-                    `ChapCam diagnostic ${new Date().toISOString()}\n` +
+                    `LIVECAM diagnostic ${new Date().toISOString()}\n` +
                     `isElectron=${isElectron()} isConnected=${isConnected} isConnecting=${isConnecting} error=${error}\n` +
                     `connectionState=${connectionState} streamMode=${streamMode} remoteDims=${remoteVideoDims ? `${remoteVideoDims.w}x${remoteVideoDims.h}` : 'none'}\n\n`
                   await navigator.clipboard.writeText(prefix + log)
@@ -814,7 +814,7 @@ export default function DashboardPage() {
             <Crown className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground">Tu utilises la vraie version ChapCam</p>
+            <p className="text-sm font-semibold text-foreground">Tu utilises la vraie version LIVECAM</p>
             <p className="mt-1 text-xs text-foreground/60">
               Ici, pas de bug et la transformation se fait de la tete aux pieds, en bien meilleure qualite
               que l&apos;essai gratuit. C&apos;est le vrai logiciel.
@@ -851,7 +851,7 @@ export default function DashboardPage() {
               Pour que WhatsApp, Zoom, Teams, Meet voient votre avatar :
             </p>
             <ul className="mt-1.5 text-xs text-foreground/60 list-disc list-inside space-y-0.5">
-              <li>Téléchargez <strong>ChapCam Desktop</strong> (fichier <code className="px-1 bg-black/30 rounded">.exe</code>)</li>
+              <li>Téléchargez <strong>LIVECAM Desktop</strong> (fichier <code className="px-1 bg-black/30 rounded">.exe</code>)</li>
               <li>Installez-le, puis installez <strong>OBS Studio</strong> (obsproject.com) si ce n&apos;est pas déjà fait</li>
               <li>Démarrez le Live Swap, puis lancez OBS depuis le bouton « Lancer OBS »</li>
               <li>Dans WhatsApp/Zoom/OBS : choisissez <strong>OBS Virtual Camera</strong></li>
@@ -862,7 +862,7 @@ export default function DashboardPage() {
                 className="inline-flex items-center gap-1.5 rounded-lg bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-600 transition-colors"
               >
                 <Download className="h-3 w-3" />
-                Télécharger ChapCam Desktop
+                Télécharger LIVECAM Desktop
               </a>
               <a
                 href="/chapcam-pc"
@@ -979,7 +979,7 @@ export default function DashboardPage() {
             <div className="overflow-hidden rounded-2xl border border-primary/30 bg-card shadow-[0_8px_40px_rgba(0,255,136,0.12)]">
               <div className="flex items-center gap-2 border-b border-primary/20 bg-muted px-4 py-2.5 backdrop-blur-md">
                 <Zap className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">Caméra ChapCam</span>
+                <span className="text-sm font-medium text-foreground">Caméra LIVECAM</span>
                 <div className="ml-auto flex items-center gap-2 text-[11px]">
                   {isConnected && (
                     <>
@@ -1020,7 +1020,7 @@ export default function DashboardPage() {
                     <button
                       onClick={() => setStreamMode(m => !m)}
                       aria-label={streamMode ? 'Quitter le mode Stream' : 'Mode Stream (sortie seule)'}
-                      title={streamMode ? 'Quitter le mode Stream' : 'Mode Stream : affiche uniquement la sortie ChapCam pour OBS'}
+                      title={streamMode ? 'Quitter le mode Stream' : 'Mode Stream : affiche uniquement la sortie LIVECAM pour OBS'}
                       className={`flex h-7 px-2 items-center gap-1 text-[10px] font-semibold rounded-md border transition-colors ${
                         streamMode
                           ? 'border-green-500/50 bg-green-500/20 text-green-400 animate-pulse'
@@ -1090,7 +1090,7 @@ export default function DashboardPage() {
           <BlockedModal />
           <div className="rounded-2xl border border-hairline bg-muted p-4 backdrop-blur-xl">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-foreground/50">
-              Outils rapides ChapCam
+              Outils rapides LIVECAM
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {quickTools.map(tool => (

@@ -69,7 +69,7 @@ export default function ChapSimPage() {
             href="/dashboard"
             className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
           >
-            <ArrowLeft className="h-4 w-4" /> Retour à ChapCam
+            <ArrowLeft className="h-4 w-4" /> Retour à LIVECAM
           </Link>
         </div>
       </header>
