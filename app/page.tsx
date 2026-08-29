@@ -4,7 +4,6 @@ import { CreatorsSection } from "@/components/creators-section"
 import { InActionSection } from "@/components/in-action-section"
 import { HowItWorksSection } from "@/components/how-it-works-section"
 import { RoadmapSection } from "@/components/roadmap-section"
-import { PricingSection } from "@/components/pricing-section"
 import { AvailableCountriesSection } from "@/components/available-countries-section"
 import { FAQSection } from "@/components/faq-section"
 import { TutorialSection } from "@/components/tutorial-section"
@@ -33,7 +32,6 @@ export default function Home() {
         <RoadmapSection />
         <HowItWorksSection />
         <AvailableCountriesSection />
-        <PricingSection />
         <FAQSection />
         <TutorialSection />
         <FounderSection />
