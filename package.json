@@ -13,7 +13,7 @@
     "lint": "eslint .",
     "electron:dev": "set NODE_ENV=development&& electron .",
     "electron:build": "next build --webpack && electron-builder",
-    "electron:build:mac": "next build --webpack && electron-builder --mac",
+    "electron:build:mac": "node scripts/build-electron-mac.mjs",
     "electron:build:win": "node scripts/build-electron-win.mjs",
     "electron:build:linux": "next build --webpack && electron-builder --linux",
     "postinstall": "electron-builder install-app-deps"
