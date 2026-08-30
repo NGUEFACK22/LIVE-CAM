@@ -30,7 +30,7 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
       if (widthThreshold || heightThreshold) {
         if (!devtoolsOpen) {
           devtoolsOpen = true
-          console.log('%c[ChapCam Security]', 'color: #00ff88; font-weight: bold', 
+          console.log('%c[LIVECAM Security]', 'color: #00ff88; font-weight: bold', 
             'DevTools detecte. Certaines fonctionnalites de protection sont actives.')
         }
       } else {
@@ -67,7 +67,7 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     
     // Add watermark to console
     console.log(
-      '%c ChapCam - Swap en Temps Reel ',
+      '%c LIVECAM - Swap en Temps Reel ',
       'background: linear-gradient(90deg, #00ff88, #00d4ff); color: #0a0e1a; font-size: 20px; font-weight: bold; padding: 10px 20px; border-radius: 5px;'
     )
     console.log(

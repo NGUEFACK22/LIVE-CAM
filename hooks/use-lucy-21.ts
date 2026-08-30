@@ -489,7 +489,7 @@ export function useLucy21() {
         const err = camError as { name?: string; message?: string }
         if (err.name === 'NotAllowedError') {
           throw new Error(
-            "Accès caméra refusé. Autorise ChapCam à accéder à ta caméra dans les paramètres du navigateur.",
+            "Accès caméra refusé. Autorise LIVECAM à accéder à ta caméra dans les paramètres du navigateur.",
           )
         } else if (err.name === 'NotFoundError') {
           throw new Error('Aucune caméra détectée. Connecte une webcam et réessaie.')
