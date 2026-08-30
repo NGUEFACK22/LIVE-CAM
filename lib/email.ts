@@ -13,7 +13,7 @@
 //                   -> Brevo > SMTP & API > onglet "API Keys" > "Generate a new API key"
 //
 // Variable optionnelle :
-//   EMAIL_FROM      ex: "ChapCam <contact@chapcam.com>"
+//   EMAIL_FROM      ex: "LIVECAM <contact@chapcam.com>"
 //
 // IMPORTANT : l'adresse d'envoi doit appartenir a un expediteur / domaine
 // VERIFIE chez Brevo. Ici seul contact@chapcam.com est verifie (DKIM valide) ;
@@ -26,7 +26,7 @@
 // -----------------------------------------------------------------------------
 let brevoClient: any = null
 
-const VERIFIED_FROM = 'ChapCam <contact@chapcam.com>'
+const VERIFIED_FROM = 'LIVECAM <contact@chapcam.com>'
 const FROM_EMAIL =
   process.env.EMAIL_FROM && !process.env.EMAIL_FROM.includes('noreply@chapcam.com')
     ? process.env.EMAIL_FROM
@@ -42,7 +42,7 @@ type SendPayload = {
   replyTo?: string
 }
 
-// Transforme "ChapCam <contact@chapcam.com>" en { name, email }.
+// Transforme "LIVECAM <contact@chapcam.com>" en { name, email }.
 function parseAddress(input: string): { name?: string; email: string } {
   const match = input.match(/^\s*(.*?)\s*<([^>]+)>\s*$/)
   if (match) {
