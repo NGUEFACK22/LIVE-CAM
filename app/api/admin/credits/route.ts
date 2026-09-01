@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isAdminRequest } from '@/lib/admin-auth'
-import { resolveUserIdByEmail, logPaymentEvent } from '@/lib/fulfillment'
+import { logPaymentEvent } from '@/lib/fulfillment'
 import { sendSubscriptionApprovedEmail } from '@/lib/email'
 
 export const runtime = 'nodejs'
@@ -127,76 +127,35 @@ export async function POST(request: Request) {
     }
 
     const admin = createAdminClient()
+    const now = new Date()
 
-    const userId = await resolveUserIdByEmail(admin, email)
-    if (!userId) {
+    // On passe par la fonction SQL admin_set_credit (SECURITY DEFINER) qui
+    // contourne RLS et permet de crediter N'IMPORTE quel utilisateur, meme
+    // sans cle service_role (fallback anon). Elle resout le user, met a jour
+    // la subscription + le profil, et prolonge la duree.
+    const { data: rpcData, error: rpcError } = await admin.rpc('admin_set_credit', {
+      p_email: email,
+      p_points: points,
+      p_action: action,
+    })
+
+    if (rpcError) {
+      console.error('[credits] Erreur RPC admin_set_credit:', rpcError.message, rpcError.details)
+      const msg = String(rpcError.message || '')
+      if (/aucun compte/i.test(msg)) {
+        return NextResponse.json(
+          { error: `Aucun compte LIVECAM ne correspond a "${email}".` },
+          { status: 404 },
+        )
+      }
       return NextResponse.json(
-        {
-          error: `Aucun compte LIVECAM ne correspond a "${email}".`,
-        },
-        { status: 404 },
+        { error: msg || 'Erreur lors du credit.' },
+        { status: 500 },
       )
     }
 
-    const now = new Date()
-
-    const { data: existing } = await admin
-      .from('subscriptions')
-      .select('id, email, plan, points, max_points, amount, end_date, expires_at, is_active')
-      .eq('user_id', userId)
-      .maybeSingle()
-
-    const prevActive = existing && existing.is_active && (existing.end_date || existing.expires_at)
-      ? new Date(existing.end_date || existing.expires_at) > now
-      : false
-
-    const prevPoints = prevActive ? Number(existing?.points ?? 0) : 0
-    const prevMax = prevActive ? Number(existing?.max_points ?? existing?.points ?? 0) : 0
-
-    const targetMax = action === 'set' ? points : Math.max(prevMax, prevPoints + points)
-    const targetPoints = action === 'set' ? Math.min(points, targetMax) : prevPoints + points
-
-    // On prolonge la duree de 30 jours par tranche de 1000 points a partir de
-    // la fin en cours (comportement identique aux recharges automatiques).
-    const validityMs = Math.ceil(targetPoints / 1000) * 30 * 24 * 60 * 60 * 1000
-    const base = prevActive && (existing?.end_date || existing?.expires_at)
-      ? new Date(existing.end_date || existing.expires_at)
-      : now
-    const end = new Date(base.getTime() + validityMs)
-
-    const subPayload = {
-      user_id: userId,
-      email,
-      plan: existing?.plan || 'manual',
-      amount: existing?.amount || 0,
-      status: 'active',
-      points: targetPoints,
-      max_points: targetMax,
-      is_active: true,
-      start_date: now.toISOString(),
-      end_date: end.toISOString(),
-      expires_at: end.toISOString(),
-    }
-
-    if (existing) {
-      const { error } = await admin.from('subscriptions').update(subPayload).eq('id', existing.id)
-      if (error) {
-        console.error('[credits] Erreur update subscription:', error.message)
-        return NextResponse.json(
-          { error: `Erreur lors du credit. ${error.message}. Verifie que SUPABASE_SERVICE_ROLE_KEY est configuree sur Vercel.` },
-          { status: 500 },
-        )
-      }
-    } else {
-      const { error } = await admin.from('subscriptions').insert(subPayload)
-      if (error) {
-        console.error('[credits] Erreur insert subscription:', error.message)
-        return NextResponse.json(
-          { error: `Erreur lors du credit. ${error.message}. Verifie que SUPABASE_SERVICE_ROLE_KEY est configuree sur Vercel.` },
-          { status: 500 },
-        )
-      }
-    }
+    const targetPoints = Number(rpcData?.points ?? points)
+    const end = rpcData?.end_date ? new Date(rpcData.end_date) : now
 
     // Journalisation
     await logPaymentEvent(admin, {
@@ -215,7 +174,7 @@ export async function POST(request: Request) {
       email,
       email.split('@')[0],
       `${planLabel} : ${targetPoints.toLocaleString()} pts`,
-      Number(existing?.amount ?? 0),
+      0,
       targetPoints,
       fmtDate(now),
       fmtDate(end),
