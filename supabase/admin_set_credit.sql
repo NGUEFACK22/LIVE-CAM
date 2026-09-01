@@ -144,5 +144,5 @@ $$;
 -- ou un admin authentifie (valide par la route) peuvent appeler.
 REVOKE ALL ON FUNCTION public.admin_set_credit(text, integer, text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.admin_set_credit(text, integer, text) FROM anon;
-REVOKE ALL ON FUNCTION public.admin_set_credit(text, integer, text) FROM authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_set_credit(text, integer, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_set_credit(text, integer, text) TO service_role;

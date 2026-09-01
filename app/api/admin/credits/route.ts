@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient as createSessionClient } from '@/lib/supabase/server'
 import { isAdminRequest } from '@/lib/admin-auth'
 import { logPaymentEvent } from '@/lib/fulfillment'
 import { sendSubscriptionApprovedEmail } from '@/lib/email'
@@ -129,15 +130,29 @@ export async function POST(request: Request) {
     const admin = createAdminClient()
     const now = new Date()
 
-    // On passe par la fonction SQL admin_set_credit (SECURITY DEFINER) qui
-    // contourne RLS et permet de crediter N'IMPORTE quel utilisateur, meme
-    // sans cle service_role (fallback anon). Elle resout le user, met a jour
-    // la subscription + le profil, et prolonge la duree.
-    const { data: rpcData, error: rpcError } = await admin.rpc('admin_set_credit', {
-      p_email: email,
-      p_points: points,
-      p_action: action,
-    })
+    // Pour l'appel RPC on privilegie le client de session (l'email de l'admin
+    // connecte est porte par le JWT) : la fonction SQL admin_set_credit
+    // (SECURITY DEFINER) verifie que l'appelant est admin puis contourne RLS.
+    // Cela fonctionne meme sans cle service_role. En repli on utilise le
+    // client service_role (s'il est configure).
+    const sessionClient = await createSessionClient()
+
+    const callRpc = async (client: any) => {
+      const res = await client.rpc('admin_set_credit', {
+        p_email: email,
+        p_points: points,
+        p_action: action,
+      })
+      return res
+    }
+
+    let rpc = await callRpc(sessionClient)
+    if (rpc.error && /Acces refuse/i.test(String(rpc.error.message || ''))) {
+      rpc = await callRpc(admin)
+    }
+
+    const rpcError = rpc.error
+    const rpcData = rpc.data
 
     if (rpcError) {
       console.error('[credits] Erreur RPC admin_set_credit:', rpcError.message, rpcError.details)
