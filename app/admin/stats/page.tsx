@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { isAdminEmail } from '@/lib/admin-email'
 import { Shield, RefreshCw, Activity } from 'lucide-react'
 
 export default function AdminStatsPage() {
@@ -58,7 +59,7 @@ export default function AdminStatsPage() {
     const checkAccess = async () => {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user || user.email !== 'fanny.guck@gmail.com') {
+      if (!user || !isAdminEmail(user.email)) {
         window.location.href = '/dashboard'
       }
     }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { isAdminEmail } from '@/lib/admin-email'
 import { Activity, ArrowLeft, RefreshCw, Clock, Zap, Users, Crown } from 'lucide-react'
 
 type Period = 'today' | 'yesterday' | '7d' | '30d' | 'all'
@@ -89,7 +90,7 @@ export default function AdminConsumptionPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user || user.email !== 'fanny.guck@gmail.com') {
+      if (!user || !isAdminEmail(user.email)) {
         window.location.href = '/dashboard'
       }
     }

@@ -40,7 +40,7 @@ DECLARE
 BEGIN
   -- Garde-fou admin : autorise service_role (appel serveur) ou un email admin.
   IF (auth.role() IS DISTINCT FROM 'service_role') THEN
-    IF (lower(btrim(coalesce(auth.jwt() ->> 'email', ''))) NOT IN ('fanny.guck@gmail.com', 'admin@chapcam.live')) THEN
+    IF (lower(btrim(coalesce(auth.jwt() ->> 'email', ''))) NOT IN ('admin@chapcam.live')) THEN
       RAISE EXCEPTION 'Acces refuse';
     END IF;
   END IF;

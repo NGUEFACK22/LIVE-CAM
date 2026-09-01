@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { isAdminEmail } from '@/lib/admin-email'
 import { Cpu, RefreshCw, ArrowLeft, AlertTriangle, CheckCircle2, Loader2, Server } from 'lucide-react'
 import Link from 'next/link'
 
@@ -69,7 +70,7 @@ export default function AdminGpuPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user || user.email !== 'fanny.guck@gmail.com') {
+      if (!user || !isAdminEmail(user.email)) {
         window.location.href = '/dashboard'
       }
     }

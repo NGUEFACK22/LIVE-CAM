@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase/server'
+import { isAdminEmail } from '@/lib/admin-email'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
@@ -508,7 +509,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     
-    if (!user?.email || user.email !== 'fanny.guck@gmail.com') {
+    if (!user?.email || !isAdminEmail(user.email)) {
       return NextResponse.json({ error: 'Non autorise' }, { status: 403 })
     }
     
