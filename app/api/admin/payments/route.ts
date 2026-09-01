@@ -77,6 +77,26 @@ export async function GET() {
 
     const logList = logs || []
 
+    // Toutes les transactions (tentatives de paiement), y compris celles qui
+    // n'ont pas ete creditees. `approved` = paiement confirme par GeniusPay.
+    // La jointure avec processed_payments > credited indique si les points
+    // ont effectivement ete credites sur le compte.
+    const { data: txnList } = await admin
+      .from('payment_requests')
+      .select('id, email, full_name, phone_number, plan, amount, status, payment_method, paydunya_token, paid_amount, created_at, validated_at, paid_at, comment')
+      .order('created_at', { ascending: false })
+      .limit(300)
+
+    const tokens = (txnList || []).map((t) => t.paydunya_token).filter(Boolean)
+    const creditedByToken = new Map<string, boolean>()
+    if (tokens.length > 0) {
+      const { data: processed } = await admin
+        .from('processed_payments')
+        .select('token, credited')
+        .in('token', tokens)
+      for (const p of processed || []) creditedByToken.set(p.token, !!p.credited)
+    }
+
     // Comptes reels (head: true ne ramene aucune ligne, juste le total).
     // On exclut la source "reconcile" (verifications automatiques de statut,
     // pas de vrais evenements de paiement) pour ne pas gonfler les chiffres.
@@ -130,6 +150,23 @@ export async function GET() {
         userLinked: l.user_linked,
         failureReason: l.failure_reason,
         createdAt: l.created_at,
+      })),
+      transactions: (txnList || []).map((t) => ({
+        id: t.id,
+        email: t.email,
+        fullName: t.full_name,
+        phone: t.phone_number,
+        plan: t.plan,
+        amount: t.amount,
+        paidAmount: t.paid_amount ?? t.amount,
+        status: t.status,
+        paymentMethod: t.payment_method,
+        token: t.paydunya_token,
+        credited: creditedByToken.get(t.paydunya_token) ?? false,
+        comment: t.comment,
+        createdAt: t.created_at,
+        validatedAt: t.validated_at,
+        paidAt: t.paid_at,
       })),
       stats: {
         total: clients.length,

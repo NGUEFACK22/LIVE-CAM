@@ -65,6 +65,24 @@ interface PaymentLog {
   createdAt: string
 }
 
+interface Transaction {
+  id: string
+  email: string
+  fullName: string | null
+  phone: string | null
+  plan: string | null
+  amount: number
+  paidAmount: number
+  status: string | null
+  paymentMethod: string | null
+  token: string | null
+  credited: boolean
+  comment: string | null
+  createdAt: string | null
+  validatedAt: string | null
+  paidAt: string | null
+}
+
 interface Stats {
   total: number
   active: number
@@ -98,8 +116,9 @@ export default function AdminPaymentsPage() {
   const [clients, setClients] = useState<CreditedClient[]>([])
   const [installations, setInstallations] = useState<Installation[]>([])
   const [paymentLogs, setPaymentLogs] = useState<PaymentLog[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
-  const [tab, setTab] = useState<'abonnements' | 'installations' | 'paiements'>('abonnements')
+  const [tab, setTab] = useState<'abonnements' | 'installations' | 'paiements' | 'transactions'>('abonnements')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
@@ -121,6 +140,7 @@ export default function AdminPaymentsPage() {
       setClients(data.clients || [])
       setInstallations(data.installations || [])
       setPaymentLogs(data.paymentLogs || [])
+      setTransactions(data.transactions || [])
       setStats(data.stats || null)
     } catch {
       setError('Erreur de connexion.')
@@ -195,6 +215,19 @@ export default function AdminPaymentsPage() {
     )
   }, [paymentLogs, search])
 
+  const filteredTxns = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return transactions
+    return transactions.filter(
+      (t) =>
+        t.email?.toLowerCase().includes(q) ||
+        t.fullName?.toLowerCase().includes(q) ||
+        t.phone?.toLowerCase().includes(q) ||
+        t.plan?.toLowerCase().includes(q) ||
+        t.token?.toLowerCase().includes(q),
+    )
+  }, [transactions, search])
+
   return (
     <div className="min-h-screen bg-[#050505] px-4 py-8 md:px-8">
       <div className="mx-auto max-w-6xl">
@@ -210,6 +243,13 @@ export default function AdminPaymentsPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              href="/admin/credits"
+              className="inline-flex items-center gap-2 rounded-xl border border-[#00ff88]/40 bg-[#0d2016] px-4 py-2.5 text-sm font-medium text-[#00ff88] transition-colors hover:border-[#00ff88] hover:text-white"
+            >
+              <Wallet className="h-4 w-4" />
+              Credits manuels
+            </Link>
             <Link
               href="/admin/campaign"
               className="inline-flex items-center gap-2 rounded-xl border border-[#00d4ff]/40 bg-[#0d2030] px-4 py-2.5 text-sm font-medium text-[#00d4ff] transition-colors hover:border-[#00d4ff] hover:text-white"
@@ -256,6 +296,9 @@ export default function AdminPaymentsPage() {
           <TabButton active={tab === 'paiements'} onClick={() => setTab('paiements')}>
             Paiements automatiques ({paymentLogs.length})
           </TabButton>
+          <TabButton active={tab === 'transactions'} onClick={() => setTab('transactions')}>
+            Transactions ({transactions.length})
+          </TabButton>
         </div>
 
         {/* Stats paiements automatiques (onglet dedie) */}
@@ -294,7 +337,9 @@ export default function AdminPaymentsPage() {
                 ? 'Rechercher par email ou formule...'
                 : tab === 'installations'
                   ? 'Rechercher par nom, email, tel, ville...'
-                  : 'Rechercher par email, produit, token...'
+                  : tab === 'transactions'
+                    ? 'Rechercher par email, nom, tel, formule, token...'
+                    : 'Rechercher par email, produit, token...'
             }
             className="w-full rounded-xl border border-white/10 bg-[#111] py-3 pl-12 pr-4 text-white placeholder-gray-600 outline-none transition-colors focus:border-[#00ff88]"
           />
@@ -414,6 +459,91 @@ export default function AdminPaymentsPage() {
             ))}
           </div>
         )
+        ) : tab === 'transactions' ? (
+          filteredTxns.length === 0 ? (
+            <EmptyState text="Aucune transaction enregistree." />
+          ) : (
+            <div className="space-y-3">
+              {filteredTxns.map((t) => {
+                const approved = t.status === 'approved' || t.status === 'completed'
+                const cancelled = t.status === 'cancelled' || t.status === 'rejected'
+                const failed = approved && !t.credited
+                return (
+                  <div
+                    key={t.id}
+                    className={`flex flex-col gap-3 rounded-2xl border bg-[#111] p-5 transition-colors sm:flex-row sm:items-center sm:justify-between ${
+                      failed
+                        ? 'border-red-500/40'
+                        : cancelled
+                          ? 'border-gray-700/40'
+                          : 'border-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="truncate font-semibold text-white">
+                          {t.fullName || 'Client'} · {t.email}
+                        </span>
+                        <span
+                          className={`rounded-full border px-2.5 py-0.5 text-xs font-bold ${
+                            failed
+                              ? 'border-red-500/30 bg-red-500/15 text-red-400'
+                              : approved
+                                ? 'border-[#00ff88]/30 bg-[#00ff88]/15 text-[#00ff88]'
+                                : cancelled
+                                  ? 'border-gray-500/30 bg-gray-500/15 text-gray-400'
+                                  : 'border-yellow-500/30 bg-yellow-500/15 text-yellow-400'
+                          }`}
+                        >
+                          {failed
+                            ? 'Paye mais NON credite'
+                            : approved
+                              ? 'Reussi'
+                              : cancelled
+                                ? 'Annule'
+                                : 'En attente'}
+                        </span>
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs font-medium text-gray-400">
+                          {t.status}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {t.plan || '—'} · {Number(t.paidAmount || t.amount).toLocaleString()} FCFA
+                        {t.paymentMethod ? ` · ${t.paymentMethod}` : ''} · {fmtDateTime(t.createdAt)}
+                      </p>
+                      {(t.phone || t.token) && (
+                        <p className="mt-1 text-xs text-gray-600">
+                          {t.phone ? `${t.phone} ` : ''}
+                          {t.token ? `· ${t.token}` : ''}
+                        </p>
+                      )}
+                      {failed && (
+                        <p className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-red-400">
+                          <AlertTriangle className="h-3.5 w-3.5" />
+                          Paiement <b className="mx-1">{approved ? 'confirme' : t.status}</b> par GeniusPay mais
+                          aucun credit n&apos;a ete applique. Recreditez manuellement via l&apos;onglet &quot;Credits manuels&quot;.
+                        </p>
+                      )}
+                    </div>
+                    {failed && (
+                      <button
+                        onClick={() => handleRecredit(t.token)}
+                        disabled={recrediting === t.token}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#00ff88] px-4 py-2.5 text-sm font-bold text-black transition-colors hover:bg-[#00dd77] disabled:opacity-60"
+                      >
+                        {recrediting === t.token ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <RotateCcw className="h-4 w-4" />
+                        )}
+                        Recrediter
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )
         ) : filteredLogs.length === 0 ? (
           <EmptyState text="Aucun paiement automatique enregistre." />
         ) : (

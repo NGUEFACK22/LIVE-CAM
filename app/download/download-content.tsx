@@ -92,7 +92,7 @@ export default function DownloadContent({ windowsUrl, macUrl, macArmUrl, version
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="grid md:grid-cols-2 gap-6 mb-16"
+            className="grid mb-16"
           >
             {/* Mac Download */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-[#00ff88]/50 transition-colors">
@@ -124,39 +124,6 @@ export default function DownloadContent({ windowsUrl, macUrl, macArmUrl, version
               <div className="space-y-2">
                 <p className="text-sm text-gray-500 font-medium mb-2">Configuration requise:</p>
                 {requirements.mac.map((req, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm text-gray-400">
-                    <CheckCircle className="w-4 h-4 text-[#00ff88]" />
-                    {req}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Windows Download */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-[#00ff88]/50 transition-colors">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 bg-white/10 rounded-xl flex items-center justify-center">
-                  <Monitor className="w-10 h-10 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-white">Windows</h2>
-                  <p className="text-gray-400">Pour Windows 10/11</p>
-                </div>
-              </div>
-              
-              <div className="space-y-3 mb-6">
-                <a href={windowsUrl} target="_blank" rel="noopener noreferrer">
-                  <Button className="w-full bg-[#00ff88] hover:bg-[#00cc6a] text-black font-bold py-6 text-lg">
-                    <Download className="w-5 h-5 mr-2" />
-                    Telecharger pour Windows
-                  </Button>
-                </a>
-                <p className="text-center text-sm text-gray-500">Version 64-bit uniquement</p>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm text-gray-500 font-medium mb-2">Configuration requise:</p>
-                {requirements.windows.map((req, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm text-gray-400">
                     <CheckCircle className="w-4 h-4 text-[#00ff88]" />
                     {req}
@@ -224,19 +191,19 @@ export default function DownloadContent({ windowsUrl, macUrl, macArmUrl, version
               </div>
               
               <div>
-                <h3 className="text-lg font-semibold text-[#00ff88] mb-4">Windows</h3>
+                <h3 className="text-lg font-semibold text-[#00ff88] mb-4">Mac</h3>
                 <ol className="space-y-3 text-gray-300">
                   <li className="flex gap-3">
                     <span className="flex-shrink-0 w-6 h-6 bg-[#00ff88] rounded-full flex items-center justify-center text-black text-sm font-bold">1</span>
-                    <span>Executez le fichier .exe telecharge</span>
+                    <span>Ouvrez le fichier .dmg telecharge</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="flex-shrink-0 w-6 h-6 bg-[#00ff88] rounded-full flex items-center justify-center text-black text-sm font-bold">2</span>
-                    <span>Suivez l&apos;assistant d&apos;installation</span>
+                    <span>Glissez LIVECAM dans le dossier Applications</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="flex-shrink-0 w-6 h-6 bg-[#00ff88] rounded-full flex items-center justify-center text-black text-sm font-bold">3</span>
-                    <span>Lancez LIVECAM depuis le menu Demarrer</span>
+                    <span>Ouvrez LIVECAM et autorisez l&apos;acces a la camera</span>
                   </li>
                 </ol>
               </div>
