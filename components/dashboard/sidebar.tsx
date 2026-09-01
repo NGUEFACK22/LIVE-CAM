@@ -13,6 +13,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { createClient } from '@/lib/supabase/client'
+import { isAdminEmail } from '@/lib/admin-email'
 import { ThemeToggleCompact } from '@/components/theme-toggle'
 import { useState, useEffect } from 'react'
 
@@ -186,8 +187,8 @@ function SidebarContent({
       ? (pointsRemaining / pointsTotal) * 100
       : 0
 
-  // Lien secret Admin Stats (visible uniquement par toi)
-  const isAdmin = email === 'fanny.guck@gmail.com'
+  // Lien secret Admin (visible uniquement par les admins)
+  const isAdmin = isAdminEmail(email)
 
   return (
     <div className="flex h-full flex-col">
@@ -335,16 +336,16 @@ function SidebarContent({
           <Lock className="h-3.5 w-3.5 shrink-0 text-amber-500" />
         </div>
 
-        {/* Lien Secret Admin Stats */}
+        {/* Lien Secret Admin */}
         {isAdmin && (
           <Link
-            href="/admin/stats"
+            href="/admin"
             className="group/nav mb-1 flex items-center gap-3 rounded-xl px-2.5 py-2 text-[13px] font-bold uppercase tracking-tight text-primary transition-all duration-200 ring-1 ring-primary/30 bg-primary/10 hover:bg-primary/15"
           >
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
               <Shield className="h-[17px] w-[17px]" strokeWidth={2.5} />
             </span>
-            <span className="flex-1 truncate">ADMIN STATS</span>
+            <span className="flex-1 truncate">ADMIN</span>
           </Link>
         )}
       </nav>
