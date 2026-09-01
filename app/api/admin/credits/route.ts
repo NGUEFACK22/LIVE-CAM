@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient as createSessionClient } from '@/lib/supabase/server'
 import { isAdminRequest } from '@/lib/admin-auth'
-import { logPaymentEvent } from '@/lib/fulfillment'
+import { logPaymentEvent, resolveUserIdByEmail } from '@/lib/fulfillment'
 import { sendSubscriptionApprovedEmail } from '@/lib/email'
 
 export const runtime = 'nodejs'
@@ -130,29 +130,113 @@ export async function POST(request: Request) {
     const admin = createAdminClient()
     const now = new Date()
 
-    // Pour l'appel RPC on privilegie le client de session (l'email de l'admin
-    // connecte est porte par le JWT) : la fonction SQL admin_set_credit
-    // (SECURITY DEFINER) verifie que l'appelant est admin puis contourne RLS.
-    // Cela fonctionne meme sans cle service_role. En repli on utilise le
-    // client service_role (s'il est configure).
+    // Etape 1 : RPC SQL admin_set_credit (SECURITY DEFINER). Elle contourne RLS
+    // et fonctionne meme sans cle service_role (via la session admin).
+    // Etape 2 (repli) : ecriture directe via service_role si la fonction n'existe
+    // pas encore dans la base (elle signale PGRST202 "function not found").
     const sessionClient = await createSessionClient()
 
     const callRpc = async (client: any) => {
-      const res = await client.rpc('admin_set_credit', {
-        p_email: email,
-        p_points: points,
-        p_action: action,
-      })
-      return res
+      try {
+        const res = await client.rpc('admin_set_credit', {
+          p_email: email,
+          p_points: points,
+          p_action: action,
+        })
+        return res
+      } catch (err: any) {
+        return { error: { message: err?.message || String(err) } }
+      }
     }
 
+    const looksLikeMissingFn = (e: any) =>
+      /could not find the function|function.*not found|PGRST202/i.test(String(e?.message || ''))
+
     let rpc = await callRpc(sessionClient)
-    if (rpc.error && /Acces refuse/i.test(String(rpc.error.message || ''))) {
+    if (rpc.error && (/Acces refuse/i.test(String(rpc.error.message || '')) || looksLikeMissingFn(rpc.error))) {
       rpc = await callRpc(admin)
     }
 
     const rpcError = rpc.error
     const rpcData = rpc.data
+
+    // Si la fonction n'existe pas dans la base, on retombe sur l'ecriture directe.
+    if (rpcError && looksLikeMissingFn(rpcError)) {
+      const userId = await resolveUserIdByEmail(admin, email)
+      if (!userId) {
+        return NextResponse.json(
+          { error: `Aucun compte LIVECAM ne correspond a "${email}".` },
+          { status: 404 },
+        )
+      }
+      const { data: existing } = await admin
+        .from('subscriptions')
+        .select('id, plan, points, max_points, amount, end_date, expires_at, is_active')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      const prevActive =
+        existing && existing.is_active && (existing.end_date || existing.expires_at)
+          ? new Date(existing.end_date || existing.expires_at) > now
+          : false
+      const prevPoints = prevActive ? Number(existing?.points ?? 0) : 0
+      const prevMax = prevActive ? Number(existing?.max_points ?? existing?.points ?? 0) : 0
+      const targetMax = action === 'set' ? points : Math.max(prevMax, prevPoints + points)
+      const targetPoints = action === 'set' ? Math.min(points, targetMax) : prevPoints + points
+      const validityMs = Math.ceil(targetPoints / 1000) * 30 * 24 * 60 * 60 * 1000
+      const base =
+        prevActive && (existing?.end_date || existing?.expires_at)
+          ? new Date(existing.end_date || existing.expires_at)
+          : now
+      const end = new Date(base.getTime() + validityMs)
+      const subPayload = {
+        user_id: userId,
+        email,
+        plan: existing?.plan || 'manual',
+        amount: existing?.amount || 0,
+        status: 'active',
+        points: targetPoints,
+        max_points: targetMax,
+        is_active: true,
+        start_date: now.toISOString(),
+        end_date: end.toISOString(),
+        expires_at: end.toISOString(),
+      }
+      const write = existing
+        ? await admin.from('subscriptions').update(subPayload).eq('id', existing.id)
+        : await admin.from('subscriptions').insert(subPayload)
+      if (write.error) {
+        return NextResponse.json(
+          { error: `Erreur lors du credit. ${write.error.message}.` },
+          { status: 500 },
+        )
+      }
+      await logPaymentEvent(admin, {
+        source: 'manual',
+        email,
+        amount: targetPoints,
+        status: 'completed',
+        credited: true,
+        creditKind: action === 'set' ? 'manual_set' : 'manual_credit',
+        failureReason: reason || null,
+      })
+      const planLabel = action === 'set' ? 'Solde defini' : 'Recharge de points'
+      await sendSubscriptionApprovedEmail(
+        email,
+        email.split('@')[0],
+        `${planLabel} : ${targetPoints.toLocaleString()} pts`,
+        0,
+        targetPoints,
+        fmtDate(now),
+        fmtDate(end),
+      ).catch((e) => console.error('[credits] Email echoue:', e))
+      return NextResponse.json({
+        success: true,
+        action,
+        newPointBalance: targetPoints,
+        message: `Nouveau solde: ${targetPoints.toLocaleString()} points pour ${email}.`,
+      })
+    }
 
     if (rpcError) {
       console.error('[credits] Erreur RPC admin_set_credit:', rpcError.message, rpcError.details)
