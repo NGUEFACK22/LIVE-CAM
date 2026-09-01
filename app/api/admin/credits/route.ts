@@ -23,7 +23,10 @@ export interface CreditRow {
   expiresAt: string | null
 }
 
-// GET: Liste les abonnements (email, solde en points) pour la page de credit manuel.
+// GET: Liste les utilisateurs inscrits sur la plateforme (profiles) ainsi que
+// leur abonnement/solde (subscriptions) pour la page de credit manuel.
+// La lecture se fait via createAdminClient() (service_role) qui bypass RLS,
+// ce qui permet de voir TOUS les utilisateurs, pas seulement les credites.
 export async function GET() {
   if (!(await isAdminRequest())) {
     return NextResponse.json({ error: 'Acces refuse.' }, { status: 403 })
@@ -31,31 +34,70 @@ export async function GET() {
 
   try {
     const admin = createAdminClient()
-    const { data, error } = await admin
-      .from('subscriptions')
-      .select('id, email, plan, points, max_points, is_active, end_date, expires_at')
-      .order('end_date', { ascending: false })
 
-    if (error) {
-      console.error('[admin/credits] Erreur lecture subscriptions:', error.message)
-      return NextResponse.json({ error: 'Erreur serveur.' }, { status: 500 })
+    // 1) Tous les utilisateurs inscrits (profiles = miroir de auth.users)
+    const profilesRes = await admin
+      .from('profiles')
+      .select('id, email, full_name, plan, points, max_points, is_active, created_at')
+      .order('created_at', { ascending: false })
+
+    if (profilesRes.error) {
+      console.error('[admin/credits] Erreur lecture profiles:', profilesRes.error.message)
+    }
+
+    // 2) Les abonnements (solde de points) pour enrichir chaque utilisateur
+    const subsRes = await admin
+      .from('subscriptions')
+      .select('user_id, email, plan, points, max_points, is_active, end_date, expires_at')
+
+    if (subsRes.error) {
+      console.error('[admin/credits] Erreur lecture subscriptions:', subsRes.error.message)
     }
 
     const now = Date.now()
-    const rows: CreditRow[] = (data || []).map((s) => {
-      const expiry = s.expires_at || s.end_date
-      return {
-        id: s.id,
-        email: s.email || '',
-        plan: s.plan || 'free',
-        points: Number(s.points ?? 0),
-        maxPoints: Number(s.max_points ?? s.points ?? 0),
-        isActive: !!s.is_active && (!expiry || new Date(expiry).getTime() > now),
-        expiresAt: expiry,
-      }
-    })
+    const subsByUser = new Map<string, any>()
+    for (const s of subsRes.data || []) {
+      subsByUser.set(s.user_id, s)
+    }
 
-    return NextResponse.json({ rows })
+    const rows: CreditRow[] = []
+
+    // On démarre par tous les profils (utilisateurs inscrits)
+    for (const p of profilesRes.data || []) {
+      const sub = subsByUser.get(p.id)
+      const expiry = sub?.expires_at || sub?.end_date
+      rows.push({
+        id: p.id,
+        email: p.email || '',
+        plan: sub?.plan || p.plan || 'free',
+        points: Number(sub?.points ?? p?.points ?? 0),
+        maxPoints: Number(sub?.max_points ?? sub?.points ?? p?.max_points ?? p?.points ?? 0),
+        isActive:
+          (sub ? !!sub.is_active : p.is_active !== false) &&
+          (!expiry || new Date(expiry).getTime() > now),
+        expiresAt: expiry ?? null,
+      })
+    }
+
+    // On ajoute les utilisateurs avec un abonnement mais sans profil (rare)
+    for (const s of subsRes.data || []) {
+      if (s.user_id && !rows.some((r) => r.id === s.user_id)) {
+        const expiry = s.expires_at || s.end_date
+        rows.push({
+          id: s.user_id,
+          email: s.email || '',
+          plan: s.plan || 'free',
+          points: Number(s.points ?? 0),
+          maxPoints: Number(s.max_points ?? s.points ?? 0),
+          isActive: !!s.is_active && (!expiry || new Date(expiry).getTime() > now),
+          expiresAt: expiry,
+        })
+      }
+    }
+
+    rows.sort((a, b) => (a.email || '').localeCompare(b.email || ''))
+
+    return NextResponse.json({ rows, total: rows.length })
   } catch (err: any) {
     console.error('[admin/credits] Exception:', err?.message || err)
     return NextResponse.json({ error: 'Erreur serveur.' }, { status: 500 })
@@ -140,13 +182,19 @@ export async function POST(request: Request) {
       const { error } = await admin.from('subscriptions').update(subPayload).eq('id', existing.id)
       if (error) {
         console.error('[credits] Erreur update subscription:', error.message)
-        return NextResponse.json({ error: 'Erreur lors du credit.' }, { status: 500 })
+        return NextResponse.json(
+          { error: `Erreur lors du credit. ${error.message}. Verifie que SUPABASE_SERVICE_ROLE_KEY est configuree sur Vercel.` },
+          { status: 500 },
+        )
       }
     } else {
       const { error } = await admin.from('subscriptions').insert(subPayload)
       if (error) {
         console.error('[credits] Erreur insert subscription:', error.message)
-        return NextResponse.json({ error: 'Erreur lors du credit.' }, { status: 500 })
+        return NextResponse.json(
+          { error: `Erreur lors du credit. ${error.message}. Verifie que SUPABASE_SERVICE_ROLE_KEY est configuree sur Vercel.` },
+          { status: 500 },
+        )
       }
     }
 
