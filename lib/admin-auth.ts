@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { ADMIN_EMAIL } from '@/lib/admin-email'
+import { ADMIN_EMAIL, isAdminEmail } from '@/lib/admin-email'
 
 export { ADMIN_EMAIL }
 
@@ -13,7 +13,7 @@ export async function isAdminRequest(): Promise<boolean> {
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    return !!user && user.email === ADMIN_EMAIL
+    return isAdminEmail(user?.email)
   } catch {
     return false
   }
