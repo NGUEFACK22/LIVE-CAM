@@ -108,8 +108,7 @@ BEGIN
         is_active = true,
         start_date = v_now,
         end_date = v_end,
-        expires_at = v_end,
-        updated_at = v_now
+        expires_at = v_end
     WHERE user_id = v_user_id;
   ELSE
     INSERT INTO public.subscriptions (
