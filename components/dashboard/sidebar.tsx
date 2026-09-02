@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Zap, Users, BarChart2, Settings, LogOut, Menu, Battery, Shield, CreditCard, Home, Languages, ImageIcon, Film, HelpCircle, Monitor, AudioLines, Globe, ChevronRight, Lock } from 'lucide-react'
+import { Zap, Users, BarChart2, Settings, LogOut, Menu, Battery, Shield, Home, Languages, ImageIcon, Film, HelpCircle, AudioLines, ChevronRight, Lock } from 'lucide-react'
 import { isPathBlocked } from '@/lib/feature-flags'
 import { useBlockedModal } from '@/components/blocked-feature-modal'
 import { Progress } from '@/components/ui/progress'
@@ -57,13 +57,12 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: '/dashboard', icon: Home, label: 'DASHBOARD', color: '#34d399' },
-  { href: '/dashboard/voice-swap', icon: AudioLines, label: 'VOICE SWAP', badge: 'PRO', color: '#ef4444' },
+  { href: '/dashboard/voice-swap', icon: AudioLines, label: 'VOICE SWAP', badge: 'NEW', color: '#ef4444' },
   { href: '/dashboard/voice-translator', icon: Languages, label: 'VOICE TRADUCTEUR', badge: 'NEW', color: '#38bdf8' },
   { href: '/dashboard/photo-video', icon: ImageIcon, label: 'PHOTOS EN VIDEO', badge: 'NEW', color: '#f59e0b' },
   { href: '/dashboard/video-translation', icon: Film, label: 'TRADUCTION VIDEO', badge: 'NEW', color: '#8b5cf6' },
   { href: '/dashboard/avatars', icon: Users, label: 'MES AVATARS', color: '#22d3ee' },
   { href: '/dashboard/stats', icon: BarChart2, label: 'STATISTIQUES', color: '#4ade80' },
-  { href: '/dashboard/plans', icon: CreditCard, label: 'RECHARGER', color: '#facc15' },
   { href: '/dashboard/settings', icon: Settings, label: 'PARAMETRES', color: '#94a3b8' },
 ]
 
@@ -236,7 +235,7 @@ function SidebarContent({
               {item.href === '/dashboard/voice-swap' && (
                 <div className="mb-3 mt-1">
                   <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-text-faint">
-                    Premium
+                    Live
                   </p>
                   <FeaturedLink
                     href="/dashboard/live-swap"
@@ -247,33 +246,6 @@ function SidebarContent({
                     tone="blue"
                     active={pathname === '/dashboard/live-swap'}
                   />
-                  {/* ChapCam PC et ChapSim bloqués */}
-                  <button onClick={show} className="group relative mb-2 flex w-full items-center gap-3 overflow-hidden rounded-xl border border-[#3b82f6]/40 bg-gradient-to-br from-[#2563EB] to-[#3b82f6] p-2.5 text-white opacity-60 shadow-lg transition-all hover:brightness-110">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15">
-                      <Monitor className="h-[18px] w-[18px]" />
-                    </span>
-                    <span className="min-w-0 flex-1 text-left">
-                      <span className="flex items-center gap-1.5">
-                        <span className="truncate text-[13px] font-bold uppercase">LIVECAM PC</span>
-                        <span className="shrink-0 rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] font-extrabold text-white">À vie</span>
-                      </span>
-                      <span className="mt-0.5 block truncate text-[10px] font-medium text-white/75">Windows · licence à vie</span>
-                    </span>
-                    <Lock className="h-4 w-4 shrink-0 opacity-60" />
-                  </button>
-                  <button onClick={show} className="group relative mb-2 flex w-full cursor-pointer items-center gap-3 overflow-hidden rounded-xl border border-[#7c3aed]/40 bg-gradient-to-br from-[#7c3aed] to-[#4f46e5] p-2.5 text-white opacity-60 shadow-lg transition-all hover:brightness-110">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15">
-                      <Globe className="h-[18px] w-[18px]" />
-                    </span>
-                    <span className="min-w-0 flex-1 text-left">
-                      <span className="flex items-center gap-1.5">
-                        <span className="truncate text-[13px] font-bold uppercase">ChapSim</span>
-                        <span className="shrink-0 rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] font-extrabold text-white">OTP</span>
-                      </span>
-                      <span className="mt-0.5 block truncate text-[10px] font-medium text-white/75">SMS OTP & proxies premium</span>
-                    </span>
-                    <Lock className="h-4 w-4 shrink-0 opacity-60" />
-                  </button>
                 </div>
               )}
             <div

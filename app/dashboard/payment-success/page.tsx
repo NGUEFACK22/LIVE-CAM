@@ -174,7 +174,7 @@ function PaymentSuccessContent() {
               href="/dashboard/plans"
               className="mt-6 flex w-full items-center justify-center rounded-2xl bg-primary py-3 font-semibold text-black transition-colors hover:bg-primary/90"
             >
-              Recharger des crédits
+              Retour au tableau de bord
             </Link>
           </>
         )}
@@ -192,7 +192,7 @@ function PaymentSuccessContent() {
               href="/dashboard/plans"
               className="mt-6 flex w-full items-center justify-center rounded-2xl bg-primary py-3 font-semibold text-black transition-colors hover:bg-primary/90"
             >
-              Recharger des crédits
+              Retour au tableau de bord
             </Link>
           </>
         )}

@@ -9,15 +9,8 @@ interface SettingsUser {
   email?: string | null
 }
 
-interface SettingsPlan {
-  plan?: string | null
-  points?: number | null
-  max_points?: number | null
-}
-
 export default function SettingsPage() {
   const [userData, setUserData] = useState<SettingsUser | null>(null)
-  const [planData, setPlanData] = useState<SettingsPlan | null>(null)
   const [loading, setLoading] = useState(true)
 
   // Instance Supabase stable (memoïsée) : peut figurer dans les deps de l'effet.
@@ -29,16 +22,6 @@ export default function SettingsPage() {
       if (!user) return
 
       setUserData(user)
-
-      // Récupérer le plan et les infos
-      const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .single()
-
-      if (subscription) setPlanData(subscription)
-
       setLoading(false)
     }
 
@@ -96,20 +79,9 @@ export default function SettingsPage() {
 
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-muted-foreground text-sm">Mes crédits</p>
-                <p className="text-foreground mt-1 font-medium">
-                  {planData?.points?.toLocaleString() ?? '0'} points
-                  {typeof planData?.max_points === 'number'
-                    ? ` / ${planData.max_points.toLocaleString()}`
-                    : ''}
-                </p>
+                <p className="text-muted-foreground text-sm">Compte</p>
+                <p className="text-foreground mt-1 font-medium">Gratuit — illimité</p>
               </div>
-              <a 
-                href="/dashboard/plans" 
-                className="text-primary hover:underline text-sm flex items-center gap-1"
-              >
-                Recharger →
-              </a>
             </div>
           </div>
         </div>

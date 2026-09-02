@@ -65,8 +65,8 @@ export default async function DashboardHubPage() {
   const minutesToday = Math.floor(secondsToday / 60)
 
   const points = freeMode ? FREE_UNLIMITED_POINTS : (subscription?.points ?? 0)
-  const plan = subscription?.plan ?? 'free'
-  const isPro = plan !== 'free' && (subscription?.is_active ?? false)
+  const plan = freeMode ? 'unlimited' : (subscription?.plan ?? 'free')
+  const isPro = freeMode ? true : (plan !== 'free' && (subscription?.is_active ?? false))
   const displayName =
     (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ||
     user?.email?.split('@')[0] ||
@@ -118,10 +118,18 @@ export default async function DashboardHubPage() {
               <div className="min-w-0">
                 <span className="inline-flex items-center gap-2 rounded-full border border-hairline bg-background/50 px-3 py-1 text-xs font-semibold text-muted-foreground backdrop-blur">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-                  {freeMode ? 'Gratuit — illimité' : isPro ? PLAN_LABELS[plan] || plan : 'Compte gratuit'}
-                  <span className="mx-1 h-3 w-px bg-hairline" />
-                  <Clock className="h-3 w-3" />
-                  {points.toLocaleString('fr-FR')} points
+                  {freeMode
+                    ? 'Gratuit — illimité'
+                    : isPro
+                      ? PLAN_LABELS[plan] || plan
+                      : 'Compte gratuit'}
+                  {!freeMode && (
+                    <>
+                      <span className="mx-1 h-3 w-px bg-hairline" />
+                      <Clock className="h-3 w-3" />
+                      {points.toLocaleString('fr-FR')} points
+                    </>
+                  )}
                 </span>
 
                 <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground md:text-5xl text-balance">
