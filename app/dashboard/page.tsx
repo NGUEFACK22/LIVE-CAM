@@ -119,13 +119,9 @@ export default async function DashboardHubPage() {
                 <span className="inline-flex items-center gap-2 rounded-full border border-hairline bg-background/50 px-3 py-1 text-xs font-semibold text-muted-foreground backdrop-blur">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
                   {freeMode ? 'Gratuit — illimité' : isPro ? PLAN_LABELS[plan] || plan : 'Compte gratuit'}
-                  {!freeMode && (
-                    <>
-                      <span className="mx-1 h-3 w-px bg-hairline" />
-                      <Clock className="h-3 w-3" />
-                      {points.toLocaleString('fr-FR')} points
-                    </>
-                  )}
+                  <span className="mx-1 h-3 w-px bg-hairline" />
+                  <Clock className="h-3 w-3" />
+                  {points.toLocaleString('fr-FR')} points
                 </span>
 
                 <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground md:text-5xl text-balance">
@@ -248,12 +244,11 @@ export default async function DashboardHubPage() {
               href="/dashboard/plans"
               className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-primary px-7 py-3.5 text-base font-bold text-black shadow-[0_0_30px_rgba(0,255,136,0.4)] transition-all hover:scale-[1.02] hover:bg-primary/90"
             >
-              Voir les offres
+              Recharger mes crédits
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
         </section>
-      )}
-    </div>
+      )}    </div>
   )
 }

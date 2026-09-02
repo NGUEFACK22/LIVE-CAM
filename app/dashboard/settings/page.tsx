@@ -11,6 +11,8 @@ interface SettingsUser {
 
 interface SettingsPlan {
   plan?: string | null
+  points?: number | null
+  max_points?: number | null
 }
 
 export default function SettingsPage() {
@@ -94,16 +96,19 @@ export default function SettingsPage() {
 
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-muted-foreground text-sm">Plan actuel</p>
-                <p className="text-foreground mt-1 capitalize font-medium">
-                  {planData?.plan || 'Gratuit'}
+                <p className="text-muted-foreground text-sm">Mes crédits</p>
+                <p className="text-foreground mt-1 font-medium">
+                  {planData?.points?.toLocaleString() ?? '0'} points
+                  {typeof planData?.max_points === 'number'
+                    ? ` / ${planData.max_points.toLocaleString()}`
+                    : ''}
                 </p>
               </div>
               <a 
                 href="/dashboard/plans" 
                 className="text-primary hover:underline text-sm flex items-center gap-1"
               >
-                Changer de plan →
+                Recharger →
               </a>
             </div>
           </div>

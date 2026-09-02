@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -174,7 +174,7 @@ function PaymentSuccessContent() {
               href="/dashboard/plans"
               className="mt-6 flex w-full items-center justify-center rounded-2xl bg-primary py-3 font-semibold text-black transition-colors hover:bg-primary/90"
             >
-              Revenir aux formules
+              Recharger des crédits
             </Link>
           </>
         )}
@@ -192,7 +192,7 @@ function PaymentSuccessContent() {
               href="/dashboard/plans"
               className="mt-6 flex w-full items-center justify-center rounded-2xl bg-primary py-3 font-semibold text-black transition-colors hover:bg-primary/90"
             >
-              Revenir aux formules
+              Recharger des crédits
             </Link>
           </>
         )}
