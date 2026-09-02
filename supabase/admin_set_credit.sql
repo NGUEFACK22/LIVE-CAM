@@ -13,6 +13,16 @@
 --     client service_role apres avoir valide la session admin).
 -- ============================================================
 
+-- Supprime les triggers "updated_at" sur subscriptions : la table n'a PAS de
+-- colonne updated_at, donc un BEFORE UPDATE qui fait NEW.updated_at = now()
+-- ferait planter tout UPDATE (erreur : record "new" has no field "updated_at").
+DROP TRIGGER IF EXISTS subscriptions_updated_at ON public.subscriptions;
+DROP TRIGGER IF EXISTS update_subscriptions_updated_at ON public.subscriptions;
+
+-- Idem au cas ou la colonne aurait ete ajoutee sur profiles sans trigger.
+DROP TRIGGER IF EXISTS profiles_updated_at ON public.profiles;
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON public.profiles;
+
 CREATE OR REPLACE FUNCTION public.admin_set_credit(
   p_email text,
   p_points integer,
