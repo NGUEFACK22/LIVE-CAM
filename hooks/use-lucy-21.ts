@@ -431,6 +431,11 @@ export function useLucy21() {
       if (isStale()) return
       const tokenData = await tokenRes.json().catch(() => null)
       const clientToken = tokenData?.token
+      // Type de cle renvoye par /api/decart-token : 'test' (dct_test_...) ou
+      // 'production'. Une cle test n'est autorisee par Decart QUE depuis
+      // localhost — depuis un domaine deploye, la WS signaling est fermee
+      // avec le code 1000 (cause racine de "WebSocket closed: 1000").
+      const keyType: string = tokenData?.keyType ?? 'unknown'
 
       if (!tokenRes.ok || !clientToken) {
         const errorMsg =
@@ -816,6 +821,24 @@ export function useLucy21() {
               stopVirtualCamInternal().catch(() => {})
             }
             if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
+
+            // Cas connu (diag 03/09) : la cle Decart est une cle de TEST
+            // (dct_test_...) et le site est ouvert depuis un domaine deploye
+            // (ex: chapcam.com). Decart n'autorise les cles test QUE depuis
+            // localhost : il ferme la WS signaling avec le code 1000 juste
+            // apres la creation de session. Aucun retry n'y changera rien —
+            // on affiche directement la vraie solution.
+            const isTestKeyOriginRejection =
+              keyType === 'test' || /WebSocket closed: 1000/i.test(message)
+            if (isTestKeyOriginRejection) {
+              disconnect()
+              setError(
+                "La clé Decart utilisée est une clé de TEST (dct_test_...). Decart n'autorise les clés de test QUE depuis localhost : depuis un site déployé (chapcam.com), la session est refusée (WebSocket close 1000). Générez une clé de production sur platform.decart.ai (ou ajoutez votre domaine comme origine autorisée de la clé) puis mettez-la à jour dans .env.local / Supabase app_config.",
+              )
+              setConnectionState('error')
+              return
+            }
+
             scheduleAutoRetry(
               avatarImageUrl,
               `Le service IA a coupé la connexion (${message})`,

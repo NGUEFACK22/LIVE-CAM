@@ -134,7 +134,12 @@ export async function GET(request: NextRequest) {
       apiKey: token.apiKey,
       expiresAt: token.expiresAt,
       userId: user.id,
-      noWatermark: usedNoWatermark
+      noWatermark: usedNoWatermark,
+      // Type de cle : les cles de TEST Decart (dct_test_...) ne sont autorisees
+      // QUE depuis localhost. Utilisees depuis un domaine deploye, le serveur
+      // Decart ferme la WebSocket signaling avec le code 1000 des l'ouverture
+      // de session (diag 03/09 : reproduit et confirme).
+      keyType: apiKey.startsWith('dct_test') ? 'test' : 'production',
     })
   } catch (error: any) {
     console.error('[Decart Token] Error:', error.message)
