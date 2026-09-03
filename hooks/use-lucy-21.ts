@@ -795,6 +795,39 @@ export function useLucy21() {
               : err?.message || 'Interruption du service IA'
           const message = cause && cause !== baseMessage ? `${baseMessage} (${cause})` : baseMessage
           console.error('[Lucy 2.1] Cause réelle:', err?.cause)
+
+          // -----------------------------------------------------------------
+          // Echec AVANT la 1re image transformee (ex: "WebSocket connection
+          // failed (WebSocket closed: 1000)" — le serveur ferme la signalling
+          // proprement : cle/token rejete, quota atteint, surcapacite
+          // temporaire...). Ce n'est PAS une erreur fatale utilisateur :
+          // aucune frame n'a ete facturee, on retente (borne) exactement
+          // comme pour un ecran noir. L'ancien comportement coupait sec avec
+          // "Erreur service IA" sans aucun retry.
+          // -----------------------------------------------------------------
+          if (!firstFrameRef.current) {
+            if (connectTimeoutRef.current) {
+              clearTimeout(connectTimeoutRef.current)
+              connectTimeoutRef.current = null
+            }
+            disconnectDecart()
+            releaseMedia()
+            if (virtualCamActiveRef.current) {
+              stopVirtualCamInternal().catch(() => {})
+            }
+            if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
+            scheduleAutoRetry(
+              avatarImageUrl,
+              `Le service IA a coupé la connexion (${message})`,
+              "Le service IA refuse la connexion après plusieurs tentatives. Causes possibles : clé Decart invalide ou expirée, quota/crédits épuisés ou service surchargé. Vérifie la clé API et les crédits Decart, puis réessaie.",
+            )
+            return
+          }
+
+          // Apres la 1re frame : la session en cours est reellement morte
+          // (le serveur a coupe un live qui fonctionnait). Arret propre +
+          // message clair ; pas de retry automatique pour ne pas relancer
+          // une session facturee a l'insu de l'utilisateur.
           disconnect()
           setError(`Erreur service IA : ${message}`)
           setConnectionState('error')
