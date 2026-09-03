@@ -3,8 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { FREE_UNLIMITED_POINTS, isFreeLiveSwap } from '@/lib/free-mode'
 
-// 2 points = 1 seconde
-const POINTS_PER_SECOND = 2
+// 1 credit = 1 seconde de swap
+const POINTS_PER_SECOND = 1
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     // Bornage serveur : le client ne dicte JAMAIS le montant max.
     // - sessionDuration plafonnee a 24h (anti abus).
-    // - points demandes plafonnes a la duree declaree (2 pts/s) + 10s de marge.
+    // - points demandes plafonnes a la duree declaree (1 pt/s) + 10s de marge.
     //   Un client malveillant ne peut donc pas deduire plus que le temps ecoule.
     const MAX_SESSION_SECONDS = 24 * 60 * 60
     const clampedDuration = Math.min(sessionDuration, MAX_SESSION_SECONDS)

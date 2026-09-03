@@ -15,6 +15,7 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { isAdminEmail } from '@/lib/admin-email'
 import { ThemeToggleCompact } from '@/components/theme-toggle'
+import { POINTS_UPDATE_EVENT, type PointsUpdateDetail } from '@/lib/points-events'
 import { useState, useEffect } from 'react'
 
 const PLAN_LABELS: Record<string, string> = {
@@ -349,7 +350,7 @@ function SidebarContent({
           <p className="mt-2 text-xs text-text-faint">
             {isUnlimited
               ? 'Live Swap gratuit sans forfait'
-              : `= ${Math.floor(pointsRemaining / 2 / 60)} min de swap`}
+              : `= ${Math.floor(pointsRemaining / 60)} min de swap`}
           </p>
         </div>
 
@@ -412,6 +413,29 @@ export function DashboardSidebar({
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
 
+  // Solde de points temps reel pendant le Live Swap : la page Live emet
+  // 'chapcam:points-update' a chaque seconde (decrement local 1 pt/s) et
+  // apres chaque synchronisation serveur (solde reel en base). Les props
+  // serveur restent la valeur initiale / de repli.
+  const [livePoints, setLivePoints] = useState<number | null>(null)
+  const [liveTotal, setLiveTotal] = useState<number | null>(null)
+
+  useEffect(() => {
+    const onPointsUpdate = (e: Event) => {
+      const detail = (e as CustomEvent<PointsUpdateDetail>).detail
+      if (!detail || typeof detail.points !== 'number') return
+      setLivePoints(detail.points)
+      if (typeof detail.total === 'number' && detail.total > 0) {
+        setLiveTotal(detail.total)
+      }
+    }
+    window.addEventListener(POINTS_UPDATE_EVENT, onPointsUpdate)
+    return () => window.removeEventListener(POINTS_UPDATE_EVENT, onPointsUpdate)
+  }, [])
+
+  const effectivePoints = livePoints ?? pointsRemaining
+  const effectiveTotal = liveTotal ?? pointsTotal
+
   const handleLogout = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
@@ -427,8 +451,8 @@ export function DashboardSidebar({
           expiresAt={expiresAt}
           isActive={isActive}
           avatarCount={avatarCount}
-          pointsRemaining={pointsRemaining}
-          pointsTotal={pointsTotal}
+          pointsRemaining={effectivePoints}
+          pointsTotal={effectiveTotal}
           onLogout={handleLogout}
         />
       </aside>
@@ -441,7 +465,7 @@ export function DashboardSidebar({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1 rounded-full bg-muted px-3 py-1">
             <Battery className="h-4 w-4 text-primary" />
-            <span className="text-xs font-bold text-foreground">{pointsRemaining}</span>
+            <span className="text-xs font-bold text-foreground">{effectivePoints}</span>
           </div>
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
@@ -457,8 +481,8 @@ export function DashboardSidebar({
                 expiresAt={expiresAt}
                 isActive={isActive}
                 avatarCount={avatarCount}
-                pointsRemaining={pointsRemaining}
-                pointsTotal={pointsTotal}
+                pointsRemaining={effectivePoints}
+                pointsTotal={effectiveTotal}
                 onLogout={() => {
                   setMobileOpen(false)
                   handleLogout()

@@ -98,49 +98,6 @@ export function computeState(row: LiveAccessRow): LiveAccessState {
     }
   }
 
-  // Essai gratuit desactive : la periode d'essai de 2 min est terminee.
-  // Verification de l'etat d'acces selon le mode actuel et le solde de fenetres.
-  if (isFreeLiveSwap()) {
-    return {
-      mode: 'paid',
-      secondsRemaining: FREE_LIVE_SECONDS,
-      trialSecondsRemaining: FREE_LIVE_SECONDS,
-      pendingWindows: row.pending_windows,
-      windowExpiresAt: null,
-      canStart: true,
-    }
-  }
-
-  const now = Date.now()
-  const windowMs = row.active_window_expires_at
-    ? new Date(row.active_window_expires_at).getTime()
-    : 0
-  const windowActive = windowMs > now
-
-  // 1. Fenetre payante active en cours
-  if (windowActive) {
-    return {
-      mode: 'paid',
-      secondsRemaining: Math.max(0, Math.floor((windowMs - now) / 1000)),
-      trialSecondsRemaining: row.trial_seconds_remaining,
-      pendingWindows: row.pending_windows,
-      windowExpiresAt: row.active_window_expires_at,
-      canStart: true,
-    }
-  }
-
-  // 2. Fenetres en attente disponibles (credits)
-  if (row.pending_windows > 0) {
-    return {
-      mode: 'ready',
-      secondsRemaining: 0,
-      trialSecondsRemaining: row.trial_seconds_remaining,
-      pendingWindows: row.pending_windows,
-      windowExpiresAt: null,
-      canStart: true,
-    }
-  }
-
   // 3. Aucun acces : essais termine et pas de fenetres de credit
   return {
     mode: 'none',
@@ -148,8 +105,6 @@ export function computeState(row: LiveAccessRow): LiveAccessState {
     trialSecondsRemaining: 0,
     pendingWindows: 0,
     windowExpiresAt: null,
-    canStart: false,
-  }
     canStart: false,
   }
 }

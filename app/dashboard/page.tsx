@@ -8,7 +8,7 @@ import { Sparkles, Crown, Check, Zap, Timer, Users, Hourglass, ArrowRight, Clock
 import { getUserAvatar } from '@/lib/user-avatar'
 import { isFreeLiveSwap, FREE_UNLIMITED_POINTS } from '@/lib/free-mode'
 
-const POINTS_PER_SECOND = 2
+const POINTS_PER_SECOND = 1
 
 const PLAN_LABELS: Record<string, string> = {
   free: 'Gratuit',

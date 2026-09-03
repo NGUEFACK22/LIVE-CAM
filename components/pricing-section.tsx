@@ -127,7 +127,7 @@ export function PricingSection() {
           </h2>
           <p className="text-emerald-400 text-2xl font-medium">avec LIVECAM</p>
           <p className="text-gray-400 mt-4 text-lg">
-            2 points = 1 seconde de transformation du visage et corps entier
+            1 point = 1 seconde de transformation du visage et corps entier
           </p>
         </motion.div>
 

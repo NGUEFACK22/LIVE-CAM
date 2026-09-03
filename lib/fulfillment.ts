@@ -248,7 +248,7 @@ export async function creditPurchase(
   input: PurchaseInput,
 ): Promise<PurchaseResult> {
   const isCustom = input.productId === 'custom' || input.productId.startsWith('custom_')
-  // Recharge custom : montant libre minimum 1000F, points = amount / 20 (2 pts = 1 sec)
+  // Recharge custom : montant libre minimum 1000F, points = amount / 20 (1 pt = 1 sec)
   if (isCustom) {
     const customAmount = Number(input.amount || 0)
     if (!customAmount || customAmount < 1000) {

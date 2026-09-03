@@ -7,8 +7,8 @@ import { isElectron, getElectronAPI } from '@/lib/electron'
 import { LUCY_SWAP_PROMPT, LUCY_SWAP_ENHANCE } from '@/lib/lucy-prompts'
 import { prepareAvatarImage } from '@/lib/avatar-image'
 
-// 2 points = 1 seconde de swap
-const POINTS_PER_SECOND = 2
+// 1 credit = 1 seconde de swap
+const POINTS_PER_SECOND = 1
 // Intervalle d'envoi de la deduction au serveur (en secondes).
 // Plus court = arret plus precis a l'epuisement, moins de points "perdus".
 const DEDUCTION_INTERVAL = 5

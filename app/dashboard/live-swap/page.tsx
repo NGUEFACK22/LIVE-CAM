@@ -11,11 +11,13 @@ import { VirtualCameraIndicator } from '@/components/live/virtual-camera-indicat
 import { SwapConsent, GenerateNotice } from '@/components/dashboard/swap-consent'
 import { detectHardwareCapabilities, determineProcessingMode, loadProcessingPreferences, saveProcessingPreferences, type HardwareCapabilities, type UserProcessingPreferences } from '@/lib/hardware-detection'
 import { FREE_UNLIMITED_POINTS, isFreeLiveSwap } from '@/lib/free-mode'
+import { emitPointsUpdate } from '@/lib/points-events'
 import { useBlockedModal } from '@/components/blocked-feature-modal'
 
 import { createClient } from '@/lib/supabase/client'
 
-const POINTS_PER_SECOND = 2
+// 1 credit = 1 seconde de swap
+const POINTS_PER_SECOND = 1
 const FREE_MODE = isFreeLiveSwap()
 
 interface Avatar {
@@ -286,6 +288,8 @@ export default function DashboardPage() {
         if (typeof data.currentPoints === 'number') {
           remainingRef.current = data.currentPoints
           setUserPoints(data.currentPoints)
+          // Sidebar temps reel : solde REEL en base apres deduction serveur.
+          emitPointsUpdate(data.currentPoints, data.maxPoints)
         }
         if (data.depleted) handleStopSwapAndSaveRef.current()
       } else {
@@ -319,6 +323,9 @@ export default function DashboardPage() {
 
       setPointsUsed(pointsUsedRef.current)
       setUserPoints(remainingRef.current)
+      // Sidebar temps reel : decrement local fluide (1 pt/s). La valeur est
+      // corrigee par le solde serveur a chaque synchronisation (10 s).
+      emitPointsUpdate(remainingRef.current)
 
       // Synchronisation reguliere : on ne perd jamais plus de ~10s de conso.
       if (durationRef.current % SYNC_EVERY_SECONDS === 0) {

@@ -4,8 +4,6 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import {
   ensureLiveAccess,
   computeState,
-  getGpuConnectionAsync,
-  isGpuConfigured,
   liveOfferWindowMinutes,
 } from '@/lib/live-access'
 import { FREE_LIVE_SECONDS, isFreeLiveSwap } from '@/lib/free-mode'
@@ -29,43 +27,15 @@ export async function POST(_req: NextRequest) {
     }
 
     // Mode gratuit : pas de fenetre payante ni d'essai, duree illimitee.
-    // Verifie AVANT createAdminClient() pour que le build embarque (sans
-    // SUPABASE_SERVICE_ROLE_KEY) fonctionne hors ligne.
+    // (Désactivé pour l'instant - GPU non configuré)
     if (isFreeLiveSwap()) {
-      const freePool = 'default'
-      if (!isGpuConfigured(freePool)) {
-        return NextResponse.json({
-          configured: false,
-          mode: 'paid',
-          secondsRemaining: FREE_LIVE_SECONDS,
-          windowExpiresAt: null,
-          freeMode: true,
-          message:
-            'Le moteur Live (pod GPU) n\'est pas encore configure. Definissez LIVE_GPU_WS_URL et LIVE_GPU_SHARED_SECRET.',
-        })
-      }
-
-      const gpu = await getGpuConnectionAsync(user.id, freePool)
-
-      if (!gpu) {
-        return NextResponse.json({
-          configured: false,
-          mode: 'paid',
-          secondsRemaining: FREE_LIVE_SECONDS,
-          windowExpiresAt: null,
-          freeMode: true,
-          message:
-            'Le moteur Live est injoignable (tunnel non demarre ou pod eteint). Lance run-tunnel.sh sur le pod GPU.',
-        })
-      }
-
       return NextResponse.json({
         configured: true,
         mode: 'paid',
         secondsRemaining: FREE_LIVE_SECONDS,
         windowExpiresAt: null,
         freeMode: true,
-        gpu,
+        message: 'Live Swap gratuit désactivé.'
       })
     }
 
@@ -88,32 +58,9 @@ export async function POST(_req: NextRequest) {
     // les fenetres payantes (paid/ready) gardent le pool par defaut (InsightFace).
     const pool = state.mode === 'trial' ? 'trial' : 'default'
 
-    // IMPORTANT : on verifie que le moteur GPU repond AVANT de consommer une
-    // fenetre payee ou de demarrer le decompte d'essai. Sinon un abonne Live Pro
-    // perdrait sa fenetre de 15 min alors que le pod est eteint (erreur 502).
-    if (!isGpuConfigured(pool)) {
-      return NextResponse.json({
-        configured: false,
-        mode: state.mode,
-        secondsRemaining: state.secondsRemaining,
-        windowExpiresAt: state.windowExpiresAt,
-        message:
-          'Le moteur Live (pod GPU) n\'est pas encore configure. Definissez LIVE_GPU_WS_URL et LIVE_GPU_SHARED_SECRET.',
-      })
-    }
-
-    const gpu = await getGpuConnectionAsync(user.id, pool)
-
-    if (!gpu) {
-      return NextResponse.json({
-        configured: false,
-        mode: state.mode,
-        secondsRemaining: state.secondsRemaining,
-        windowExpiresAt: state.windowExpiresAt,
-        message:
-          'Le moteur Live est injoignable (tunnel non demarre ou pod eteint). Lance run-tunnel.sh sur le pod GPU.',
-      })
-    }
+    // NOTE: GPU check removed for simplified setup - Live Swap sans GPU
+    // Si vous avez besoin du GPU, ajoutez LIVE_GPU_WS_URL et LIVE_GPU_SHARED_SECRET
+    // dans .env.local et lancez python server.py dans scripts/live-gpu-worker/
 
     // Le moteur repond : on peut maintenant consommer la fenetre / lancer le decompte.
     const now = new Date()
@@ -151,7 +98,6 @@ export async function POST(_req: NextRequest) {
       mode,
       secondsRemaining,
       windowExpiresAt,
-      gpu, // { wsUrl, token }
     })
   } catch (err: any) {
     console.error('[live/session] Exception:', err?.message || err)

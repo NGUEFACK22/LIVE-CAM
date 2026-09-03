@@ -51,7 +51,7 @@ function PlansContent() {
             Recharger mes crédits
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            20 F = 1 point • 2 points = 1 seconde de transformation
+            20 F = 1 point • 1 point = 1 seconde de transformation
           </p>
         </div>
 
@@ -103,8 +103,8 @@ function PlansContent() {
             </div>
             <p className="mt-3 text-center text-xs text-muted-foreground">
               {Math.floor(customAmount / 20)} points •{' '}
-              {Math.floor(Math.floor(customAmount / 20) / 2 / 60)} min{' '}
-              {Math.floor((Math.floor(customAmount / 20) / 2) % 60)} sec de Live Swap
+              {Math.floor(Math.floor(customAmount / 20) / 60)} min{' '}
+              {Math.floor(Math.floor(customAmount / 20) % 60)} sec de Live Swap
             </p>
             <p className="mt-2 text-center text-xs text-muted-foreground">
               Total à payer :{' '}
@@ -125,7 +125,7 @@ function PlansContent() {
           </div>
           <ul className="space-y-1.5">
             <li>• Chaque recharge ajoute des points à votre solde.</li>
-            <li>• 2 points = 1 seconde de transformation du visage et corps entier.</li>
+            <li>• 1 point = 1 seconde de transformation du visage et corps entier.</li>
             <li>• Votre solde restant est visible dans le menu Latéral du dashboard.</li>
           </ul>
         </div>

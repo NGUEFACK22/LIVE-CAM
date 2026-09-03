@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
               ? 'pc'
               : 'voice'
     const customPoints = isCustom ? Math.floor(customAmount / 20) : 0
-    const customMinutes = isCustom ? `${Math.floor(customPoints / 2 / 60)} min ${Math.floor((customPoints / 2) % 60)} sec` : ''
+    const customMinutes = isCustom ? `${Math.floor(customPoints / 60)} min ${customPoints % 60} sec` : ''
     const label = isCustom
       ? `Recharge ${customAmount.toLocaleString()} F (${customPoints} points, ${customMinutes})`
       : plan
