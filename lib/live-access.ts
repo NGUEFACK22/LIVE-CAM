@@ -42,7 +42,7 @@ export async function ensureLiveAccess(admin: Admin, userId: string): Promise<Li
   const fresh = {
     user_id: userId,
     trial_seconds_remaining: LIVE_TRIAL_SECONDS,
-    pending_windows: 0,
+    pending_windows: 1,
     active_window_expires_at: null,
     trial_last_beat_at: null,
   }
@@ -99,8 +99,7 @@ export function computeState(row: LiveAccessRow): LiveAccessState {
   }
 
   // Essai gratuit desactive : la periode d'essai de 2 min est terminee.
-  // Vérification de l'etat d'acces : selon le mode (free/paid/trial/none)
-  // et le solde de fenetres/credits.
+  // Verification de l'etat d'acces selon le mode actuel et le solde de fenetres.
   if (isFreeLiveSwap()) {
     return {
       mode: 'paid',
@@ -118,8 +117,8 @@ export function computeState(row: LiveAccessRow): LiveAccessState {
     : 0
   const windowActive = windowMs > now
 
+  // 1. Fenetre payante active en cours
   if (windowActive) {
-    // Fenetre payante en cours
     return {
       mode: 'paid',
       secondsRemaining: Math.max(0, Math.floor((windowMs - now) / 1000)),
@@ -130,8 +129,8 @@ export function computeState(row: LiveAccessRow): LiveAccessState {
     }
   }
 
+  // 2. Fenetres en attente disponibles (credits)
   if (row.pending_windows > 0) {
-    // Fenetre payenne disponible (non demarree)
     return {
       mode: 'ready',
       secondsRemaining: 0,
@@ -142,8 +141,7 @@ export function computeState(row: LiveAccessRow): LiveAccessState {
     }
   }
 
-  // Aucun acces : la periode d'essai est terminee et pas de fenetre en attente.
-  // L'utilisateur doit obtenir des credits (via paiement Live Pro) pour avoir des fenetres.
+  // 3. Aucun acces : essais termine et pas de fenetres de credit
   return {
     mode: 'none',
     secondsRemaining: 0,
@@ -152,11 +150,6 @@ export function computeState(row: LiveAccessRow): LiveAccessState {
     windowExpiresAt: null,
     canStart: false,
   }
-    mode: 'none',
-    secondsRemaining: 0,
-    trialSecondsRemaining: 0,
-    pendingWindows: 0,
-    windowExpiresAt: null,
     canStart: false,
   }
 }
