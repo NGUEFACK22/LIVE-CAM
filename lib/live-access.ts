@@ -99,8 +99,59 @@ export function computeState(row: LiveAccessRow): LiveAccessState {
   }
 
   // Essai gratuit desactive : la periode d'essai de 2 min est terminee.
-  // Tous les comptes basculent sur 'none' (doivent payer).
+  // Vérification de l'etat d'acces : selon le mode (free/paid/trial/none)
+  // et le solde de fenetres/credits.
+  if (isFreeLiveSwap()) {
+    return {
+      mode: 'paid',
+      secondsRemaining: FREE_LIVE_SECONDS,
+      trialSecondsRemaining: FREE_LIVE_SECONDS,
+      pendingWindows: row.pending_windows,
+      windowExpiresAt: null,
+      canStart: true,
+    }
+  }
+
+  const now = Date.now()
+  const windowMs = row.active_window_expires_at
+    ? new Date(row.active_window_expires_at).getTime()
+    : 0
+  const windowActive = windowMs > now
+
+  if (windowActive) {
+    // Fenetre payante en cours
+    return {
+      mode: 'paid',
+      secondsRemaining: Math.max(0, Math.floor((windowMs - now) / 1000)),
+      trialSecondsRemaining: row.trial_seconds_remaining,
+      pendingWindows: row.pending_windows,
+      windowExpiresAt: row.active_window_expires_at,
+      canStart: true,
+    }
+  }
+
+  if (row.pending_windows > 0) {
+    // Fenetre payenne disponible (non demarree)
+    return {
+      mode: 'ready',
+      secondsRemaining: 0,
+      trialSecondsRemaining: row.trial_seconds_remaining,
+      pendingWindows: row.pending_windows,
+      windowExpiresAt: null,
+      canStart: true,
+    }
+  }
+
+  // Aucun acces : la periode d'essai est terminee et pas de fenetre en attente.
+  // L'utilisateur doit obtenir des credits (via paiement Live Pro) pour avoir des fenetres.
   return {
+    mode: 'none',
+    secondsRemaining: 0,
+    trialSecondsRemaining: 0,
+    pendingWindows: 0,
+    windowExpiresAt: null,
+    canStart: false,
+  }
     mode: 'none',
     secondsRemaining: 0,
     trialSecondsRemaining: 0,
