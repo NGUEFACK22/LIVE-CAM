@@ -98,9 +98,32 @@ export function computeState(row: LiveAccessRow): LiveAccessState {
     }
   }
 
-  // Essai gratuit DESACTIVE : la periode d'essai de 2 min est terminee.
-  // On ne renvoie plus jamais le mode 'trial', meme pour les comptes qui
-  // avaient encore des secondes d'essai. Ils basculent sur 'none' (doivent payer).
+  // Essai gratuit : verifier si la periode de 2 min est toujours active.
+  if (!row.trial_last_beat_at) {
+    // Nouveau compte : essai disponible plein pot à 2 min.
+    return {
+      mode: 'trial',
+      secondsRemaining: LIVE_TRIAL_SECONDS,
+      trialSecondsRemaining: LIVE_TRIAL_SECONDS,
+      pendingWindows: row.pending_windows,
+      windowExpiresAt: null,
+      canStart: true,
+    }
+  }
+
+  const lastBeat = new Date(row.trial_last_beat_at).getTime()
+  const elapsed = now - lastBeat
+  const remaining = row.trial_seconds_remaining - Math.floor(elapsed / 1000)
+  if (remaining > 0) {
+    return {
+      mode: 'trial',
+      secondsRemaining: Math.max(0, remaining),
+      trialSecondsRemaining: remaining,
+      pendingWindows: row.pending_windows,
+      windowExpiresAt: null,
+      canStart: true,
+    }
+  }
 
   return {
     mode: 'none',
