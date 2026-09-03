@@ -121,7 +121,8 @@ export async function POST(_req: NextRequest) {
     let secondsRemaining = state.secondsRemaining
     let windowExpiresAt = state.windowExpiresAt
 
-    if (state.mode === 'ready') {
+    // Consommer un crédit à chaque lancement si l'utilisateur en a
+    if (row.pending_windows > 0) {
       // Demarrer une fenetre payee : pending_windows-- et active_window_expires_at = now + 15 min
       const minutes = liveOfferWindowMinutes('live15')
       const expires = new Date(now.getTime() + minutes * 60 * 1000)
@@ -143,7 +144,7 @@ export async function POST(_req: NextRequest) {
         .update({ trial_last_beat_at: now.toISOString(), updated_at: now.toISOString() })
         .eq('user_id', user.id)
     }
-    // mode 'paid' deja en cours : rien a faire, la fenetre tourne deja.
+    // mode 'paid' deja en cours avec fenetre active : rien a faire, la fenetre tourne deja.
 
     return NextResponse.json({
       configured: true,
