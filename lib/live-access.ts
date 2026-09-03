@@ -98,33 +98,8 @@ export function computeState(row: LiveAccessRow): LiveAccessState {
     }
   }
 
-  // Essai gratuit : verifier si la periode de 2 min est toujours active.
-  if (!row.trial_last_beat_at) {
-    // Nouveau compte : essai disponible plein pot à 2 min.
-    return {
-      mode: 'trial',
-      secondsRemaining: LIVE_TRIAL_SECONDS,
-      trialSecondsRemaining: LIVE_TRIAL_SECONDS,
-      pendingWindows: row.pending_windows,
-      windowExpiresAt: null,
-      canStart: true,
-    }
-  }
-
-  const lastBeat = new Date(row.trial_last_beat_at).getTime()
-  const elapsed = now - lastBeat
-  const remaining = row.trial_seconds_remaining - Math.floor(elapsed / 1000)
-  if (remaining > 0) {
-    return {
-      mode: 'trial',
-      secondsRemaining: Math.max(0, remaining),
-      trialSecondsRemaining: remaining,
-      pendingWindows: row.pending_windows,
-      windowExpiresAt: null,
-      canStart: true,
-    }
-  }
-
+  // Essai gratuit desactive : la periode d'essai de 2 min est terminee.
+  // Tous les comptes basculent sur 'none' (doivent payer).
   return {
     mode: 'none',
     secondsRemaining: 0,
