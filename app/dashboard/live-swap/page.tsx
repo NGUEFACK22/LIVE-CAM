@@ -286,7 +286,7 @@ export default function DashboardPage() {
     }
 
     loadData()
-  }, [supabase, loadPoints])
+  }, [supabase, loadPoints, checkAccess])
 
   // Envoie au serveur les points consommes mais pas encore synchronises.
   // Utilise des refs -> aucune closure perimee. Rejoue le lot en cas d'echec.
@@ -510,6 +510,15 @@ export default function DashboardPage() {
       rateRef.current = swapMode === 'extra' ? 2 : 1
       remainingRef.current = FREE_MODE ? FREE_UNLIMITED_POINTS : remainingRef.current
       await connect(selectedAvatar.url, { swapMode })
+
+      // Synchroniser le solde reel des la connexion etablie : le POST
+      // /api/live/session vient de consommer une fenetre qui credite les points
+      // (15 min = 900 pts). Sans ce refresh, un utilisateur qui demarre avec
+      // 0 point + des sessions verrait remainingRef rester a 0 et son swap
+      // couper apres la 1ere frame (tick suivant = 0 - 2 <= 0).
+      if (!FREE_MODE) {
+        await loadPoints()
+      }
 
       // NB : aucune activation automatique de la diffusion OBS / camera
       // virtuelle ici (voir commentaire plus haut) — l'utilisateur la lance
