@@ -100,9 +100,8 @@ export async function POST(request: NextRequest) {
     // mise a jour et on repond 409 (le client rejouera au prochain tick).
     const { data: updated, error: updateError } = await admin
       .from('subscriptions')
-      .update({ 
+      .update({
         points: newPoints,
-        updated_at: new Date().toISOString()
       })
       .eq('id', subscription.id)
       .eq('points', currentPoints)

@@ -130,7 +130,6 @@ export async function POST(_req: NextRequest) {
           .update({
             points: newPoints,
             max_points: Math.max(sub.max_points || 0, newPoints),
-            updated_at: now.toISOString(),
           })
           .eq('user_id', user.id)
       }

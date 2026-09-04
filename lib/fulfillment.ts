@@ -268,7 +268,6 @@ export async function creditPurchase(
         max_points: customPoints,
         plan: 'custom',
         is_active: true,
-        updated_at: new Date().toISOString(),
       })
       .eq('user_id', userId)
     // Fallback: si pas de ligne subscriptions, on l'insère
