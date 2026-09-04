@@ -1279,8 +1279,8 @@ export default function DashboardPage() {
               </div>
               <p className="mt-2 text-[11px] text-foreground/50">
                 {swapMode === 'extra'
-                  ? 'Le mode Extra (lucy-2.5) offre la meilleure transformation mais consomme 2x plus de crédits.'
-                  : 'Le mode Économique (lucy-2.1) consomme la moitié des crédits du mode Extra.'}
+                  ? 'Le mode Extra offre la meilleure transformation mais consomme 2x plus de crédits.'
+                  : 'Le mode Économique consomme la moitié des crédits du mode Extra.'}
               </p>
             </div>
           )}

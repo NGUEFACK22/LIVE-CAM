@@ -1039,7 +1039,7 @@ export function useLucy21() {
         scheduleAutoRetry(
           avatarImageUrl,
           'Le service IA Decart est temporairement saturé (aucun serveur de calcul disponible)',
-          "Le service IA Decart est temporairement saturé (aucun serveur de calcul disponible pour lucy-2.5). Réessaie dans quelques minutes.",
+          "Le service IA Decart est temporairement saturé (aucun serveur de calcul disponible). Réessaie dans quelques minutes.",
         )
         return
       }
@@ -1047,7 +1047,7 @@ export function useLucy21() {
       let message = rawMessage
       if (isCapacityError) {
         message =
-          "Le service IA Decart est temporairement saturé (aucun serveur de calcul disponible pour lucy-2.5). Réessaie dans quelques minutes."
+          "Le service IA Decart est temporairement saturé (aucun serveur de calcul disponible). Réessaie dans quelques minutes."
       } else if (
         /signaling|server error|websocket|connect/i.test(rawMessage) ||
         /signaling/i.test(String(err))
