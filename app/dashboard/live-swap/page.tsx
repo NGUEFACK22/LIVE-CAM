@@ -46,6 +46,10 @@ export default function DashboardPage() {
   // syncPendingPoints (coupe le swap quand le solde tombe à 0) et
   // handleStopSwapAndSave (flush des points restants).
   const handleStopSwapAndSaveRef = useRef<() => Promise<void>>(async () => {})
+  // Flag : true une fois les points charges depuis le serveur. Tant que false,
+  // l'intervalle de conso ne deduit rien (evite d'afficher 0 puis de decroitre
+  // alors que le solde reel n'est pas encore connu).
+  const pointsLoadedRef = useRef<boolean>(false)
   // Certification d'usage responsable, requise avant chaque demarrage de swap.
   const [swapConsent, setSwapConsent] = useState(false)
   const [accessError, setAccessError] = useState<string | null>(null)
@@ -229,6 +233,25 @@ export default function DashboardPage() {
     }
   }, [])
 
+  // Charge les points depuis l'API et met a jour les refs + sidebar.
+  // Appelé au montage et a chaque debut de swap pour avoir le solde a jour.
+  const loadPoints = useCallback(async () => {
+    try {
+      const pointsRes = await fetch('/api/points')
+      const pointsData = await pointsRes.json().catch(() => null)
+      if (pointsData?.success) {
+        setUserPoints(pointsData.points ?? 0)
+        setMaxPoints(pointsData.maxPoints ?? 0)
+        remainingRef.current = pointsData.points ?? 0
+        pointsLoadedRef.current = true
+        // Sidebar temps reel : afficher le solde REEL des le depart du live.
+        emitPointsUpdate(pointsData.points ?? 0, pointsData.maxPoints ?? 0)
+      }
+    } catch (err) {
+      console.error('Erreur chargement points:', err)
+    }
+  }, [])
+
   // Load user data
   useEffect(() => {
     const loadData = async () => {
@@ -238,17 +261,7 @@ export default function DashboardPage() {
       setUserId(user.id)
 
       // Charger les points via l'API
-      try {
-        const pointsRes = await fetch('/api/points')
-        const pointsData = await pointsRes.json().catch(() => null)
-        if (pointsData?.success) {
-          setUserPoints(pointsData.points ?? 0)
-          setMaxPoints(pointsData.maxPoints ?? 0)
-          remainingRef.current = pointsData.points ?? 0
-        }
-      } catch (err) {
-        console.error('Erreur chargement points:', err)
-      }
+      await loadPoints()
 
       const { data: avatarsData } = await supabase
         .from('user_avatars')
@@ -264,7 +277,7 @@ export default function DashboardPage() {
     }
 
     loadData()
-  }, [supabase])
+  }, [supabase, loadPoints])
 
   // Envoie au serveur les points consommes mais pas encore synchronises.
   // Utilise des refs -> aucune closure perimee. Rejoue le lot en cas d'echec.
@@ -308,6 +321,10 @@ export default function DashboardPage() {
     if (!isConnected) return
     const SYNC_EVERY_SECONDS = 10
     const interval = setInterval(() => {
+      // Ne pas deduire tant que le solde reel n'est pas charge depuis le serveur.
+      // (evite d'afficher 0 puis decroitre pendant le fetch initial)
+      if (!pointsLoadedRef.current) return
+
       durationRef.current += 1
       setDuration(durationRef.current)
 
@@ -449,6 +466,13 @@ export default function DashboardPage() {
     clearError()
 
     try {
+      // Recharger les points pour avoir le solde a jour (recharge admin ou paiement
+      // peut avoir eu lieu depuis le dernier chargement).
+      if (!FREE_MODE) {
+        await loadPoints()
+        if (remainingRef.current < POINTS_PER_SECOND) return
+      }
+
       // Check access before starting (validates trial/paid status with server)
       const access = await checkAccess()
       if (!access.canStart) {
@@ -469,7 +493,7 @@ export default function DashboardPage() {
       durationRef.current = 0
       pointsUsedRef.current = 0
       pendingSyncRef.current = 0
-      remainingRef.current = FREE_MODE ? FREE_UNLIMITED_POINTS : userPoints
+      remainingRef.current = FREE_MODE ? FREE_UNLIMITED_POINTS : remainingRef.current
       await connect(selectedAvatar.url)
 
       // NB : aucune activation automatique de la diffusion OBS / camera
