@@ -42,6 +42,9 @@ export default function DashboardPage() {
   const pointsUsedRef = useRef(0)        // total points consommes ce swap
   const pendingSyncRef = useRef(0)       // points consommes NON encore envoyes au serveur
   const remainingRef = useRef(0)         // solde restant estime (pour couper a 0)
+  // Vitesse de deduction (pts/s) : 2 en mode 'extra' (lucy-2.5), 1 en 'eco' (lucy-2.1).
+  // Ref pour que l'intervalle de conso utilise toujours le mode courant.
+  const rateRef = useRef(2)
   // Ref vers handleStopSwapAndSave : casse la dépendance circulaire entre
   // syncPendingPoints (coupe le swap quand le solde tombe à 0) et
   // handleStopSwapAndSave (flush des points restants).
@@ -132,6 +135,8 @@ export default function DashboardPage() {
     checkAccess,
     connectionState,
     pendingWindows,
+    swapMode,
+    setSwapMode,
   } = useLucy21()
 
   // Camera virtuelle (app de bureau) : NI le mode Stream NI la camera
@@ -338,9 +343,11 @@ export default function DashboardPage() {
         return
       }
 
-      pointsUsedRef.current += POINTS_PER_SECOND
-      pendingSyncRef.current += POINTS_PER_SECOND
-      remainingRef.current = Math.max(0, remainingRef.current - POINTS_PER_SECOND)
+      // Mode 'extra' consomme 2 pts/s, 'eco' 1 pt/s.
+      const rate = rateRef.current
+      pointsUsedRef.current += POINTS_PER_SECOND * rate
+      pendingSyncRef.current += POINTS_PER_SECOND * rate
+      remainingRef.current = Math.max(0, remainingRef.current - POINTS_PER_SECOND * rate)
 
       setPointsUsed(pointsUsedRef.current)
       setUserPoints(remainingRef.current)
@@ -463,7 +470,8 @@ export default function DashboardPage() {
   const handleStartSwap = async () => {
     if (!selectedAvatar || !swapConsent) return
     if (isConnecting || isConnected) return
-    if (!FREE_MODE && userPoints < POINTS_PER_SECOND && pendingWindows < 1) return
+    const startRate = swapMode === 'extra' ? 2 : 1
+    if (!FREE_MODE && userPoints < POINTS_PER_SECOND * startRate && pendingWindows < 1) return
 
     // Nettoyer les erreurs d'une tentative precedente.
     setAccessError(null)
@@ -476,7 +484,7 @@ export default function DashboardPage() {
       // POST /api/live/session creditera les points de la fenetre (15 min = 900 pts).
       if (!FREE_MODE && pendingWindows < 1) {
         await loadPoints()
-        if (remainingRef.current < POINTS_PER_SECOND) return
+        if (remainingRef.current < POINTS_PER_SECOND * startRate) return
       }
 
       // Check access before starting (validates trial/paid status with server)
@@ -499,8 +507,9 @@ export default function DashboardPage() {
       durationRef.current = 0
       pointsUsedRef.current = 0
       pendingSyncRef.current = 0
+      rateRef.current = swapMode === 'extra' ? 2 : 1
       remainingRef.current = FREE_MODE ? FREE_UNLIMITED_POINTS : remainingRef.current
-      await connect(selectedAvatar.url)
+      await connect(selectedAvatar.url, { swapMode })
 
       // NB : aucune activation automatique de la diffusion OBS / camera
       // virtuelle ici (voir commentaire plus haut) — l'utilisateur la lance
@@ -561,7 +570,7 @@ export default function DashboardPage() {
   const canStart =
     !!selectedAvatar &&
     swapConsent &&
-    (FREE_MODE || userPoints >= POINTS_PER_SECOND || pendingWindows >= 1)
+    (FREE_MODE || userPoints >= POINTS_PER_SECOND * (swapMode === 'extra' ? 2 : 1) || pendingWindows >= 1)
 
   const quickTools = [
     { href: '/dashboard/voice-swap', label: 'Voice Swap', icon: AudioLines, color: '#8b5cf6' },
@@ -1227,6 +1236,44 @@ export default function DashboardPage() {
           {/* Certification d'usage responsable (avant demarrage) */}
           {!isConnected && (
             <SwapConsent checked={swapConsent} onChange={setSwapConsent} className="mb-3" />
+          )}
+
+          {/* Choix du mode de qualite : economique (lucy-2.1) vs extra (lucy-2.5) */}
+          {!isConnected && (
+            <div className="mb-3">
+              <p className="mb-2 text-xs font-semibold text-foreground/60">Qualité du Live Swap</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSwapMode('eco')}
+                  className={`rounded-xl border px-3 py-3 text-left transition-all ${
+                    swapMode === 'eco'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-hairline bg-muted hover:border-hairline-strong'
+                  }`}
+                >
+                  <span className="block text-sm font-bold">Économique</span>
+                  <span className="mt-0.5 block text-[11px] text-foreground/60">Qualité standard · 1 crédit/s</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSwapMode('extra')}
+                  className={`rounded-xl border px-3 py-3 text-left transition-all ${
+                    swapMode === 'extra'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-hairline bg-muted hover:border-hairline-strong'
+                  }`}
+                >
+                  <span className="block text-sm font-bold">Extra (recommandé)</span>
+                  <span className="mt-0.5 block text-[11px] text-foreground/60">Meilleure qualité · 2 crédits/s</span>
+                </button>
+              </div>
+              <p className="mt-2 text-[11px] text-foreground/50">
+                {swapMode === 'extra'
+                  ? 'Le mode Extra (lucy-2.5) offre la meilleure transformation mais consomme 2x plus de crédits.'
+                  : 'Le mode Économique (lucy-2.1) consomme la moitié des crédits du mode Extra.'}
+              </p>
+            </div>
           )}
 
           {/* Bouton Demarrer (degrade vert -> violet).

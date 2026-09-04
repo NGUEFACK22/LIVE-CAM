@@ -117,6 +117,14 @@ export function useLucy21() {
   const [accessChecked, setAccessChecked] = useState(false)
   const [virtualCamError, setVirtualCamError] = useState<string | null>(null)
   const [pendingWindows, setPendingWindows] = useState(0)
+  // Mode de qualite : 'extra' (lucy-2.5, 2 pts/s) par defaut, 'eco' (lucy-2.1, 1 pt/s).
+  // Stocke en ref pour survivre aux auto-retries (connect relance sans nouvel opts).
+  const [swapMode, setSwapModeState] = useState<'eco' | 'extra'>('extra')
+  const swapModeRef = useRef<'eco' | 'extra'>('extra')
+  const setSwapMode = useCallback((mode: 'eco' | 'extra') => {
+    swapModeRef.current = mode
+    setSwapModeState(mode)
+  }, [])
 
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
@@ -414,8 +422,16 @@ export function useLucy21() {
   // Connect
   // ---------------------------------------------------------------------------
 
-  const connect = useCallback(async (avatarImageUrl: string, opts?: { isRetry?: boolean }) => {
-    if (!avatarImageUrl) {
+  const connect = useCallback(
+    async (
+      avatarImageUrl: string,
+      opts?: { isRetry?: boolean; swapMode?: 'eco' | 'extra' },
+    ) => {
+      if (opts?.swapMode) {
+        swapModeRef.current = opts.swapMode
+        setSwapModeState(opts.swapMode)
+      }
+      if (!avatarImageUrl) {
       setError("Aucun avatar sélectionné.")
       setConnectionState('error')
       return
@@ -695,7 +711,10 @@ export function useLucy21() {
       }, CONNECT_TIMEOUT_MS)
 
       const realtimeClient = await client.realtime.connect(stream, {
-        model: models.realtime('lucy-2.1'),
+        model:
+        swapModeRef.current === 'extra'
+          ? models.realtime('lucy-2.5')
+          : models.realtime('lucy-2.1'),
         // IMPORTANT : on DESACTIVE le miroir interne du SDK.
         // Avec `mirror: 'auto'`, le SDK enveloppe la camera dans un pipeline
         // MediaStreamTrackProcessor dont le dispose n'annule pas le flux de
@@ -1163,5 +1182,7 @@ export function useLucy21() {
     stopVirtualCamera,
     checkAccess,
     pendingWindows,
+    swapMode,
+    setSwapMode,
   }
 }
