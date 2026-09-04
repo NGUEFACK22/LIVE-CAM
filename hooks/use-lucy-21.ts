@@ -116,6 +116,7 @@ export function useLucy21() {
   const [demoMode, setDemoMode] = useState(false)
   const [accessChecked, setAccessChecked] = useState(false)
   const [virtualCamError, setVirtualCamError] = useState<string | null>(null)
+  const [pendingWindows, setPendingWindows] = useState(0)
 
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
@@ -286,6 +287,7 @@ export function useLucy21() {
     mode: string
     secondsRemaining: number
     windowExpiresAt: string | null
+    pendingWindows: number
     gpuConfigured: boolean
     pool: string
     error?: string
@@ -299,10 +301,14 @@ export function useLucy21() {
           mode: 'none',
           secondsRemaining: 0,
           windowExpiresAt: null,
+          pendingWindows: 0,
           gpuConfigured: false,
           pool: 'default',
           error: data?.error || 'Accès refusé',
         }
+      }
+      if (typeof data?.pendingWindows === 'number') {
+        setPendingWindows(data.pendingWindows)
       }
       return data
     } catch (err: unknown) {
@@ -312,9 +318,60 @@ export function useLucy21() {
         mode: 'none',
         secondsRemaining: 0,
         windowExpiresAt: null,
+        pendingWindows: 0,
         gpuConfigured: false,
         pool: 'default',
         error: "Impossible de vérifier l'accès",
+      }
+    }
+  }, [])
+
+  // ---------------------------------------------------------------------------
+  // Consommation d'un crédit (fenêtre) au lancement d'une session utilisateur.
+  // ------------</think>Appele UNIQUEMENT pour la tentative utilisateur (pas un
+  // retry automatique), sinon chaque relance re-debiterait un crédit.
+  // Utilise POST /api/live/session qui consomme pending_windows avant de
+  // renvoyer les infos de fenetre active.
+  const consumeWindow = useCallback(async (): Promise<{
+    ok: boolean
+    mode: string
+    secondsRemaining: number
+    windowExpiresAt: string | null
+    pendingWindows: number
+    error?: string
+  }> => {
+    try {
+      const res = await fetch('/api/live/session', { method: 'POST' })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        return {
+          ok: false,
+          mode: data?.mode || 'none',
+          secondsRemaining: 0,
+          windowExpiresAt: null,
+          pendingWindows: typeof data?.pendingWindows === 'number' ? data.pendingWindows : 0,
+          error: data?.error || 'Impossible de démarrer la session',
+        }
+      }
+      const windows =
+        typeof data?.pendingWindows === 'number' ? data.pendingWindows : 0
+      setPendingWindows(windows)
+      return {
+        ok: true,
+        mode: data?.mode || 'paid',
+        secondsRemaining: typeof data?.secondsRemaining === 'number' ? data.secondsRemaining : 0,
+        windowExpiresAt: data?.windowExpiresAt || null,
+        pendingWindows: windows,
+      }
+    } catch (err: unknown) {
+      console.error('[Lucy 2.1] Consommation de crédit échouée:', err)
+      return {
+        ok: false,
+        mode: 'none',
+        secondsRemaining: 0,
+        windowExpiresAt: null,
+        pendingWindows: 0,
+        error: "Impossible de vérifier les crédits auprès du serveur.",
       }
     }
   }, [])
@@ -400,7 +457,9 @@ export function useLucy21() {
     const isStale = () => gen !== connectGenRef.current || !mountedRef.current
 
     try {
-      // Check access first
+      // Essai utilisateur : verifier l'acces (lecture seule) puis consommer
+      // UN credit (POST) pour cette nouvelle session. Les retries auto ne
+      // repassent pas ici (accessChecked update seulement apres la 1re fois).
       if (!accessChecked) {
         const access = await checkAccess()
         if (isStale()) return
@@ -409,6 +468,18 @@ export function useLucy21() {
           setIsConnecting(false)
           setConnectionState('error')
           return
+        }
+
+        // Consommer un crédit si c'est une vraie tentative utilisateur.
+        if (!opts?.isRetry) {
+          const session = await consumeWindow()
+          if (isStale()) return
+          if (!session.ok) {
+            setError(session.error || 'Accès au Live Swap refusé')
+            setIsConnecting(false)
+            setConnectionState('error')
+            return
+          }
         }
         setAccessChecked(true)
       }
@@ -974,6 +1045,7 @@ export function useLucy21() {
   }, [
     accessChecked,
     checkAccess,
+    consumeWindow,
     disconnect,
     disconnectDecart,
     releaseMedia,
@@ -1090,5 +1162,6 @@ export function useLucy21() {
     startVirtualCamera,
     stopVirtualCamera,
     checkAccess,
+    pendingWindows,
   }
 }

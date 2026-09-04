@@ -36,13 +36,30 @@ export async function GET(_req: NextRequest) {
     const row = await ensureLiveAccess(admin, user.id)
     const state = computeState(row)
 
-    if (!state.canStart) {
+    // Un utilisateur peut aussi demarrer s'il a une fenetre active, des
+    // credits sessions (pending_windows) OU des points restants (ancien mode
+    // facturation a la seconde). On accepte le mode points comme fallback.
+    let canStart = state.canStart
+    let pointsBalance = 0
+    if (!canStart) {
+      const { data: sub } = await admin
+        .from('subscriptions')
+        .select('points')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      pointsBalance = sub?.points ?? 0
+      canStart = pointsBalance > 0
+    }
+
+    if (!canStart) {
       return NextResponse.json(
         {
           canStart: false,
           error:
-            "La periode d'essai gratuit de 2 minutes a pris fin il y a quelques jours. Achetez l'offre Live Pro pour continuer.",
+            "Vous n'avez plus de crédits Live Swap. Achetez des crédits pour continuer.",
           mode: 'none',
+          pendingWindows: state.pendingWindows,
+          points: pointsBalance,
         },
         { status: 403 },
       )
@@ -54,9 +71,11 @@ export async function GET(_req: NextRequest) {
 
     return NextResponse.json({
       canStart: true,
-      mode: state.mode,
-      secondsRemaining: state.secondsRemaining,
+      mode: state.canStart ? state.mode : 'paid',
+      secondsRemaining: state.canStart ? state.secondsRemaining : pointsBalance,
       windowExpiresAt: state.windowExpiresAt,
+      pendingWindows: state.pendingWindows,
+      points: pointsBalance,
       gpuConfigured,
       pool,
     })

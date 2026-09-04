@@ -43,12 +43,28 @@ export async function POST(_req: NextRequest) {
     const row = await ensureLiveAccess(admin, user.id)
     const state = computeState(row)
 
+    // Fallback : si l'utilisateur n'a ni fenetre active ni credits sessions
+    // mais possede des points (ancien mode facturation a la seconde), il peut
+    // quand meme demarrer : les points seront debites progressivement par
+    // POST /api/points pendant la session.
+    let pointsBalance = 0
     if (!state.canStart) {
+      const { data: sub } = await admin
+        .from('subscriptions')
+        .select('points')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      pointsBalance = sub?.points ?? 0
+    }
+
+    if (!state.canStart && pointsBalance <= 0) {
       return NextResponse.json(
         {
           error:
-            "La periode d'essai gratuit de 2 minutes a pris fin il y a quelques jours. Achetez l'offre Live Pro pour continuer.",
+            "Vous n'avez plus de crédits Live Swap. Achetez des crédits pour continuer.",
           mode: 'none',
+          pendingWindows: state.pendingWindows,
+          points: pointsBalance,
         },
         { status: 403 },
       )
@@ -67,9 +83,19 @@ export async function POST(_req: NextRequest) {
     let mode = state.mode
     let secondsRemaining = state.secondsRemaining
     let windowExpiresAt = state.windowExpiresAt
+    let consumed = false
 
-    // Consommer un crédit à chaque lancement si l'utilisateur en a
-    if (row.pending_windows > 0) {
+    // Fallback credits : ni fenetre ni credits, mais des points -> mode points.
+    if (mode === 'none' && pointsBalance > 0) {
+      mode = 'paid'
+      secondsRemaining = pointsBalance
+    }
+
+    // Consommer un crédit UNIQUEMENT au lancement d'une nouvelle session
+    // (mode 'ready' : credits disponibles mais aucune fenetre active).
+    // Si une fenetre est DEJA active (mode 'paid'), on ne re-debite pas :
+    // le temps restant continue de tourner.
+    if (state.mode === 'ready' && row.pending_windows > 0) {
       // Demarrer une fenetre payee : pending_windows-- et active_window_expires_at = now + 15 min
       const minutes = liveOfferWindowMinutes('live15')
       const expires = new Date(now.getTime() + minutes * 60 * 1000)
@@ -81,9 +107,33 @@ export async function POST(_req: NextRequest) {
           updated_at: now.toISOString(),
         })
         .eq('user_id', user.id)
+      consumed = true
       mode = 'paid'
       secondsRemaining = minutes * 60
       windowExpiresAt = expires.toISOString()
+
+      // Créditer automatiquement les points de la fenêtre (1 pt/s) dans
+      // subscriptions : la fenetre de 15 min = 15 * 60 = 900 points, qui
+      // seront debites a la seconde pendant la session (meme logique que
+      // POST /api/points). L'utilisateur peut donc swaper jusqu'a la fin de
+      // sa fenetre sans etre bloque par un solde de points separé.
+      const windowPoints = minutes * 60
+      const { data: sub } = await admin
+        .from('subscriptions')
+        .select('points, max_points')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      if (sub) {
+        const newPoints = (sub.points || 0) + windowPoints
+        await admin
+          .from('subscriptions')
+          .update({
+            points: newPoints,
+            max_points: Math.max(sub.max_points || 0, newPoints),
+            updated_at: now.toISOString(),
+          })
+          .eq('user_id', user.id)
+      }
     } else if (state.mode === 'trial') {
       // Marquer le debut du decompte d'essai
       await admin
@@ -93,11 +143,15 @@ export async function POST(_req: NextRequest) {
     }
     // mode 'paid' deja en cours avec fenetre active : rien a faire, la fenetre tourne deja.
 
+    // Credits restants apres deduction eventuelle d'une fenetre.
+    const windowsRemaining = consumed ? row.pending_windows - 1 : row.pending_windows
+
     return NextResponse.json({
       configured: true,
       mode,
       secondsRemaining,
       windowExpiresAt,
+      pendingWindows: Math.max(0, windowsRemaining),
     })
   } catch (err: any) {
     console.error('[live/session] Exception:', err?.message || err)

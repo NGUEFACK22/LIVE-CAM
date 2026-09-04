@@ -131,6 +131,7 @@ export default function DashboardPage() {
     updateAvatar,
     checkAccess,
     connectionState,
+    pendingWindows,
   } = useLucy21()
 
   // Camera virtuelle (app de bureau) : NI le mode Stream NI la camera
@@ -262,6 +263,9 @@ export default function DashboardPage() {
 
       // Charger les points via l'API
       await loadPoints()
+
+      // Charger les crédits (fenêtres) disponibles pour le badge.
+      void checkAccess().catch(() => {})
 
       const { data: avatarsData } = await supabase
         .from('user_avatars')
@@ -459,7 +463,7 @@ export default function DashboardPage() {
   const handleStartSwap = async () => {
     if (!selectedAvatar || !swapConsent) return
     if (isConnecting || isConnected) return
-    if (!FREE_MODE && userPoints < POINTS_PER_SECOND) return
+    if (!FREE_MODE && userPoints < POINTS_PER_SECOND && pendingWindows < 1) return
 
     // Nettoyer les erreurs d'une tentative precedente.
     setAccessError(null)
@@ -467,8 +471,10 @@ export default function DashboardPage() {
 
     try {
       // Recharger les points pour avoir le solde a jour (recharge admin ou paiement
-      // peut avoir eu lieu depuis le dernier chargement).
-      if (!FREE_MODE) {
+      // peut avoir eu lieu depuis le dernier chargement). Un utilisateur avec des
+      // credits sessions (pendingWindows) peut demarrer meme sans points : le
+      // POST /api/live/session creditera les points de la fenetre (15 min = 900 pts).
+      if (!FREE_MODE && pendingWindows < 1) {
         await loadPoints()
         if (remainingRef.current < POINTS_PER_SECOND) return
       }
@@ -555,7 +561,7 @@ export default function DashboardPage() {
   const canStart =
     !!selectedAvatar &&
     swapConsent &&
-    (FREE_MODE || userPoints >= POINTS_PER_SECOND)
+    (FREE_MODE || userPoints >= POINTS_PER_SECOND || pendingWindows >= 1)
 
   const quickTools = [
     { href: '/dashboard/voice-swap', label: 'Voice Swap', icon: AudioLines, color: '#8b5cf6' },
@@ -715,7 +721,14 @@ export default function DashboardPage() {
             ) : (
               <>
                 <span className="text-foreground font-bold">{userPoints.toLocaleString()}</span>
-                <span className="text-muted-foreground text-sm">points</span>
+                <span className="text-muted-foreground text-sm">
+                  points
+                  {pendingWindows > 0 && (
+                    <span className="ml-1.5 rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                      +{pendingWindows} session{pendingWindows > 1 ? 's' : ''}
+                    </span>
+                  )}
+                </span>
               </>
             )}
           </div>
