@@ -4,11 +4,11 @@
  * Objectif : restaurer l'outil de transformation d'apparence (appels WhatsApp,
  * TikTok, Zoom, etc.) sans passer par un forfait payant.
  *
- * Desactivation (re-monetisation) :
- *   NEXT_PUBLIC_FREE_LIVE_SWAP=false
+ * Activation (mode gratuit/illimite) :
+ *   NEXT_PUBLIC_FREE_LIVE_SWAP=true
  *
- * Par defaut le mode gratuit est ACTIVE (le produit est gratuit et illimite
- * pour le moment ; on pourra le desactiver via la variable d'environnement).
+ * Par defaut le mode gratuit est DESACTIVE (re-monetisation active). En production,
+ * une absence de variable declenche un avertissement clair.
  */
 
 function envFlag(value: string | undefined): boolean | null {
@@ -28,19 +28,22 @@ export function isFreeLiveSwap(): boolean {
   if (pub !== null) return pub
   const srv = envFlag(process.env.FREE_LIVE_SWAP)
   if (srv !== null) return srv
-  // Defaut : gratuit et illimite (produit en lancement).
-  // Garde-fou : en production, si la variable n'est PAS explicitement definie,
-  // on emet un avertissement clair une seule fois — le produit est alors
-  // gratuit et illimite, et les forfaits payants sont contournes.
+    // Par defaut : payant (grace au systeme de points/forfaits).
+  // Garde-fou : en production, on emet un avertissement une seule fois si
+  // la variable n'est PAS explicite. Le produit est alors en mode PAYANT —
+  // les utilisateurs sont factures normalement via le systeme de points.
+  // Pour activer le mode gratuit/illimite, definir NEXT_PUBLIC_FREE_LIVE_SWAP=true.
   if (process.env.NODE_ENV === 'production' && !warnedProd) {
     warnedProd = true
-    console.warn(
-      '[free-mode] ATTENTION : NEXT_PUBLIC_FREE_LIVE_SWAP n\'est pas défini en production. ' +
-        'Le Live Swap / Face Swap est GRATUIT et ILLIMITÉ pour tous les utilisateurs. ' +
-        'Mettez NEXT_PUBLIC_FREE_LIVE_SWAP=false dans l\'environnement pour réactiver les forfaits/points.',
-    )
+    if (process.env.NEXT_PUBLIC_FREE_LIVE_SWAP !== 'true') {
+      console.warn(
+        '[free-mode] ATTENTION : NEXT_PUBLIC_FREE_LIVE_SWAP n\'est pas défini à "true" en production. ' +
+          'Le Live Swap est en mode PAYANT — les utilisateurs sont facturés via le système de points/forfaits. ' +
+          'Définir NEXT_PUBLIC_FREE_LIVE_SWAP=true pour activer le mode gratuit/illimité.',
+      )
+    }
   }
-  return true
+  return false
 }
 
 /** Solde affiche / renvoye par l'API en mode gratuit. */
