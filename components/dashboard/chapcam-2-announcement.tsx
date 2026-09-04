@@ -36,9 +36,9 @@ export function ChapCam2Announcement() {
     setOpen(false)
   }
 
-  const goToRecharge = () => {
+  const goToLiveSwap = () => {
     dismiss()
-    router.push('/dashboard/plans')
+    router.push('/dashboard/live-swap')
   }
 
   if (!open) return null
@@ -67,7 +67,7 @@ export function ChapCam2Announcement() {
             LIVECAM 2.0 est disponible
           </h2>
           <p className="mt-2 text-pretty text-sm leading-relaxed text-muted-foreground">
-            Notre nouveau logiciel est teste et pret. Recharge ton compte pour en profiter des
+            Notre nouveau logiciel est teste et pret. Lance le Live Swap pour en profiter des
             maintenant.
           </p>
         </div>
@@ -87,10 +87,10 @@ export function ChapCam2Announcement() {
         {/* Actions */}
         <div className="flex flex-col gap-2 px-6 pb-6">
           <button
-            onClick={goToRecharge}
+            onClick={goToLiveSwap}
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Voir les recharges
+            Commencer le Live Swap
             <ArrowRight className="h-4 w-4" />
           </button>
           <button

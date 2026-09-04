@@ -25,3 +25,7 @@ dist/
 
 # Binaire telecharge (installeur AkVCam) — non reference par le build
 akvcam-installer.exe
+
+# Dossiers locaux non suivis par le build
+mobile/
+tmp/

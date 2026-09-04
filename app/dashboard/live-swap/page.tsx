@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Camera, Zap, Clock, Coins, Plus, Check, AlertCircle, AlertTriangle, Loader2, Square, Wifi, WifiOff, Monitor, Cloud, Settings, Download, Crown, CreditCard, ClipboardList, Mic, MicOff, Video as VideoIcon, VideoOff, BookOpen, Languages, ImageIcon, Film, ArrowRight, Maximize2, Minimize2, AudioLines, Share2, ExternalLink, Tv, Lock } from 'lucide-react'
+import { Camera, Zap, Clock, Coins, Plus, Check, AlertCircle, AlertTriangle, Loader2, Square, Wifi, WifiOff, Monitor, Cloud, Settings, Download, ClipboardList, Mic, MicOff, Video as VideoIcon, VideoOff, BookOpen, Languages, ImageIcon, Film, ArrowRight, Maximize2, Minimize2, AudioLines, Share2, ExternalLink, Tv, Lock, Crown } from 'lucide-react'
 import { useLucy21 } from '@/hooks/use-lucy-21'
 import { isElectron } from '@/lib/electron'
 import { InstallationRequestModal } from '@/components/dashboard/installation-request-modal'
@@ -669,17 +669,6 @@ export default function DashboardPage() {
             <BookOpen className="h-4 w-4" />
             Mes demandes
           </Link>
-
-          {/* Recharger (orange) — masque en mode gratuit */}
-          {!FREE_MODE && (
-            <Link
-              href="/dashboard/plans"
-              className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_20px_rgba(249,115,22,0.4)] transition-colors hover:bg-orange-600"
-            >
-              <CreditCard className="h-4 w-4" />
-              Recharger
-            </Link>
-          )}
 
           {/* Demande d'installation (bleu) */}
           <button

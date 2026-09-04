@@ -171,7 +171,7 @@ function PaymentSuccessContent() {
               La transaction a ete annulee. Aucun montant n&apos;a ete debite.
             </p>
             <Link
-              href="/dashboard/plans"
+              href="/dashboard"
               className="mt-6 flex w-full items-center justify-center rounded-2xl bg-primary py-3 font-semibold text-black transition-colors hover:bg-primary/90"
             >
               Retour au tableau de bord
@@ -189,7 +189,7 @@ function PaymentSuccessContent() {
               Impossible de verifier ce paiement. Si vous avez ete debite, contactez le support.
             </p>
             <Link
-              href="/dashboard/plans"
+              href="/dashboard"
               className="mt-6 flex w-full items-center justify-center rounded-2xl bg-primary py-3 font-semibold text-black transition-colors hover:bg-primary/90"
             >
               Retour au tableau de bord

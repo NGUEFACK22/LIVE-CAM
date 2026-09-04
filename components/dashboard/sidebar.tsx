@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Zap, Users, BarChart2, Settings, LogOut, Menu, Battery, Shield, Home, Languages, ImageIcon, Film, HelpCircle, AudioLines, ChevronRight, Lock } from 'lucide-react'
+import { Zap, Users, BarChart2, Settings, LogOut, Menu, Battery, Shield, Home, Languages, ImageIcon, Film, HelpCircle, AudioLines, ChevronRight, Lock, AlertTriangle } from 'lucide-react'
 import { isPathBlocked } from '@/lib/feature-flags'
 import { useBlockedModal } from '@/components/blocked-feature-modal'
 import { Progress } from '@/components/ui/progress'
@@ -18,35 +18,9 @@ import { ThemeToggleCompact } from '@/components/theme-toggle'
 import { POINTS_UPDATE_EVENT, type PointsUpdateDetail } from '@/lib/points-events'
 import { useState, useEffect } from 'react'
 
-const PLAN_LABELS: Record<string, string> = {
-  free: 'Gratuit',
-  unlimited: 'Illimité',
-  '1day': 'Plan 1 jour',
-  '30days': 'Plan 30 jours',
-  '90days': 'Plan 90 jours',
-  '365days': 'Plan 365 jours',
-  starter: 'Starter',
-  premium: 'Premium',
-  ultimate: 'VIP PRO',
-  vipdebout: 'VIP DEBOUT',
-}
-
-const PLAN_COLORS: Record<string, string> = {
-  free: 'bg-gray-500',
-  unlimited: 'bg-primary',
-  '1day': 'bg-blue-500',
-  '30days': 'bg-green-500',
-  '90days': 'bg-purple-500',
-  '365days': 'bg-yellow-500',
-}
-
-const PLAN_POINTS: Record<string, number> = {
-  free: 0,
-  '1day': 600,
-  '30days': 3000,
-  '90days': 7500,
-  '365days': 15000,
-}
+// Seuil d'alerte : quand le solde descend sous cette valeur (en secondes = credits),
+// on affiche une bannière d'alerte dans la sidebar.
+const LOW_CREDIT_THRESHOLD = 60 // 1 minute de swap restante
 
 interface NavItem {
   href: string
@@ -157,30 +131,25 @@ function FeaturedLink({
 interface SidebarContentProps {
   email: string | undefined
   plan: string
-  expiresAt: string | null
-  isActive: boolean
   avatarCount: number
   pointsRemaining: number
   pointsTotal: number
+  effectivePoints: number
   onLogout: () => void
 }
 
 function SidebarContent({
   email,
   plan,
-  expiresAt,
-  isActive,
   avatarCount,
   pointsRemaining,
   pointsTotal,
+  effectivePoints,
   onLogout,
 }: SidebarContentProps) {
   const pathname = usePathname()
   const { show, Modal } = useBlockedModal()
-  const isExpired = expiresAt ? new Date(expiresAt) < new Date() : false
   const isUnlimited = plan === 'unlimited'
-  const showUpgradeBanner =
-    !isUnlimited && (plan === 'free' || isExpired || !isActive || pointsRemaining <= 0)
   const pointsPercentage = isUnlimited
     ? 100
     : pointsTotal > 0
@@ -327,12 +296,43 @@ function SidebarContent({
       <div className="border-t border-hairline p-4">
         <p className="mb-3 truncate text-xs text-muted-foreground">{email}</p>
 
-        <div className="mb-3 flex items-center gap-2">
-          <span className={`rounded-full px-2 py-0.5 text-xs font-bold text-foreground ${PLAN_COLORS[plan] || 'bg-gray-500'}`}>
-            {PLAN_LABELS[plan] || plan}
-          </span>
-          {isExpired && <span className="text-xs text-red-400">Expire</span>}
-        </div>
+        {/* Bannière d'alerte : solde de crédits bas */}
+        {!isUnlimited && effectivePoints <= LOW_CREDIT_THRESHOLD && effectivePoints > 0 && (
+          <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400 mt-0.5" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-amber-300">Crédits bas !</p>
+              <p className="mt-0.5 text-[10px] text-amber-200/70">
+                Il te reste seulement {Math.floor(effectivePoints / 60)} min {effectivePoints % 60 > 0 ? `${effectivePoints % 60} s` : ''} de swap.
+              </p>
+              <Link
+                href="/dashboard/stats"
+                className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 underline hover:text-amber-200"
+              >
+                Recharger <ChevronRight className="h-3 w-3" />
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Bannière : aucun crédit */}
+        {!isUnlimited && effectivePoints <= 0 && (
+          <div className="mb-3 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-2.5">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-red-400 mt-0.5" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-red-300">Aucun crédit</p>
+              <p className="mt-0.5 text-[10px] text-red-200/70">
+                Tu ne peux plus utiliser le Live Swap.
+              </p>
+              <Link
+                href="/dashboard/stats"
+                className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-red-300 underline hover:text-red-200"
+              >
+                Recharger maintenant <ChevronRight className="h-3 w-3" />
+              </Link>
+            </div>
+          </div>
+        )}
 
         <div className="mb-3 rounded-lg bg-muted p-3">
           <div className="mb-2 flex items-center justify-between">
@@ -364,20 +364,6 @@ function SidebarContent({
           <ThemeToggleCompact />
         </div>
 
-        {showUpgradeBanner && (
-          <div className="mb-3 rounded-lg bg-orange-500/20 p-3">
-            <p className="mb-2 text-xs text-orange-300">
-              Recharge tes points pour continuer
-            </p>
-            <Link
-              href="/dashboard/plans"
-              className="block rounded-lg bg-orange-500 py-2 text-center text-xs font-bold uppercase text-white transition-colors hover:bg-orange-600"
-            >
-              VOIR LES OFFRES
-            </Link>
-          </div>
-        )}
-
         <button
           onClick={onLogout}
           className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-red-400"
@@ -394,8 +380,6 @@ function SidebarContent({
 interface DashboardSidebarProps {
   email: string | undefined
   plan: string
-  expiresAt: string | null
-  isActive: boolean
   avatarCount: number
   pointsRemaining?: number
   pointsTotal?: number
@@ -404,8 +388,6 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({
   email,
   plan,
-  expiresAt,
-  isActive,
   avatarCount,
   pointsRemaining = 0,
   pointsTotal = 0,
@@ -448,11 +430,10 @@ export function DashboardSidebar({
         <SidebarContent
           email={email}
           plan={plan}
-          expiresAt={expiresAt}
-          isActive={isActive}
           avatarCount={avatarCount}
           pointsRemaining={effectivePoints}
           pointsTotal={effectiveTotal}
+          effectivePoints={effectivePoints}
           onLogout={handleLogout}
         />
       </aside>
@@ -478,11 +459,10 @@ export function DashboardSidebar({
               <SidebarContent
                 email={email}
                 plan={plan}
-                expiresAt={expiresAt}
-                isActive={isActive}
                 avatarCount={avatarCount}
                 pointsRemaining={effectivePoints}
                 pointsTotal={effectiveTotal}
+                effectivePoints={effectivePoints}
                 onLogout={() => {
                   setMobileOpen(false)
                   handleLogout()
@@ -493,47 +473,5 @@ export function DashboardSidebar({
         </div>
       </header>
     </>
-  )
-}
-
-interface PlanGuardBannerProps {
-  plan: string
-  expiresAt: string | null
-  isActive: boolean
-  pointsRemaining?: number
-  voiceSecondsRemaining?: number
-}
-
-export function PlanGuardBanner({ plan, expiresAt, isActive, pointsRemaining = 0, voiceSecondsRemaining = 0 }: PlanGuardBannerProps) {
-  const pathname = usePathname()
-  const isExpired = expiresAt ? new Date(expiresAt) < new Date() : false
-
-  // La page Voice Swap utilise un credit distinct (minutes ChapVoice). Si
-  // l'utilisateur a des minutes de voix, on ne montre pas la banniere "points".
-  const onVoiceSwap = pathname === '/dashboard/voice-swap'
-  if (onVoiceSwap && voiceSecondsRemaining > 0) return null
-
-  if (plan === 'unlimited') return null
-
-  const showBanner = plan === 'free' || isExpired || !isActive || pointsRemaining <= 0
-
-  if (!showBanner) return null
-
-  return (
-    <div className="fixed left-0 right-0 top-14 z-40 flex items-center justify-between bg-orange-500 px-4 py-2 md:left-[240px] md:top-0">
-      <p className="text-sm font-medium text-foreground">
-        {onVoiceSwap
-          ? 'Recharge une offre ChapVoice pour activer le changement de voix'
-          : pointsRemaining <= 0
-            ? 'Tu as epuise tes points — Recharge pour continuer le swap'
-            : 'Tu es sur le plan gratuit — Active un abonnement pour demarrer le swap'}
-      </p>
-      <Link
-        href={onVoiceSwap ? '/dashboard/voice-swap' : '/dashboard/plans'}
-        className="rounded-lg bg-white px-4 py-1.5 text-xs font-bold uppercase text-orange-500 transition-colors hover:bg-gray-100"
-      >
-        RECHARGER
-      </Link>
-    </div>
   )
 }

@@ -5,7 +5,6 @@
 export const ALLOWED_PATHS = [
   '/dashboard/live-swap', // Live Swap - toujours autorisé
   '/dashboard', // Accueil dashboard (résumé compte)
-  '/dashboard/plans', // Recharger crédits
   '/dashboard/payment-success', // Retour paiement
   '/dashboard/settings', // Espace compte (profil, mot de passe)
   '/dashboard/avatars', // Mes avatars (lié au compte)
@@ -16,7 +15,6 @@ export function isPathAllowed(pathname: string): boolean {
   const path = pathname.replace(/\/$/, '') || '/'
   if (path === '/dashboard') return true
   if (path === '/dashboard/live-swap' || path.startsWith('/dashboard/live-swap/')) return true
-  if (path === '/dashboard/plans' || path.startsWith('/dashboard/plans/')) return true
   if (path === '/dashboard/payment-success' || path.startsWith('/dashboard/payment-success/')) return true
   if (path === '/dashboard/settings' || path.startsWith('/dashboard/settings/')) return true
   if (path === '/dashboard/avatars' || path.startsWith('/dashboard/avatars/')) return true

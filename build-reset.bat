@@ -1,0 +1,13 @@
+@echo off
+echo Nettoyage des caches Electron...
+rmdir /S /Q "%APPDATA%\Local\electron-builder\Cache" 2>nul
+rmdir /S /Q "%LOCALAPPDATA%\electron-builder\Cache" 2>nul
+echo Nettoyage .next et dist...
+if exist .next rmdir /S /Q .next
+if exist dist rmdir /S /Q dist
+if exist ChapCam.exe del /F /Q ChapCam.exe
+if exist dist\ChapCam-Setup-*.exe del /F /Q dist\ChapCam-Setup-*.exe
+echo Reconstruction Next.js...
+npx next build --webpack
+echo Reconstruction Electron...
+npx electron-builder --win

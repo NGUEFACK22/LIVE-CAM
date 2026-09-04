@@ -4,19 +4,11 @@ import { ToolsGrid } from '@/components/dashboard/hub/tools-grid'
 import { HeaderActions } from '@/components/dashboard/hub/header-actions'
 import { EsimPromo } from '@/components/dashboard/esim-promo'
 import { ConsentCard } from '@/components/dashboard/consent-card'
-import { Sparkles, Crown, Check, Zap, Timer, Users, Hourglass, ArrowRight, Clock } from 'lucide-react'
+import { Zap, Timer, Users, Hourglass, ArrowRight, Clock } from 'lucide-react'
 import { getUserAvatar } from '@/lib/user-avatar'
 import { isFreeLiveSwap, FREE_UNLIMITED_POINTS } from '@/lib/free-mode'
 
 const POINTS_PER_SECOND = 1
-
-const PLAN_LABELS: Record<string, string> = {
-  free: 'Gratuit',
-  '1day': 'Plan 1 jour',
-  '30days': 'Plan 30 jours',
-  '90days': 'Plan 90 jours',
-  '365days': 'Plan 365 jours',
-}
 
 function fmtMinutes(points: number) {
   const totalSeconds = Math.floor(points / POINTS_PER_SECOND)
@@ -43,7 +35,7 @@ export default async function DashboardHubPage() {
   ] = await Promise.all([
     supabase
       .from('subscriptions')
-      .select('plan, points, max_points, is_active')
+      .select('points, max_points')
       .eq('user_id', user?.id ?? '')
       .maybeSingle(),
     supabase
@@ -65,8 +57,6 @@ export default async function DashboardHubPage() {
   const minutesToday = Math.floor(secondsToday / 60)
 
   const points = freeMode ? FREE_UNLIMITED_POINTS : (subscription?.points ?? 0)
-  const plan = freeMode ? 'unlimited' : (subscription?.plan ?? 'free')
-  const isPro = freeMode ? true : (plan !== 'free' && (subscription?.is_active ?? false))
   const displayName =
     (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ||
     user?.email?.split('@')[0] ||
@@ -118,18 +108,10 @@ export default async function DashboardHubPage() {
               <div className="min-w-0">
                 <span className="inline-flex items-center gap-2 rounded-full border border-hairline bg-background/50 px-3 py-1 text-xs font-semibold text-muted-foreground backdrop-blur">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-                  {freeMode
-                    ? 'Gratuit — illimité'
-                    : isPro
-                      ? PLAN_LABELS[plan] || plan
-                      : 'Compte gratuit'}
-                  {!freeMode && (
-                    <>
-                      <span className="mx-1 h-3 w-px bg-hairline" />
-                      <Clock className="h-3 w-3" />
-                      {points.toLocaleString('fr-FR')} points
-                    </>
-                  )}
+                  Gratuit — illimité
+                  <span className="mx-1 h-3 w-px bg-hairline" />
+                  <Clock className="h-3 w-3" />
+                  {points.toLocaleString('fr-FR')} points
                 </span>
 
                 <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground md:text-5xl text-balance">
@@ -151,15 +133,6 @@ export default async function DashboardHubPage() {
                 Lancer le Live Swap
                 <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
-              {!freeMode && (
-                <Link
-                  href="/dashboard/plans"
-                  className="inline-flex items-center gap-2 rounded-2xl border border-hairline bg-background/40 px-6 py-3.5 text-base font-semibold text-foreground backdrop-blur transition-colors hover:border-primary/40 hover:text-primary"
-                >
-                  <Sparkles className="h-5 w-5" />
-                  Recharger
-                </Link>
-              )}
             </div>
           </div>
 
@@ -219,44 +192,6 @@ export default async function DashboardHubPage() {
           ))}
         </div>
       </section>
-
-      {/* ===== Bannière Pro ===== */}
-      {!isPro && (
-        <section className="relative mt-12 overflow-hidden rounded-[28px] border border-hairline bg-card p-6 md:p-10">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                'radial-gradient(100% 100% at 0% 0%, rgba(0,255,136,0.16), transparent 45%), radial-gradient(100% 100% at 100% 100%, rgba(139,92,246,0.16), transparent 45%)',
-            }}
-          />
-          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <div className="mb-3 flex items-center gap-2">
-                <Crown className="h-6 w-6 text-primary" />
-                <h3 className="text-xl font-bold text-foreground md:text-2xl text-balance">
-                  Passe en Pro et débloque tout LIVECAM
-                </h3>
-              </div>
-              <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground md:text-base">
-                {['Plus de crédits', 'Qualité 4K', 'Avatars premium', 'Support prioritaire'].map((b) => (
-                  <li key={b} className="flex items-center gap-1.5">
-                    <Check className="h-4 w-4 text-primary" />
-                    {b}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <Link
-              href="/dashboard/plans"
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-primary px-7 py-3.5 text-base font-bold text-black shadow-[0_0_30px_rgba(0,255,136,0.4)] transition-all hover:scale-[1.02] hover:bg-primary/90"
-            >
-              Recharger mes crédits
-              <ArrowRight className="h-5 w-5" />
-            </Link>
-          </div>
-        </section>
-      )}    </div>
+    </div>
   )
 }
