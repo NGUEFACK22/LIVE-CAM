@@ -16,8 +16,9 @@ type Ctx = {
   // Vrai uniquement pour l'administrateur : conditionne l'affichage des infos
   // techniques (fournisseurs, références) masquées aux clients.
   isAdmin: boolean
-  // Données réelles (FCFA)
+  // Données réelles — solde unifié FCFA + points (1 point = 20 FCFA)
   balanceXof: number
+  balancePoints: number
   activations: Activation[]
   transactions: Tx[]
   loading: boolean
@@ -55,7 +56,7 @@ let idc = 1000
 const nextId = (p: string) => `${p}_${++idc}`
 
 export function NumbersProvider({ user, children }: { user: AccountUser; children: ReactNode }) {
-  const [state, setState] = useState<NumbersState>({ balanceXof: 0, activations: [], transactions: [] })
+  const [state, setState] = useState<NumbersState>({ balanceXof: 0, points: 0, activations: [], transactions: [] })
   const [loading, setLoading] = useState(true)
   const [readIds, setReadIds] = useState<Set<number>>(new Set())
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
@@ -252,6 +253,7 @@ export function NumbersProvider({ user, children }: { user: AccountUser; childre
     user,
     isAdmin: isAdminEmail(user.email),
     balanceXof: state.balanceXof,
+    balancePoints: state.points,
     activations: state.activations,
     transactions: state.transactions,
     loading,

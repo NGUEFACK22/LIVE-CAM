@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { requireUserId, UnauthorizedError } from '@/lib/numbers/auth'
 import { countryByCode, serviceBySlug, rentalPlanByKey } from '@/lib/numbers/catalog'
 import { getBestQuote, purchaseCheapest, getRentQuote, rentCheapest, cancelFor } from '@/lib/numbers/providers'
-import { adjustWallet, createActivation, getBalance } from '@/lib/numbers/db'
+import { adjustWallet, createActivation, getBalance, refundActivationOnce } from '@/lib/numbers/db'
+import type { ActivationRow } from '@/lib/numbers/db'
 import { serializeActivation } from '@/lib/numbers/serialize'
 
 export async function POST(req: NextRequest) {
@@ -56,25 +57,40 @@ export async function POST(req: NextRequest) {
       method: 'wallet',
       reference: `${outcome.result.provider}:${outcome.result.providerOrder}`,
     })
-    const row = await createActivation({
-      userId,
-      provider: outcome.result.provider,
-      providerOrder: outcome.result.providerOrder,
-      countryCode: country.code,
-      serviceSlug: service.slug,
-      serviceLabel: service.label,
-      phoneE164: outcome.result.phone,
-      priceXof: outcome.priceXof,
-      costUsd: outcome.costUsd,
-      expiresAt: outcome.result.expiresAt,
-    })
+    let row: ActivationRow
+    try {
+      row = await createActivation({
+        userId,
+        provider: outcome.result.provider,
+        providerOrder: outcome.result.providerOrder,
+        countryCode: country.code,
+        serviceSlug: service.slug,
+        serviceLabel: service.label,
+        phoneE164: outcome.result.phone,
+        priceXof: outcome.priceXof,
+        costUsd: outcome.costUsd,
+        expiresAt: outcome.result.expiresAt,
+      })
+    } catch (e) {
+      // Débit déjà effectué mais activation non enregistrée : on rembourse
+      // immédiatement et de façon idempotente pour ne JAMAIS faire payer un
+      // utilisateur sans numéro, puis on remonte l'échec initial.
+      await refundActivationOnce(
+        userId,
+        outcome.result.provider,
+        outcome.result.providerOrder,
+        outcome.priceXof,
+      ).catch(() => {})
+      throw e
+    }
 
     return NextResponse.json({ activation: serializeActivation(row), balanceXof: newBalance })
   } catch (e) {
     if (e instanceof UnauthorizedError) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     // On journalise le détail technique réel côté serveur uniquement (fournisseur,
     // coûts...) mais on n'expose au client qu'un message clair et non technique.
-    // Dans tous les cas d'échec ici, le client n'a PAS été débité.
+    // Si un échec se produit APRÈS le débit, le remboursement a déjà été effectué
+    // par les garde-fous ci-dessus : le client n'est jamais débité sans numéro.
     const msg = (e as Error)?.message ?? ''
     console.log('[v0] purchase route error:', msg)
     // Stock réellement vide pour ce pays/service : on invite à changer de pays.

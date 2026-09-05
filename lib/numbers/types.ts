@@ -28,7 +28,10 @@ export type Tx = {
 }
 
 export type NumbersState = {
+  /** Solde unifié en FCFA (points × 20). */
   balanceXof: number
+  /** Solde unifié en POINTS (1 point = 20 FCFA) — mêmes crédits que les vidéos. */
+  points: number
   activations: Activation[]
   transactions: Tx[]
 }

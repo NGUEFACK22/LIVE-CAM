@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useNumbers } from '@/components/numbers/numbers-provider'
 import { FUNDING_METHODS } from '@/lib/numbers/data'
 import { formatXOF } from '@/lib/numbers/types'
+import { formatPoints, xofToPoints } from '@/lib/numbers/points'
 import { Wallet, Plus, X, ArrowDownLeft, ArrowUpRight, Smartphone, CreditCard, Coins, Loader2 } from 'lucide-react'
 import { geniusPayFeeFor, geniusPayTotalToCharge } from '@/lib/geniuspay-fees'
 
@@ -34,7 +35,7 @@ function fmtDate(ms: number) {
 }
 
 export default function WalletPage() {
-  const { balanceXof, transactions, pushToast, refreshState, isAdmin } = useNumbers()
+  const { balanceXof, balancePoints, transactions, pushToast, refreshState, isAdmin } = useNumbers()
   const [open, setOpen] = useState(false)
   const [amount, setAmount] = useState(2500)
   const [loading, setLoading] = useState(false)
@@ -104,7 +105,7 @@ export default function WalletPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-white">Portefeuille</h1>
-          <p className="text-sm text-white/50">Approvisionnez votre compte et consultez vos transactions</p>
+          <p className="text-sm text-white/50">Des crédits partagés avec vos sessions vidéo — 1 point = 20 FCFA</p>
         </div>
         <button
           onClick={() => setOpen(true)}
@@ -121,6 +122,7 @@ export default function WalletPage() {
           </span>
           <p className="mt-4 text-3xl font-semibold text-white">{formatXOF(balanceXof)}</p>
           <p className="text-sm text-white/50">Solde disponible</p>
+          <p className="mt-1 text-xs text-white/40">{formatPoints(balancePoints)}</p>
         </div>
         <div className={`${card} p-5`}>
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400">
@@ -285,7 +287,7 @@ export default function WalletPage() {
                 Total à payer : <span className="font-semibold text-white">{chargeAmount.toLocaleString('fr-FR')} FCFA</span>
               </p>
               <p className="mt-0.5 text-xs text-white/40">
-                dont {feePaid.toLocaleString('fr-FR')} FCFA de frais de paiement · {amount.toLocaleString('fr-FR')} FCFA crédités au portefeuille
+                dont {feePaid.toLocaleString('fr-FR')} FCFA de frais de paiement · {amount.toLocaleString('fr-FR')} FCFA crédités (= {formatPoints(xofToPoints(amount))})
               </p>
             </div>
 

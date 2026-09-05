@@ -7,6 +7,7 @@
 // ============================================================
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { FCFA_PER_POINT } from '@/lib/numbers/points'
 import { getGeniusPayPayment, normalizeGeniusPayStatus } from '@/lib/geniuspay'
 import { ADMIN_EMAIL } from '@/lib/admin-auth'
 import { getPlan, type PlanConfig } from '@/lib/plans'
@@ -204,9 +205,11 @@ export interface PurchaseResult {
   licenseKey?: string
 }
 
-// Recharge du portefeuille ChapCam Numbers (solde Neon, en FCFA) apres un
-// paiement GeniusPay. Independant du catalogue de produits ChapCam.
-// L'idempotence est assuree en amont par processed_payments (cle = token).
+// Recharge du solde UNIFIÉ (points) après un paiement GeniusPay.
+// Depuis la fusion des crédits, le portefeuille LIVECAM Numbers et les crédits
+// vidéo partagent le MÊME solde : subscriptions.points (1 point = 20 FCFA).
+// Le montant du paiement est crédité en points = montant FCFA / FCFA_PER_POINT.
+// L'idempotence est assurée en amont par processed_payments (cle = token).
 export async function creditNumbersWallet(input: {
   userId: string | null
   email: string
@@ -225,6 +228,7 @@ export async function creditNumbersWallet(input: {
   if (amount <= 0) {
     return { ok: false, kind: 'numbers_wallet', userLinked: true, message: 'Montant de recharge invalide.' }
   }
+  const points = Math.round(amount / FCFA_PER_POINT)
   const { adjustWallet } = await import('@/lib/numbers/db')
   await adjustWallet(input.userId, amount, {
     kind: 'deposit',
@@ -236,7 +240,7 @@ export async function creditNumbersWallet(input: {
     ok: true,
     kind: 'numbers_wallet',
     userLinked: true,
-    message: `Portefeuille LIVECAM Numbers credite de ${amount} FCFA.`,
+    message: `Solde credite de ${amount} FCFA (${points} pts, valables aussi pour les videos).`,
   }
 }
 

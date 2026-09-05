@@ -2,14 +2,20 @@ import 'server-only'
 import type { CanonCountry, CanonService } from '@/lib/numbers/catalog'
 import { getUsdToXof, tierPriceXof } from '@/lib/numbers/pricing'
 import { smsman } from './smsman'
+import { fiveSim } from './five_sim'
 import { DEFAULT_SUCCESS_RATE, MIN_SUCCESS_RATE } from './types'
 import type { CodeResult, ProviderAdapter, ProviderId, PurchaseResult, Quote } from './types'
 
 export const adapters: Record<ProviderId, ProviderAdapter> = {
   smsman,
+  five_sim: fiveSim,
 }
 
-const ALL = [smsman]
+// Seuls les fournisseurs dont la clé est configurée sont interrogés : sans
+// SMSMAN_API_TOKEN, sms-man n'est pas appelé (il échouerait à chaque devis).
+const ALL: ProviderAdapter[] = []
+if (process.env.FIVE_SIM_API_KEY) ALL.push(fiveSim)
+if (process.env.SMSMAN_API_TOKEN) ALL.push(smsman)
 
 /** Taux de réussite effectif d'un devis (valeur par défaut si non communiquée). */
 function effectiveRate(q: Quote): number {
@@ -112,6 +118,8 @@ export async function purchaseCheapest(country: CanonCountry, service: CanonServ
   if (lastErr) console.log('[v0] purchase: tous les fournisseurs ont échoué:', lastErr.message)
   if (lastErr?.message.includes('SMSMAN_NO_NUMBERS')) throw new Error('NO_NUMBERS')
   if (lastErr?.message.includes('SMSMAN_BALANCE')) throw new Error('PROVIDER_BALANCE')
+  if (lastErr?.message.includes('FIVE_SIM_NO_NUMBERS')) throw new Error('NO_NUMBERS')
+  if (lastErr?.message.includes('FIVE_SIM_BALANCE')) throw new Error('PROVIDER_BALANCE')
   throw new Error('NUMBER_UNAVAILABLE')
 }
 

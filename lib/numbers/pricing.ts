@@ -66,11 +66,15 @@ export const PRICE_TIERS = {
   floorXof: 2000,
 } as const
 
-/** Prix client XOF = coût fournisseur USD × taux × marge, plancher 2000 FCFA. */
+/**
+ * Prix client XOF = coût fournisseur USD × taux × marge, plancher 2000 FCFA.
+ * Arrondi au multiple de 20 FCFA supérieur : le solde est en POINTS depuis un
+ * solde unifié (1 point = 20 FCFA), donc un prix multiple de 20 convertit
+ * toujours en un nombre ENTIER de points (jamais de décimales à débiter).
+ */
 export function tierPriceXof(costUsd: number, usdToXof: number): number {
   const raw = costUsd * usdToXof * PRICE_TIERS.multiplier
-  // Arrondi au multiple de 5 FCFA supérieur, plancher 2000 FCFA.
-  return Math.max(PRICE_TIERS.floorXof, Math.ceil(raw / 5) * 5)
+  return Math.max(PRICE_TIERS.floorXof, Math.ceil(raw / 20) * 20)
 }
 
 /**

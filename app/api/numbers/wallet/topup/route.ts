@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin || 'https://chapcam.com'
 
     const txn = await createGeniusPayPayment({
-      description: `LIVECAM Numbers - Recharge portefeuille (${amount} FCFA)`,
+      description: `LIVECAM — Recharge de credits (${amount} FCFA = ${Math.round(amount / 20)} pts, 1 pt = 20 FCFA)`,
       amount: chargeAmount,
       callbackUrl: `${origin}/api/payment/callback`,
       customMetadata: {

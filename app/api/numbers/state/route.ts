@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireUserId, UnauthorizedError } from '@/lib/numbers/auth'
 import { getBalance, listActivations, listTransactions } from '@/lib/numbers/db'
 import { serializeActivation, serializeTx } from '@/lib/numbers/serialize'
+import { xofToPoints } from '@/lib/numbers/points'
 
 export async function GET() {
   try {
@@ -13,6 +14,7 @@ export async function GET() {
     ])
     return NextResponse.json({
       balanceXof,
+      points: xofToPoints(balanceXof),
       activations: activations.map(serializeActivation),
       transactions: transactions.map(serializeTx),
     })

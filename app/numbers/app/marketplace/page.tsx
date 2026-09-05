@@ -8,6 +8,7 @@ import { CountryFlag } from '@/components/numbers/country-flag'
 import { CountrySelect } from '@/components/numbers/country-select'
 import { SERVICES, RENTAL_PLANS, countryByCode, serviceBySlug } from '@/lib/numbers/catalog'
 import { formatXOF, type QuoteResponse } from '@/lib/numbers/types'
+import { formatPoints, xofToPoints } from '@/lib/numbers/points'
 import {
   Search,
   Check,
@@ -24,7 +25,7 @@ const card = 'rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-x
 
 export default function MarketplacePage() {
   const router = useRouter()
-  const { balanceXof, buyActivation, quote: getQuote } = useNumbers()
+  const { balanceXof, balancePoints, buyActivation, quote: getQuote } = useNumbers()
   const [query, setQuery] = useState('')
   const [country, setCountry] = useState<string>('US')
   const [service, setService] = useState<string | null>(null)
@@ -112,6 +113,7 @@ export default function MarketplacePage() {
               Solde
             </div>
             <p className="mt-1 text-lg font-semibold text-white">{formatXOF(balanceXof)}</p>
+            <p className="text-xs text-white/40">{formatPoints(balancePoints)} · crédits partagés avec les vidéos</p>
             <button
               onClick={() => router.push('/numbers/app/wallet')}
               className="mt-2 flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
@@ -256,7 +258,12 @@ export default function MarketplacePage() {
                   )}
                   <div className="flex justify-between border-t border-white/10 pt-2 text-lg font-semibold text-white">
                     <span>Total</span>
-                    <span>{formatXOF(quote.priceXof ?? 0)}</span>
+                    <span className="flex items-baseline gap-2">
+                      {formatXOF(quote.priceXof ?? 0)}
+                      <span className="text-xs font-normal text-white/40">
+                        {formatPoints(xofToPoints(quote.priceXof ?? 0))}
+                      </span>
+                    </span>
                   </div>
                   {insufficient && (
                     <p className="text-xs text-amber-400">

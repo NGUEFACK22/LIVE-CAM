@@ -7,6 +7,7 @@ import { useNumbers } from '@/components/numbers/numbers-provider'
 import { timeAgo, getInitials } from '@/lib/numbers/data'
 import { serviceBySlug } from '@/lib/numbers/catalog'
 import { formatXOF } from '@/lib/numbers/types'
+import { formatPoints } from '@/lib/numbers/points'
 import { Bell, Wallet, Plus, ChevronDown, User, Settings, LogOut } from 'lucide-react'
 
 const TITLES: Record<string, string> = {
@@ -24,7 +25,7 @@ const TITLES: Record<string, string> = {
 export function AppTopbar() {
   const pathname = usePathname()
   const title = TITLES[pathname] ?? 'Tableau de bord'
-  const { balanceXof, activations, unreadCount } = useNumbers()
+  const { balanceXof, balancePoints, activations, unreadCount } = useNumbers()
   const { user } = useNumbers()
   const [notifOpen, setNotifOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -42,7 +43,8 @@ export function AppTopbar() {
         >
           <Wallet className="h-4 w-4 text-[#60a5fa]" />
           <span className="font-semibold text-white">{formatXOF(balanceXof)}</span>
-          <span className="hidden text-slate-400 sm:inline">solde</span>
+          <span className="hidden text-slate-400 sm:inline">· {formatPoints(balancePoints)}</span>
+          <span className="hidden text-slate-400 md:inline">solde</span>
           <Plus className="h-3.5 w-3.5 text-slate-400" />
         </Link>
 

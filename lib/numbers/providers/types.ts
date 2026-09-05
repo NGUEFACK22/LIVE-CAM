@@ -1,7 +1,7 @@
 import 'server-only'
 import type { CanonCountry, CanonService } from '@/lib/numbers/catalog'
 
-export type ProviderId = 'smsman'
+export type ProviderId = 'smsman' | 'five_sim'
 
 /**
  * Seuil minimum de taux de réussite (en %) visé pour la sélection des numéros.
