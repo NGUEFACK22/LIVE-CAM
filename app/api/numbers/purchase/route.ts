@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { requireUserId, UnauthorizedError } from '@/lib/numbers/auth'
 import { countryByCode, serviceBySlug, rentalPlanByKey } from '@/lib/numbers/catalog'
-import { getBestQuote, purchaseCheapest, getRentQuote, rentCheapest, cancelFor } from '@/lib/numbers/providers'
+import { getBestQuote, purchaseCheapest, getPremiumQuote, purchasePremium, getRentQuote, rentCheapest, cancelFor } from '@/lib/numbers/providers'
 import { adjustWallet, createActivation, getBalance, refundActivationOnce } from '@/lib/numbers/db'
 import type { ActivationRow } from '@/lib/numbers/db'
 import { serializeActivation } from '@/lib/numbers/serialize'
@@ -9,7 +9,12 @@ import { serializeActivation } from '@/lib/numbers/serialize'
 export async function POST(req: NextRequest) {
   try {
     const userId = await requireUserId()
-    const body = (await req.json().catch(() => ({}))) as { country?: string; service?: string; plan?: string }
+    const body = (await req.json().catch(() => ({}))) as {
+      country?: string
+      service?: string
+      plan?: string
+      quality?: string
+    }
     const country = countryByCode(body.country ?? '')
     const service = serviceBySlug(body.service ?? '')
     if (!country || !service) {
@@ -18,12 +23,16 @@ export async function POST(req: NextRequest) {
     // Forfait : par défaut "verification" (SMS unique). Sinon location.
     const plan = rentalPlanByKey(body.plan ?? 'verification') ?? rentalPlanByKey('verification')!
     const isRental = plan.mode === 'rental'
+    // Qualité d'attribution : "premium" = opérateur au meilleur taux (1,5× le moins cher). Location : non concernée.
+    const premium = !isRental && body.quality === 'premium'
 
     // 1) Devis (prix client estimé) et vérification du solde avant tout achat.
     const balance = await getBalance(userId)
     const quote = isRental
       ? await getRentQuote(country, service, plan.minHours)
-      : await getBestQuote(country, service)
+      : premium
+        ? await getPremiumQuote(country, service)
+        : await getBestQuote(country, service)
     if (!quote.available || quote.priceXof == null) {
       return NextResponse.json(
         { error: isRental ? 'Location indisponible pour ce pays/service.' : 'Indisponible chez les fournisseurs actuellement.' },
@@ -37,10 +46,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 2) Achat/location chez le moins cher (bascule auto si échec).
+    // 2) Achat/location chez le moins cher (bascule auto si échec). En mode
+    // premium : commande sur l'opérateur au meilleur taux, prix = 1,5× le moins cher.
     const outcome = isRental
       ? await rentCheapest(country, service, plan.minHours)
-      : await purchaseCheapest(country, service)
+      : premium
+        ? await purchasePremium(country, service)
+        : await purchaseCheapest(country, service)
 
     // 3) Si le prix réel dépasse le solde (cas rare), on annule et on rembourse côté fournisseur.
     if (outcome.priceXof > balance) {
@@ -105,6 +117,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Service momentanément indisponible côté opérateur. Vous n'avez pas été débité, réessayez plus tard." },
         { status: 503 },
+      )
+    }
+    if (msg.includes('PREMIUM_UNAVAILABLE')) {
+      return NextResponse.json(
+        { error: "Numéro à haute réussite indisponible pour ce pays/service en ce moment. Essayez l'option « le moins cher » ou un autre pays. Vous n'avez pas été débité." },
+        { status: 409 },
       )
     }
     return NextResponse.json(

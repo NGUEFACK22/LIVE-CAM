@@ -3,6 +3,10 @@ import 'server-only'
 // Marge ChapCam : prix client = coût fournisseur × 3 (200% de bénéfice garanti).
 export const MARKUP_MULTIPLIER = 3
 
+// Multiplicateur du prix « meilleure réussite » : toujours 1,5 × le prix du
+// numéro le moins cher (décision produit — cf. purchasePremium).
+export const PREMIUM_PRICE_MULTIPLIER = 1.5
+
 // Taux de secours si l'API de change est indisponible (unités par 1 USD).
 const FALLBACK = { XOF: 600, RUB: 90 }
 

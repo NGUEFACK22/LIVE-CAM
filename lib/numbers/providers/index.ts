@@ -1,6 +1,6 @@
 import 'server-only'
 import type { CanonCountry, CanonService } from '@/lib/numbers/catalog'
-import { getUsdToXof, tierPriceXof } from '@/lib/numbers/pricing'
+import { getUsdToXof, tierMaxCostUsd, tierPriceXof, PREMIUM_PRICE_MULTIPLIER } from '@/lib/numbers/pricing'
 import { smsman } from './smsman'
 import { fiveSim } from './five_sim'
 import { DEFAULT_SUCCESS_RATE, MIN_SUCCESS_RATE } from './types'
@@ -15,6 +15,9 @@ export const adapters: Record<ProviderId, ProviderAdapter> = {
 // être fournie par Supabase (app_config) ou par env (voir five-sim-config.ts).
 const ALL: ProviderAdapter[] = [fiveSim]
 if (process.env.SMSMAN_API_TOKEN) ALL.push(smsman)
+
+/** Fournisseurs capables d'attribuer un numéro « meilleure réussite ». */
+const PREMIUM_ADAPTERS = ALL.filter((a) => a.supportsPremium)
 
 /** Taux de réussite effectif d'un devis (valeur par défaut si non communiquée). */
 function effectiveRate(q: Quote): number {
@@ -47,6 +50,38 @@ export type BestQuote = {
   best: Quote | null
   quotes: Quote[]
   usdToXof: number
+}
+
+/**
+ * Devis « meilleure réussite » : le prix payé par le client est TOUJOURS
+ * 1,5 × le prix du numéro le moins cher (décision produit), quel que soit le
+ * coût réel de l'opérateur retenu (la marge ×3 du prix premium couvre jusqu'à
+ * 4,5× le coût minimal, bien au-delà d'un opérateur premium réaliste).
+ */
+export async function getPremiumQuote(country: CanonCountry, service: CanonService): Promise<BestQuote> {
+  const [usdToXof, base, results] = await Promise.all([
+    getUsdToXof(),
+    getBestQuote(country, service),
+    Promise.all(
+      PREMIUM_ADAPTERS.map((a) =>
+        a.quote(country, service, 'premium').catch((e) => {
+          console.log(`[v0] premium quote ${a.id} failed:`, (e as Error)?.message)
+          return null
+        }),
+      ),
+    ),
+  ])
+  const quotes = results.filter((q): q is Quote => !!q && q.costUsd > 0)
+  if (quotes.length === 0) return { available: false, priceXof: null, best: null, quotes, usdToXof }
+  const minCostUsd = base.best?.costUsd
+  if (!(minCostUsd && minCostUsd > 0)) return { available: false, priceXof: null, best: null, quotes, usdToXof }
+  return {
+    available: true,
+    priceXof: tierPriceXof(minCostUsd * PREMIUM_PRICE_MULTIPLIER, usdToXof),
+    best: quotes[0],
+    quotes,
+    usdToXof,
+  }
 }
 
 /** Union des services proposés par les fournisseurs actifs pour ce pays. */
@@ -127,6 +162,58 @@ export async function purchaseCheapest(country: CanonCountry, service: CanonServ
   if (lastErr?.message.includes('SMSMAN_BALANCE')) throw new Error('PROVIDER_BALANCE')
   if (lastErr?.message.includes('FIVE_SIM_NO_NUMBERS')) throw new Error('NO_NUMBERS')
   if (lastErr?.message.includes('FIVE_SIM_BALANCE')) throw new Error('PROVIDER_BALANCE')
+  throw new Error('NUMBER_UNAVAILABLE')
+}
+
+/**
+ * Achat « meilleure réussite » : commande chez le fournisseur premium (5sim)
+ * sur l'opérateur au meilleur taux annoncé. Le prix client est figé à
+ * 1,5 × le prix du moins cher. Garde anti-perte : si le coût réel dépassait le
+ * seuil d'équilibre du prix premium, on annule et on rembourse côté fournisseur.
+ */
+export async function purchasePremium(country: CanonCountry, service: CanonService): Promise<PurchaseOutcome> {
+  const cheap = await getBestQuote(country, service)
+  if (!cheap.best || !(cheap.best.costUsd > 0) || cheap.priceXof == null) {
+    throw new Error('Aucun fournisseur ne propose ce pays/service actuellement.')
+  }
+  const usdToXof = cheap.usdToXof
+  const minCostUsd = cheap.best.costUsd
+  const priceXof = tierPriceXof(minCostUsd * PREMIUM_PRICE_MULTIPLIER, usdToXof)
+
+  const premiumQuotes = await Promise.all(
+    PREMIUM_ADAPTERS.map((a) =>
+      a.quote(country, service, 'premium').catch((e) => {
+        console.log(`[v0] premium quote ${a.id} failed:`, (e as Error)?.message)
+        return null
+      }),
+    ),
+  )
+
+  let lastErr: Error | null = null
+  for (const q of premiumQuotes) {
+    if (!q || !(q.costUsd > 0)) continue
+    const adapter = adapters[q.provider]
+    const providerMaxUsd = q.costUsd * 1.2
+    try {
+      const result = await adapter.purchase(country, service, providerMaxUsd, 'premium')
+      const costUsd = result.costUsd > 0 ? result.costUsd : q.costUsd
+      // Seuil d'équilibre = coût que le prix premium peut couvrir avec la marge.
+      const breakEvenUsd = tierMaxCostUsd(priceXof, usdToXof)
+      if (costUsd > breakEvenUsd) {
+        await adapter.cancel(result.providerOrder).catch(() => {})
+        console.log('[v0] purchasePremium: coût réel au-delà du seuil premium — annulé et remboursé')
+        throw new Error('PREMIUM_COST_OVERFLOW: coût réel supérieur au plafond premium')
+      }
+      return { result: { ...result, costUsd }, priceXof, costUsd, usdToXof }
+    } catch (e) {
+      lastErr = e as Error
+      console.log(`[v0] purchase premium ${q.provider} failed:`, lastErr?.message)
+    }
+  }
+  if (lastErr?.message.includes('PREMIUM_UNAVAILABLE') || lastErr?.message.includes('PREMIUM_COST_OVERFLOW')) {
+    throw new Error('PREMIUM_UNAVAILABLE')
+  }
+  if (lastErr) console.log('[v0] premium: tous les fournisseurs ont échoué:', lastErr.message)
   throw new Error('NUMBER_UNAVAILABLE')
 }
 

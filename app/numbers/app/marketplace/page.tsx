@@ -6,7 +6,7 @@ import { useNumbers } from '@/components/numbers/numbers-provider'
 import { ServiceLogo } from '@/components/numbers/service-logo'
 import { CountryFlag } from '@/components/numbers/country-flag'
 import { CountrySelect } from '@/components/numbers/country-select'
-import { SERVICES, RENTAL_PLANS, countryByCode, serviceBySlug } from '@/lib/numbers/catalog'
+import { SERVICES, RENTAL_PLANS, countryByCode, serviceBySlug, rentalPlanByKey } from '@/lib/numbers/catalog'
 import { formatXOF, type QuoteResponse } from '@/lib/numbers/types'
 import { formatPoints, xofToPoints } from '@/lib/numbers/points'
 import {
@@ -30,8 +30,11 @@ export default function MarketplacePage() {
   const [country, setCountry] = useState<string>('US')
   const [service, setService] = useState<string | null>(null)
   const [plan, setPlan] = useState<string>('verification')
+  // Qualité d'attribution : "cheap" (le moins cher) ou "premium" (meilleure réussite, ×1,5).
+  const [quality, setQuality] = useState<'cheap' | 'premium'>('cheap')
   // Devis par forfait : { [planKey]: QuoteResponse | null (en cours) }
   const [quotes, setQuotes] = useState<Record<string, QuoteResponse | null>>({})
+  const [premiumQuotes, setPremiumQuotes] = useState<Record<string, QuoteResponse | null>>({})
   const [loadingQuotes, setLoadingQuotes] = useState(false)
   const [buying, setBuying] = useState(false)
   // Slugs des services réellement proposés par le fournisseur pour ce pays.
@@ -42,7 +45,8 @@ export default function MarketplacePage() {
 
   const selectedCountry = countryByCode(country)
   const selectedService = service ? serviceBySlug(service) : null
-  const quote = quotes[plan] ?? null
+  const activePlan = rentalPlanByKey(plan)
+  const quote = quality === 'premium' ? (premiumQuotes[plan] ?? null) : (quotes[plan] ?? null)
 
   const filteredServices = useMemo(() => {
     if (!query) return SERVICES
@@ -86,19 +90,28 @@ export default function MarketplacePage() {
   useEffect(() => {
     if (!service) {
       setQuotes({})
+      setPremiumQuotes({})
       return
     }
     let cancelled = false
     setLoadingQuotes(true)
     setQuotes({})
+    setPremiumQuotes({})
     setPlan('verification')
-    Promise.all(
-      RENTAL_PLANS.map((p) =>
-        getQuote(country, service, p.key).then((q) => [p.key, q] as const),
+    setQuality('cheap')
+    Promise.all([
+      Promise.all(
+        RENTAL_PLANS.map((p) => getQuote(country, service, p.key).then((q) => [p.key, q] as const)),
       ),
-    ).then((entries) => {
+      Promise.all(
+        RENTAL_PLANS.map((p) =>
+          getQuote(country, service, p.key, 'premium').then((q) => [p.key, q] as const),
+        ),
+      ),
+    ]).then(([cheapEntries, premiumEntries]) => {
       if (cancelled) return
-      setQuotes(Object.fromEntries(entries))
+      setQuotes(Object.fromEntries(cheapEntries))
+      setPremiumQuotes(Object.fromEntries(premiumEntries))
       setLoadingQuotes(false)
     })
     return () => {
@@ -110,7 +123,7 @@ export default function MarketplacePage() {
   async function confirmBuy() {
     if (!service || !quote?.available) return
     setBuying(true)
-    const res = await buyActivation(country, service, plan)
+    const res = await buyActivation(country, service, plan, quality)
     setBuying(false)
     if (res.ok) {
       setService(null)
@@ -297,6 +310,57 @@ export default function MarketplacePage() {
               </div>
             )}
 
+            {/* Qualité d'attribution : le moins cher (auto) ou meilleure réussite
+                (opérateur au meilleur taux, 1,5× le prix du moins cher). */}
+            {activePlan?.mode === 'verification' && (
+              <div className="mt-4">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-white/40">
+                  Qualité d&apos;attribution
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      { key: 'cheap', title: 'Le moins cher', note: 'Auto — opérateur au meilleur prix', q: quotes[plan] },
+                      { key: 'premium', title: 'Meilleure réussite', note: '×1,5 — opérateur au meilleur taux', q: premiumQuotes[plan] },
+                    ] as const
+                  ).map((opt) => {
+                    const q = opt.q
+                    const pending = loadingQuotes && q === undefined
+                    const unavailable = !pending && (!q || !q.available)
+                    const active = quality === opt.key
+                    return (
+                      <button
+                        key={opt.key}
+                        disabled={unavailable || buying}
+                        onClick={() => setQuality(opt.key)}
+                        className={`rounded-xl border p-3 text-left transition-colors ${
+                          active
+                            ? 'border-blue-500 bg-blue-500/10'
+                            : unavailable
+                              ? 'cursor-not-allowed border-white/5 bg-white/[0.01] opacity-40'
+                              : 'border-white/10 hover:border-blue-500/50'
+                        }`}
+                      >
+                        <p className="text-sm font-medium text-white">{opt.title}</p>
+                        <p className="mt-0.5 truncate text-xs text-white/40">{opt.note}</p>
+                        <p className="mt-1 text-sm font-semibold text-white">
+                          {pending ? (
+                            <span className="inline-flex items-center gap-1">
+                              <Loader2 className="h-3 w-3 animate-spin" /> ...
+                            </span>
+                          ) : q?.available && q.priceXof != null ? (
+                            formatXOF(q.priceXof)
+                          ) : (
+                            <span className="font-normal text-white/30">Indisponible</span>
+                          )}
+                        </p>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="mt-4 space-y-2 rounded-xl bg-white/[0.02] p-4 text-sm">
               {loadingQuotes && quote === null ? (
                 <div className="flex items-center justify-center gap-2 py-4 text-white/50">
@@ -309,7 +373,8 @@ export default function MarketplacePage() {
                     <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
                     {quote.providerCount} numéro(s) disponible(s)
                     <span className="ml-auto flex items-center gap-1 text-blue-400">
-                      <Zap className="h-3.5 w-3.5" /> Auto — le moins cher
+                      <Zap className="h-3.5 w-3.5" />
+                      {quality === 'premium' ? 'Opérateur haute réussite' : 'Auto — le moins cher'}
                     </span>
                   </div>
                   {quote.successRate != null && (

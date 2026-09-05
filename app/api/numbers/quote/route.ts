@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { requireUserId, UnauthorizedError } from '@/lib/numbers/auth'
 import { countryByCode, serviceBySlug, rentalPlanByKey } from '@/lib/numbers/catalog'
-import { getBestQuote, getRentQuote } from '@/lib/numbers/providers'
+import { getBestQuote, getPremiumQuote, getRentQuote } from '@/lib/numbers/providers'
 import type { QuoteResponse } from '@/lib/numbers/types'
 
 export async function GET(req: NextRequest) {
@@ -14,9 +14,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Pays ou service inconnu' }, { status: 400 })
     }
     const plan = rentalPlanByKey(searchParams.get('plan') ?? 'verification') ?? rentalPlanByKey('verification')!
-    const q = plan.mode === 'rental'
-      ? await getRentQuote(country, service, plan.minHours)
-      : await getBestQuote(country, service)
+    const premium = searchParams.get('quality') === 'premium'
+    const q =
+      plan.mode === 'rental'
+        ? await getRentQuote(country, service, plan.minHours)
+        : premium
+          ? await getPremiumQuote(country, service)
+          : await getBestQuote(country, service)
     const body: QuoteResponse = {
       available: q.available,
       priceXof: q.priceXof,

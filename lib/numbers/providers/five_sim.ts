@@ -4,6 +4,7 @@ import { resolveFiveSimApiKey } from '@/lib/numbers/five-sim-config'
 import { nativeToUsd } from '@/lib/numbers/pricing'
 import type { CodeResult, ProviderAdapter, PurchaseResult, Quote } from './types'
 import { normalizePhone } from './types'
+import type { BuyQuality } from '@/lib/numbers/types'
 
 // Adaptateur 5sim (https://5sim.net/docs).
 // Fournisseur de vérification par SMS unique (même modèle que sms-man) :
@@ -90,6 +91,13 @@ type PriceEntry = {
   rate?: number | string
 }
 
+type OperatorPrice = {
+  operator: string
+  cost: number
+  count: number
+  rate: number
+}
+
 type Order = {
   id: number | string
   phone?: string
@@ -129,9 +137,38 @@ function effectiveRate(entries: PriceEntry[], count: number): number {
   return Math.max(80, Math.min(95, 80 + Math.floor(Math.log10(count)) * 3))
 }
 
+/** Prix par opérateur pour un pays+produit (entrées exploitables uniquement). */
+async function pricesByOperator(countryKey: string, productKey: string): Promise<OperatorPrice[]> {
+  const { json } = await api<Record<string, Record<string, Record<string, PriceEntry>>>>(
+    `/guest/prices?country=${encodeURIComponent(countryKey)}&product=${encodeURIComponent(productKey)}`,
+  )
+  const perOperator = json?.[countryKey]?.[productKey] ?? {}
+  return Object.entries(perOperator)
+    .map(([operator, e]) => ({
+      operator,
+      cost: Number(e?.cost ?? 0),
+      count: Number(e?.count ?? 0),
+      rate: Number(e?.rate ?? 0),
+    }))
+    .filter((o) => o.cost > 0 && o.count > 0)
+}
+
+/**
+ * Opérateur « meilleure réussite » : celui au MEILLEUR taux annoncé (`rate`) ;
+ * à taux égal, le moins cher. Sans aucun taux annoncé, on retombe sur le moins
+ * cher (comportement identique au mode auto). Renvoie null si aucune entrée.
+ */
+function pickPremiumOperator(ops: OperatorPrice[]): OperatorPrice | null {
+  if (ops.length === 0) return null
+  const rated = ops.filter((o) => o.rate > 0)
+  const pool = rated.length > 0 ? rated : ops
+  return pool.reduce((a, b) => (b.rate !== a.rate ? (b.rate > a.rate ? b : a) : b.cost < a.cost ? b : a))
+}
+
 export const fiveSim: ProviderAdapter = {
   id: 'five_sim',
   name: '5sim',
+  supportsPremium: true,
 
   async services(country: CanonCountry): Promise<string[]> {
     const countryKey = await resolveCountry(country)
@@ -149,48 +186,55 @@ export const fiveSim: ProviderAdapter = {
     ).map((s) => s.slug)
   },
 
-  async quote(country: CanonCountry, service: CanonService): Promise<Quote | null> {
+  async quote(country: CanonCountry, service: CanonService, quality?: BuyQuality): Promise<Quote | null> {
     const { countryKey, productKey } = await resolve(country, service)
     if (!countryKey || !productKey) return null
 
-    // /guest/prices?country=..&product=.. -> { "<pays>": { "<produit>": { "<op>": { cost, count, rate } } } }
-    const { json } = await api<Record<string, Record<string, Record<string, PriceEntry>>>>(
-      `/guest/prices?country=${encodeURIComponent(countryKey)}&product=${encodeURIComponent(productKey)}`,
-    )
-    const perOperator = json?.[countryKey]?.[productKey]
-    const entries = perOperator ? Object.values(perOperator) : []
-    if (entries.length === 0) return null
+    const ops = await pricesByOperator(countryKey, productKey)
+    if (ops.length === 0) return null
 
-    let best: PriceEntry | undefined
-    let count = 0
-    for (const entry of entries) {
-      const c = Number(entry?.count ?? 0)
-      if (!isNaN(c)) count += c
-      const cost = Number(entry?.cost ?? 0)
-      if (cost > 0 && (!best || cost < Number(best.cost))) best = entry
+    if (quality === 'premium') {
+      const best = pickPremiumOperator(ops)
+      if (!best) return null
+      const costUsd = await nativeToUsd(best.cost, 'RUB')
+      return {
+        provider: 'five_sim',
+        costUsd,
+        count: best.count,
+        successRate: best.rate > 0 ? best.rate : effectiveRate(ops as PriceEntry[], best.count),
+      }
     }
-    // Stock vide sur tout le pays pour ce produit : pas de devis (ex: sms-man).
-    if (!best || count <= 0) return null
 
-    const costUsd = await nativeToUsd(Number(best.cost), 'RUB')
+    const cheapest = ops.reduce((a, b) => (b.cost < a.cost ? b : a))
+    const totalCount = ops.reduce((s, o) => s + o.count, 0)
+    const costUsd = await nativeToUsd(cheapest.cost, 'RUB')
     return {
       provider: 'five_sim',
       costUsd,
-      count,
-      successRate: effectiveRate(entries, count),
+      count: totalCount,
+      successRate: effectiveRate(ops as PriceEntry[], totalCount),
     }
   },
 
-  async purchase(country: CanonCountry, service: CanonService): Promise<PurchaseResult> {
+  async purchase(country: CanonCountry, service: CanonService, maxCostUsd?: number, quality?: BuyQuality): Promise<PurchaseResult> {
     const { countryKey, productKey } = await resolve(country, service)
     if (!countryKey || !productKey) throw new Error('FIVE_SIM_UNSUPPORTED: pays/service non disponible')
 
-    // "any" : 5sim choisit lui-même l'opérateur le plus pertinent. On réessaie
-    // quelques fois pour absorber les "no free phones" transitoires.
+    // "any" : 5sim choisit lui-même l'opérateur. En mode premium, on commande
+    // explicitement l'opérateur au meilleur taux de réussite annoncé.
+    let operator = 'any'
+    if (quality === 'premium') {
+      const ops = await pricesByOperator(countryKey, productKey)
+      const best = pickPremiumOperator(ops)
+      if (!best) throw new Error('FIVE_SIM_PREMIUM_UNAVAILABLE: pas d\'opérateur haute réussite pour ce pays/service')
+      operator = best.operator
+    }
+
+    // On réessaie quelques fois pour absorber les "no free phones" transitoires.
     let last = ''
     for (let attempt = 0; attempt < 4; attempt++) {
       const { status, json } = await api<Order>(
-        `/user/buy/activation/${encodeURIComponent(countryKey)}/any/${encodeURIComponent(productKey)}`,
+        `/user/buy/activation/${encodeURIComponent(countryKey)}/${encodeURIComponent(operator)}/${encodeURIComponent(productKey)}`,
       )
       const data = (json ?? {}) as Order
       if (status === 200 && data.id && !data.error) {

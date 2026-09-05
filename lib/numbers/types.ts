@@ -50,3 +50,6 @@ export type QuoteResponse = {
 export function formatXOF(n: number): string {
   return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(Math.round(n)) + ' FCFA'
 }
+
+/** Qualité d'attribution d'un numéro : moins cher (auto) ou meilleur taux de réussite. */
+export type BuyQuality = 'cheap' | 'premium'

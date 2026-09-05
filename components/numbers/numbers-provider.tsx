@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import type { Activation, NumbersState, QuoteResponse, Tx } from '@/lib/numbers/types'
+import type { Activation, BuyQuality, NumbersState, QuoteResponse, Tx } from '@/lib/numbers/types'
 import type { ApiKey, SupportTicket } from '@/lib/numbers/data'
 import { isAdminEmail } from '@/lib/admin-email'
 
@@ -25,8 +25,8 @@ type Ctx = {
   unreadCount: number
   // Actions réelles
   refreshState: () => Promise<void>
-  quote: (countryCode: string, serviceSlug: string, plan?: string) => Promise<QuoteResponse>
-  buyActivation: (countryCode: string, serviceSlug: string, plan?: string) => Promise<BuyResult>
+  quote: (countryCode: string, serviceSlug: string, plan?: string, quality?: BuyQuality) => Promise<QuoteResponse>
+  buyActivation: (countryCode: string, serviceSlug: string, plan?: string, quality?: BuyQuality) => Promise<BuyResult>
   refreshActivation: (id: number) => Promise<Activation | null>
   cancelActivation: (id: number) => Promise<void>
   deposit: (amountXof: number, method: string) => Promise<void>
@@ -105,22 +105,25 @@ export function NumbersProvider({ user, children }: { user: AccountUser; childre
     return () => clearInterval(interval)
   }, [hasWaiting, refreshState])
 
-  const quote = useCallback<Ctx['quote']>(async (countryCode, serviceSlug, plan = 'verification') => {
-    const res = await fetch(
-      `/api/numbers/quote?country=${countryCode}&service=${serviceSlug}&plan=${plan}`,
-      { cache: 'no-store' },
-    )
-    if (!res.ok) return { available: false, priceXof: null, cheapestProvider: null, providerCount: 0, successRate: null }
-    return (await res.json()) as QuoteResponse
-  }, [])
+  const quote = useCallback<Ctx['quote']>(
+    async (countryCode, serviceSlug, plan = 'verification', quality = 'cheap') => {
+      const res = await fetch(
+        `/api/numbers/quote?country=${countryCode}&service=${serviceSlug}&plan=${plan}&quality=${quality}`,
+        { cache: 'no-store' },
+      )
+      if (!res.ok) return { available: false, priceXof: null, cheapestProvider: null, providerCount: 0, successRate: null }
+      return (await res.json()) as QuoteResponse
+    },
+    [],
+  )
 
   const buyActivation = useCallback<Ctx['buyActivation']>(
-    async (countryCode, serviceSlug, plan = 'verification') => {
+    async (countryCode, serviceSlug, plan = 'verification', quality = 'cheap') => {
       try {
         const res = await fetch('/api/numbers/purchase', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ country: countryCode, service: serviceSlug, plan }),
+          body: JSON.stringify({ country: countryCode, service: serviceSlug, plan, quality }),
         })
         const data = await res.json()
         if (!res.ok) {

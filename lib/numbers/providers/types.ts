@@ -1,5 +1,6 @@
 import 'server-only'
 import type { CanonCountry, CanonService } from '@/lib/numbers/catalog'
+import type { BuyQuality } from '@/lib/numbers/types'
 
 export type ProviderId = 'smsman' | 'five_sim'
 
@@ -38,16 +39,19 @@ export type CodeResult = {
 export interface ProviderAdapter {
   id: ProviderId
   name: string
+  /** Vrai si ce fournisseur peut attribuer un numéro « meilleure réussite » (opérateur à taux élevé). */
+  supportsPremium?: boolean
   /** Coût + disponibilité pour un pays/service, ou null si indisponible. */
-  quote(country: CanonCountry, service: CanonService): Promise<Quote | null>
+  quote(country: CanonCountry, service: CanonService, quality?: BuyQuality): Promise<Quote | null>
   /** Slugs des services réellement proposés pour ce pays (catalogue du fournisseur). */
   services?(country: CanonCountry): Promise<string[]>
   /**
    * Achète un numéro. Lève une erreur si indisponible.
    * @param maxCostUsd Coût fournisseur maximum accepté (USD). Si fourni, le
    * fournisseur ne doit pas assigner un numéro plus cher (plafond anti-perte).
+   * @param quality 'premium' commande sur l'opérateur au meilleur taux de réussite.
    */
-  purchase(country: CanonCountry, service: CanonService, maxCostUsd?: number): Promise<PurchaseResult>
+  purchase(country: CanonCountry, service: CanonService, maxCostUsd?: number, quality?: BuyQuality): Promise<PurchaseResult>
   /** Récupère le statut + code SMS d'une commande. */
   getCode(providerOrder: string): Promise<CodeResult>
   /** Annule la commande (remboursement côté fournisseur si applicable). */
