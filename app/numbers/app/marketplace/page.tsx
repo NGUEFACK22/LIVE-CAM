@@ -38,6 +38,7 @@ export default function MarketplacePage() {
   // null = chargement en cours ou erreur (on revient à l'affichage complet).
   const [available, setAvailable] = useState<string[] | null>(null)
   const [configured, setConfigured] = useState(true)
+  const [probe, setProbe] = useState<{ keyLen: number; nodeEnv: string } | null>(null)
 
   const selectedCountry = countryByCode(country)
   const selectedService = service ? serviceBySlug(service) : null
@@ -62,6 +63,7 @@ export default function MarketplacePage() {
       .then((d) => {
         if (!cancelled) {
           if (d && typeof d.configured === 'boolean') setConfigured(d.configured)
+          if (d?.probe && typeof d.probe.keyLen === 'number') setProbe({ keyLen: d.probe.keyLen, nodeEnv: d.probe.nodeEnv })
           setAvailable(Array.isArray(d?.slugs) ? d.slugs : null)
         }
       })
@@ -186,6 +188,12 @@ export default function MarketplacePage() {
             <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-8 text-center text-sm text-amber-200">
               Le service de numéros n&apos;est pas encore configuré côté serveur
               (fournisseur 5sim). Revenez un peu plus tard.
+              {probe && (
+                <p className="mx-auto mt-3 max-w-md text-xs opacity-70">
+                  Diagnostic serveur : env = « {probe.nodeEnv} » · clé fournisseur
+                  : {probe.keyLen > 0 ? `présente (${probe.keyLen} caractères)` : 'ABSENTE (longueur 0)'}
+                </p>
+              )}
             </div>
           ) : available !== null && shownServices.length === 0 ? (
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center text-sm text-white/50">
