@@ -37,6 +37,7 @@ export default function MarketplacePage() {
   // Slugs des services réellement proposés par le fournisseur pour ce pays.
   // null = chargement en cours ou erreur (on revient à l'affichage complet).
   const [available, setAvailable] = useState<string[] | null>(null)
+  const [configured, setConfigured] = useState(true)
 
   const selectedCountry = countryByCode(country)
   const selectedService = service ? serviceBySlug(service) : null
@@ -59,7 +60,10 @@ export default function MarketplacePage() {
     fetch(`/api/numbers/services?country=${country}`, { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!cancelled) setAvailable(Array.isArray((d as any)?.slugs) ? (d as { slugs: string[] }).slugs : null)
+        if (!cancelled) {
+          if (d && typeof d.configured === 'boolean') setConfigured(d.configured)
+          setAvailable(Array.isArray(d?.slugs) ? d.slugs : null)
+        }
       })
       .catch(() => {
         if (!cancelled) setAvailable(null)
@@ -178,7 +182,12 @@ export default function MarketplacePage() {
             {selectedCountry?.name}
           </p>
 
-          {available !== null && shownServices.length === 0 ? (
+          {!configured && available !== null ? (
+            <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-8 text-center text-sm text-amber-200">
+              Le service de numéros n&apos;est pas encore configuré côté serveur
+              (fournisseur 5sim). Revenez un peu plus tard.
+            </div>
+          ) : available !== null && shownServices.length === 0 ? (
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center text-sm text-white/50">
               {query ? (
                 <>Aucun service ne correspond à « {query} » pour {selectedCountry?.name}.</>

@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Pays inconnu' }, { status: 400 })
     }
     const slugs = await listAvailableServices(country)
-    return NextResponse.json({ slugs })
+    return NextResponse.json({ slugs, configured: !!process.env.FIVE_SIM_API_KEY })
   } catch (e) {
     if (e instanceof UnauthorizedError) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     console.log('[v0] services route error:', (e as Error)?.message)
