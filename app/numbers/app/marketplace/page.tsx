@@ -38,7 +38,7 @@ export default function MarketplacePage() {
   // null = chargement en cours ou erreur (on revient à l'affichage complet).
   const [available, setAvailable] = useState<string[] | null>(null)
   const [configured, setConfigured] = useState(true)
-  const [probe, setProbe] = useState<{ keyLen: number; nodeEnv: string } | null>(null)
+  const [probe, setProbe] = useState<{ keyLen: number; nodeEnv: string; source: string } | null>(null)
 
   const selectedCountry = countryByCode(country)
   const selectedService = service ? serviceBySlug(service) : null
@@ -63,7 +63,8 @@ export default function MarketplacePage() {
       .then((d) => {
         if (!cancelled) {
           if (d && typeof d.configured === 'boolean') setConfigured(d.configured)
-          if (d?.probe && typeof d.probe.keyLen === 'number') setProbe({ keyLen: d.probe.keyLen, nodeEnv: d.probe.nodeEnv })
+          if (d?.probe && typeof d.probe.keyLen === 'number')
+            setProbe({ keyLen: d.probe.keyLen, nodeEnv: d.probe.nodeEnv, source: d.probe.source ?? '' })
           setAvailable(Array.isArray(d?.slugs) ? d.slugs : null)
         }
       })
@@ -191,7 +192,7 @@ export default function MarketplacePage() {
               {probe && (
                 <p className="mx-auto mt-3 max-w-md text-xs opacity-70">
                   Diagnostic serveur : env = « {probe.nodeEnv} » · clé fournisseur
-                  : {probe.keyLen > 0 ? `présente (${probe.keyLen} caractères)` : 'ABSENTE (longueur 0)'}
+                  : {probe.keyLen > 0 ? `présente (${probe.keyLen} caractères, source ${probe.source})` : 'ABSENTE (longueur 0)'}
                 </p>
               )}
             </div>

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { requireUserId, UnauthorizedError } from '@/lib/numbers/auth'
 import { countryByCode } from '@/lib/numbers/catalog'
 import { listAvailableServices } from '@/lib/numbers/providers'
+import { resolveFiveSimApiKey } from '@/lib/numbers/five-sim-config'
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,11 +13,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Pays inconnu' }, { status: 400 })
     }
     const slugs = await listAvailableServices(country)
-    const fiveKey = process.env.FIVE_SIM_API_KEY ?? ''
+    const { key, source } = await resolveFiveSimApiKey()
     return NextResponse.json({
       slugs,
-      configured: !!fiveKey,
-      probe: { keyLen: fiveKey.length, nodeEnv: process.env.NODE_ENV ?? '' },
+      configured: !!key,
+      probe: { keyLen: key.length, nodeEnv: process.env.NODE_ENV ?? '', source },
     })
   } catch (e) {
     if (e instanceof UnauthorizedError) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

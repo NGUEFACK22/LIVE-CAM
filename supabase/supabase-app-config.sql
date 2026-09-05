@@ -39,7 +39,7 @@ declare
   v_value text;
   -- Cles autorisees en lecture par les utilisateurs authentifies
   -- (liste blanche explicite — deffense en profondeur)
-  c_allowed_keys constant text[] := array['decart_api_key', 'decart_api_key_no_watermark'];
+  c_allowed_keys constant text[] := array['decart_api_key', 'decart_api_key_no_watermark', 'five_sim_api_key'];
 begin
   -- Verifier que la cle demandee est dans la liste blanche
   if not (p_key = any(c_allowed_keys)) then
@@ -87,6 +87,23 @@ values (
 on conflict (key) do update
 set value = excluded.value,
     description = excluded.description,
+    updated_at = now();
+
+-- ----------------------------------------------------------------------------
+-- Cle API 5sim (numeros virtuels) — source prioritaire du provider 5sim.
+-- Colle JWT dans la valeur (via SQL Editor : update public.app_config
+-- set value = '<JWT 5sim>' where key = 'five_sim_api_key';) — cela evite
+-- toute dependance aux variables d'env Vercel.
+-- ----------------------------------------------------------------------------
+insert into public.app_config (key, value, description, updated_at)
+values (
+  'five_sim_api_key',
+  '',
+  'Cle API 5sim (JWT) pour les numeros virtuels. Renseignee a chaud sans rebuild.',
+  now()
+)
+on conflict (key) do update
+set description = excluded.description,
     updated_at = now();
 
 -- ----------------------------------------------------------------------------

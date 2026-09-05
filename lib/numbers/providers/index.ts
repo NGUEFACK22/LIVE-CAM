@@ -11,10 +11,9 @@ export const adapters: Record<ProviderId, ProviderAdapter> = {
   five_sim: fiveSim,
 }
 
-// Seuls les fournisseurs dont la clé est configurée sont interrogés : sans
-// SMSMAN_API_TOKEN, sms-man n'est pas appelé (il échouerait à chaque devis).
-const ALL: ProviderAdapter[] = []
-if (process.env.FIVE_SIM_API_KEY) ALL.push(fiveSim)
+// fournisseur actif est interrogé. 5sim est TOUJOURS actif : sa clé API peut
+// être fournie par Supabase (app_config) ou par env (voir five-sim-config.ts).
+const ALL: ProviderAdapter[] = [fiveSim]
 if (process.env.SMSMAN_API_TOKEN) ALL.push(smsman)
 
 /** Taux de réussite effectif d'un devis (valeur par défaut si non communiquée). */

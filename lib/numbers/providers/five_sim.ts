@@ -1,5 +1,6 @@
 import 'server-only'
 import { normalize, SERVICES, type CanonCountry, type CanonService } from '@/lib/numbers/catalog'
+import { resolveFiveSimApiKey } from '@/lib/numbers/five-sim-config'
 import { nativeToUsd } from '@/lib/numbers/pricing'
 import type { CodeResult, ProviderAdapter, PurchaseResult, Quote } from './types'
 import { normalizePhone } from './types'
@@ -10,13 +11,10 @@ import { normalizePhone } from './types'
 // Prix en RUB ; ready-to-use `Authorization: Bearer <token JWT>`.
 const BASE = 'https://5sim.net/v1'
 
-function token() {
-  return process.env.FIVE_SIM_API_KEY ?? ''
-}
-
 async function api<T = unknown>(path: string): Promise<{ status: number; json: T | null; text: string }> {
+  const { key } = await resolveFiveSimApiKey()
   const res = await fetch(`${BASE}${path}`, {
-    headers: { Authorization: `Bearer ${token()}`, Accept: 'application/json' },
+    headers: { Authorization: `Bearer ${key}`, Accept: 'application/json' },
     cache: 'no-store',
   })
   const text = await res.text()
