@@ -215,11 +215,9 @@ export function HeroSection() {
             <StreamStudio />
           </MonitorFrame>
 
-          {/* Bannière partenaire ChapSim */}
+          {/* Bannière partenaire LIVE SIM */}
           <motion.a
-            href="https://chapsim.app/"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/numbers"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
@@ -232,12 +230,12 @@ export function HeroSection() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/chapsim/banner.png"
-              alt="ChapSim - Numéros virtuels, SMS OTP et proxies premium"
+              alt="LIVE SIM - Numéros virtuels, SMS OTP et proxies premium"
               className="h-auto w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
             />
             <div className="flex items-center justify-between gap-3 border-t border-white/10 bg-[#0b1020]/90 px-4 py-3 backdrop-blur-sm">
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-white">ChapSim</p>
+                <p className="truncate text-sm font-bold text-white">LIVE SIM</p>
                 <p className="truncate text-xs text-gray-400">Numéros virtuels, SMS OTP &amp; proxies premium</p>
               </div>
               <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] px-4 py-2 text-sm font-semibold text-white shadow-[0_0_20px_-4px_rgba(139,92,246,0.7)] transition-all duration-300 group-hover:brightness-110">

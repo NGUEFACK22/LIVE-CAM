@@ -2,22 +2,33 @@
 
 import { useState } from 'react'
 
+// Certains slugs du catalogue (hérités de theSVG.org, désormais hors ligne)
+// ne correspondent pas au nom simple-icons : on traduit explicitement.
+const ICON_SLUGS: Record<string, string> = {
+  gate: 'gate.io',
+  bookingcom: 'booking.com',
+  mailru: 'mail.ru',
+}
+
+function resolveSlug(logo: string): string {
+  return ICON_SLUGS[logo] ?? logo
+}
+
 /**
  * Logo de marque d'un service (WhatsApp, Telegram, Apple...).
- * Source : theSVG.org (logos officiels). Fond blanc arrondi pour rester lisible
- * sur fond sombre, y compris pour les logos noirs (Apple, X). Retombe sur les
- * initiales si l'image ne charge pas.
+ * Source : cdn.simpleicons.org (milier d'icônes officielles, livrées dans la
+ * couleur de la marque). Fond blanc arrondi pour rester lisible sur le thème
+ * sombre, y compris pour les logos noirs (Apple, X).
+ * Retombe sur les initiales si l'icône n'existe pas ou ne charge pas.
  */
 export function ServiceLogo({
   logo,
   label,
-  variant = 'default',
   size = 40,
   className = '',
 }: {
   logo: string
   label: string
-  variant?: string
   size?: number
   className?: string
 }) {
@@ -43,7 +54,7 @@ export function ServiceLogo({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={`https://thesvg.org/icons/${logo}/${variant}.svg`}
+        src={`https://cdn.simpleicons.org/${encodeURIComponent(resolveSlug(logo))}`}
         alt={`Logo ${label}`}
         width={size - 12}
         height={size - 12}

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useNumbers } from '@/components/numbers/numbers-provider'
+import { ServiceLogo } from '@/components/numbers/service-logo'
 import { countryByCode, serviceBySlug } from '@/lib/numbers/catalog'
 import { timeAgo } from '@/lib/numbers/data'
 import type { Activation } from '@/lib/numbers/types'
@@ -128,16 +129,21 @@ export default function MessagesPage() {
                       selected === a.id ? 'bg-blue-500/10' : ''
                     }`}
                   >
-                    <span className="mt-0.5 text-lg leading-none">{c?.flag ?? '🌐'}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm font-medium text-white">{svc?.label ?? a.serviceLabel}</p>
-                        <span className="shrink-0 text-xs text-white/40">{timeAgo(a.createdAt)}</span>
+                    <div className="flex items-center gap-3">
+                      {svc && <ServiceLogo logo={svc.logo} label={svc.label} size={40} />}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="truncate text-sm font-medium text-white">{svc?.label ?? a.serviceLabel}</p>
+                          <span className="shrink-0 text-xs text-white/40">{timeAgo(a.createdAt)}</span>
+                        </div>
+                        <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-white/55">
+                          <span className="text-base leading-none">{c?.flag}</span>
+                          {a.phone} · {a.fullSms ?? `Code : ${a.code}`}
+                        </p>
+                        <span className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-300">
+                          <KeyRound className="h-3 w-3" /> {a.code}
+                        </span>
                       </div>
-                      <p className="mt-0.5 truncate text-sm text-white/55">{a.fullSms ?? `Code : ${a.code}`}</p>
-                      <span className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-300">
-                        <KeyRound className="h-3 w-3" /> {a.code}
-                      </span>
                     </div>
                   </button>
                 </li>
@@ -163,11 +169,20 @@ export default function MessagesPage() {
             </div>
           ) : (
             <div className="flex h-full flex-col">
-              <div>
-                <p className="text-sm text-white/40">Service</p>
-                <p className="text-lg font-semibold text-white">
-                  {serviceBySlug(current.serviceSlug)?.label ?? current.serviceLabel}
-                </p>
+              <div className="flex items-center gap-3">
+                {serviceBySlug(current.serviceSlug) && (
+                  <ServiceLogo
+                    logo={serviceBySlug(current.serviceSlug)!.logo}
+                    label={serviceBySlug(current.serviceSlug)!.label}
+                    size={44}
+                  />
+                )}
+                <div>
+                  <p className="text-sm text-white/40">Service</p>
+                  <p className="text-lg font-semibold text-white">
+                    {serviceBySlug(current.serviceSlug)?.label ?? current.serviceLabel}
+                  </p>
+                </div>
               </div>
 
               <p className="mt-1 flex items-center gap-1.5 text-xs text-white/40">

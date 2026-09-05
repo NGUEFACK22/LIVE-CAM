@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useNumbers } from '@/components/numbers/numbers-provider'
+import { ServiceLogo } from '@/components/numbers/service-logo'
 import { countryByCode, serviceBySlug } from '@/lib/numbers/catalog'
 import { formatXOF, type Activation } from '@/lib/numbers/types'
 import {
@@ -118,7 +119,7 @@ export default function NumbersPage() {
               <div key={a.id} className={`${card} p-5`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl leading-none">{c?.flag}</span>
+                    {svc && <ServiceLogo logo={svc.logo} label={svc.label} size={52} />}
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-mono text-base text-white">{a.phone}</p>
@@ -135,7 +136,11 @@ export default function NumbersPage() {
                         </button>
                       </div>
                       <p className="mt-0.5 text-xs text-white/50">
-                        {svc?.label ?? a.serviceLabel} · {c?.name}
+                        <span className="inline-flex items-center gap-1">
+                          {svc?.label ?? a.serviceLabel}
+                          {c && <span className="text-sm leading-none">{c.flag}</span>}
+                          {c?.name}
+                        </span>
                       </p>
                     </div>
                   </div>

@@ -7,12 +7,12 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'ChapSim - Numéros Virtuels, SMS OTP & Proxies Premium',
+  title: 'LIVE SIM - Numéros Virtuels, SMS OTP & Proxies Premium',
   description:
-    'Recevez vos OTP instantanément, achetez des numéros virtuels dans +180 pays et utilisez des proxies premium résidentiels & sécurisés avec ChapSim.',
+    'Recevez vos OTP instantanément, achetez des numéros virtuels dans +180 pays et utilisez des proxies premium résidentiels & sécurisés avec LIVE SIM.',
 }
 
-const CHAPSIM_URL = 'https://chapsim.app/'
+const CHAPSIM_URL = '/numbers'
 
 const FEATURES = [
   {
@@ -51,7 +51,7 @@ const BENEFITS = [
   'Recharge simple par jetons, sans engagement',
 ]
 
-export default function ChapSimPage() {
+export default function LiveSimPage() {
   return (
     <main className="min-h-screen bg-[#0a0a1f] text-slate-100">
       {/* Top bar */}
@@ -62,7 +62,7 @@ export default function ChapSimPage() {
               <Phone className="h-5 w-5 text-white" />
             </span>
             <span className="text-lg font-extrabold tracking-tight">
-              Chap<span className="text-[#a78bfa]">Sim</span>
+              LIVE <span className="text-[#a78bfa]">SIM</span>
             </span>
           </div>
           <Link
@@ -92,26 +92,22 @@ export default function ChapSimPage() {
             <p className="mt-4 max-w-md text-pretty leading-relaxed text-slate-400">
               Recevez vos OTP instantanément, achetez des numéros dans plus de 180 pays
               et naviguez avec des proxies rapides et sécurisés. Le tout dans une seule
-              application : ChapSim.
+              application : LIVE SIM.
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <a
                 href={CHAPSIM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#7c3aed]/30 transition-all hover:brightness-110"
               >
                 <Download className="h-5 w-5" />
-                Télécharger ChapSim
+                Télécharger LIVE SIM
               </a>
               <a
                 href={CHAPSIM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-6 py-3.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/5"
               >
-                <Globe className="h-5 w-5" /> Ouvrir chapsim.app
+                <Globe className="h-5 w-5" /> Ouvrir LIVE SIM
               </a>
             </div>
 
@@ -132,7 +128,7 @@ export default function ChapSimPage() {
             <div className="overflow-hidden rounded-3xl border border-white/10 shadow-2xl shadow-black/50">
               <Image
                 src="/chapsim/presentation.jpg"
-                alt="Aperçu de l'application ChapSim : numéros virtuels, SMS OTP et proxies premium"
+                alt="Aperçu de l'application LIVE SIM : numéros virtuels, SMS OTP et proxies premium"
                 width={1280}
                 height={640}
                 className="h-auto w-full"
@@ -182,16 +178,14 @@ export default function ChapSimPage() {
             Prêt à créer et vérifier tes comptes en toute sécurité ?
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-pretty text-slate-400">
-            Télécharge ChapSim et obtiens ton premier numéro virtuel en quelques secondes.
+            Télécharge LIVE SIM et obtiens ton premier numéro virtuel en quelques secondes.
           </p>
           <a
             href={CHAPSIM_URL}
-            target="_blank"
-            rel="noopener noreferrer"
             className="mt-7 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] px-8 py-4 text-sm font-bold text-white shadow-lg shadow-[#7c3aed]/30 transition-all hover:brightness-110"
           >
             <Download className="h-5 w-5" />
-            Télécharger ChapSim maintenant
+            Télécharger LIVE SIM maintenant
           </a>
         </div>
       </section>

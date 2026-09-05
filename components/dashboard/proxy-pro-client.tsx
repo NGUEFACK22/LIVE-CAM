@@ -40,7 +40,7 @@ export function ProxyProClient({ products }: Props) {
           </div>
         </header>
 
-        {/* ChapSim — proxies disponibles maintenant */}
+        {/* LIVE SIM — proxies disponibles maintenant */}
         <div className="mb-8 overflow-hidden rounded-3xl border border-[#7c3aed]/40 bg-[#0b0a1a]">
           <div className="grid gap-0 md:grid-cols-[minmax(0,1fr)_320px]">
             {/* Texte + CTA */}
@@ -56,7 +56,7 @@ export function ProxyProClient({ products }: Props) {
                   Disponible maintenant
                 </span>
                 <h2 className="mt-3 text-2xl font-bold text-white text-balance sm:text-3xl">
-                  Proxies premium avec ChapSim
+                  Proxies premium avec LIVE SIM
                 </h2>
                 <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/60 text-pretty">
                   Proxies résidentiels, mobiles et IP statiques dans 180+ pays, avec SMS OTP et
@@ -78,12 +78,10 @@ export function ProxyProClient({ products }: Props) {
                 </ul>
 
                 <a
-                  href="https://chapsim.app/"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/numbers"
                   className="group mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-[#7c3aed] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#6d28d9]"
                 >
-                  Obtenir sur ChapSim
+                  Obtenir sur LIVE SIM
                   <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </a>
               </div>
@@ -92,15 +90,13 @@ export function ProxyProClient({ products }: Props) {
             {/* Aperçu de l'app */}
             <div className="relative flex items-end justify-center bg-gradient-to-b from-[#7c3aed]/20 to-transparent px-6 pt-6 sm:px-8">
               <a
-                href="https://chapsim.app/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Ouvrir ChapSim"
+                href="/numbers"
+                aria-label="Ouvrir LIVE SIM"
                 className="block w-40 overflow-hidden rounded-t-3xl border-x border-t border-white/10 shadow-2xl shadow-[#7c3aed]/30 transition-transform duration-300 hover:-translate-y-1 sm:w-48"
               >
                 <Image
                   src="/chapsim/proxy-app.jpg"
-                  alt="Application ChapSim — page Proxy avec proxies résidentiels et mobiles"
+                  alt="Application LIVE SIM — page Proxy avec proxies résidentiels et mobiles"
                   width={480}
                   height={1040}
                   className="h-auto w-full"
@@ -145,12 +141,10 @@ export function ProxyProClient({ products }: Props) {
 
                 <div className="mt-auto">
                   <a
-                    href="https://chapsim.app/"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href="/numbers"
                     className="group flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
                   >
-                    Obtenir sur ChapSim
+                    Obtenir sur LIVE SIM
                     <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </a>
                 </div>

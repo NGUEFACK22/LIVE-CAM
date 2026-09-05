@@ -62,22 +62,20 @@ export function Header() {
             </Link>
           ))}
 
-          {/* Lien externe ChapSim avec logo */}
+          {/* Lien SIM avec logo */}
           <a
-            href="https://chapsim.app/"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/numbers"
             className="whitespace-nowrap text-white/70 hover:text-white transition-colors text-sm font-medium relative group inline-flex items-center gap-2"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/chapsim/logo.jpg"
-              alt="Logo ChapSim"
+              alt="Logo LIVE SIM"
               width={22}
               height={22}
               className="h-[22px] w-[22px] rounded-md object-cover ring-1 ring-white/10 transition-transform duration-300 group-hover:scale-110"
             />
-            ChapSim
+            LIVE SIM
             <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-gradient-to-r from-[#00d4ff] to-[#8b5cf6] group-hover:w-full transition-all duration-300" />
           </a>
         </nav>

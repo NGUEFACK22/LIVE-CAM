@@ -201,7 +201,7 @@ function SidebarContent({
           const blocked = isPathBlocked(item.href)
           return (
             <div key={item.href}>
-              {/* Boutons vedette premium (Live Swap / ChapCam PC / ChapSim) */}
+              {/* Boutons vedette premium (Live Swap / ChapCam PC / LIVE SIM) */}
               {item.href === '/dashboard/voice-swap' && (
                 <div className="mb-3 mt-1">
                   <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-text-faint">

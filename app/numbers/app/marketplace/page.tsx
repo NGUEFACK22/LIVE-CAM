@@ -148,7 +148,7 @@ export default function MarketplacePage() {
                 onClick={() => setService(s.slug)}
                 className={`${card} flex items-center gap-3 p-4 text-left transition-colors hover:border-blue-500/50`}
               >
-                <ServiceLogo logo={s.logo} label={s.label} variant={s.logoVariant} size={40} />
+                <ServiceLogo logo={s.logo} label={s.label} size={40} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-white">{s.label}</p>
                   <p className="text-xs text-white/40">SMS de vérification</p>
@@ -178,7 +178,7 @@ export default function MarketplacePage() {
             </div>
 
             <div className="mt-4 flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4">
-              <ServiceLogo logo={selectedService.logo} label={selectedService.label} variant={selectedService.logoVariant} size={44} />
+              <ServiceLogo logo={selectedService.logo} label={selectedService.label} size={44} />
               <div className="flex-1">
                 <p className="font-medium text-white">{selectedService.label}</p>
                 <p className="text-xs text-white/40">

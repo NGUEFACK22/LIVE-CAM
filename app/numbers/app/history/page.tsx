@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useNumbers } from '@/components/numbers/numbers-provider'
+import { ServiceLogo } from '@/components/numbers/service-logo'
 import { countryByCode, serviceBySlug } from '@/lib/numbers/catalog'
 import { formatXOF, type Activation } from '@/lib/numbers/types'
 import { Search, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
@@ -123,7 +124,16 @@ export default function HistoryPage() {
                           <span className="font-mono text-white">{o.phone}</span>
                         </span>
                       </td>
-                      <td className="p-4">{svc?.label ?? o.serviceLabel}</td>
+                      <td className="p-4">
+                        {svc ? (
+                          <span className="flex items-center gap-2">
+                            <ServiceLogo logo={svc.logo} label={svc.label} size={26} />
+                            {svc.label}
+                          </span>
+                        ) : (
+                          o.serviceLabel
+                        )}
+                      </td>
                       {isAdmin && <td className="p-4 capitalize">{o.provider}</td>}
                       <td className="p-4 text-white">{formatXOF(o.priceXof)}</td>
                       <td className="p-4">

@@ -73,31 +73,31 @@ function SidebarInner({ onNavigate }: { onNavigate?: () => void }) {
 
       <NavList onNavigate={onNavigate} />
 
-      {/* Visuel ChapSim cliquable — image exacte de la presentation */}
+      {/* Visuel LIVE SIM cliquable — image exacte de la presentation */}
       <Link
-        href="/chapsim"
+        href="/numbers/app"
         onClick={onNavigate}
         className="group block overflow-hidden rounded-xl border border-white/10 shadow-lg shadow-[#7c3aed]/20 transition-transform duration-200 hover:scale-[1.02]"
-        aria-label="Découvrir ChapSim"
+        aria-label="Découvrir LIVE SIM"
       >
         <Image
           src="/chapsim/presentation.jpg"
-          alt="ChapSim — Numéros virtuels, SMS OTP et proxies premium"
+          alt="LIVE SIM — Numéros virtuels, SMS OTP et proxies premium"
           width={1280}
           height={625}
           className="h-auto w-full"
         />
       </Link>
 
-      {/* Bouton vedette ChapSim — numeros virtuels, SMS OTP & proxies premium */}
+      {/* Bouton vedette LIVE SIM — numeros virtuels, SMS OTP & proxies premium */}
       <Link
-        href="/chapsim"
+        href="/numbers/app"
         onClick={onNavigate}
         className="group relative flex items-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] px-3 py-3 text-sm font-bold text-white shadow-lg shadow-[#7c3aed]/40 transition-all duration-200 hover:brightness-110"
       >
         <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
         <Globe className="h-[18px] w-[18px] shrink-0" />
-        <span className="flex-1 leading-tight">ChapSim</span>
+        <span className="flex-1 leading-tight">LIVE SIM</span>
         <span className="rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-extrabold tracking-wide">
           OTP
         </span>
