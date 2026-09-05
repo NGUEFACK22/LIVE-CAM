@@ -34,6 +34,9 @@ export default function MarketplacePage() {
   const [quotes, setQuotes] = useState<Record<string, QuoteResponse | null>>({})
   const [loadingQuotes, setLoadingQuotes] = useState(false)
   const [buying, setBuying] = useState(false)
+  // Slugs des services réellement proposés par le fournisseur pour ce pays.
+  // null = chargement en cours ou erreur (on revient à l'affichage complet).
+  const [available, setAvailable] = useState<string[] | null>(null)
 
   const selectedCountry = countryByCode(country)
   const selectedService = service ? serviceBySlug(service) : null
@@ -44,6 +47,27 @@ export default function MarketplacePage() {
     const q = query.toLowerCase()
     return SERVICES.filter((s) => s.label.toLowerCase().includes(q) || s.slug.includes(q))
   }, [query])
+
+  const shownServices = useMemo(() => {
+    if (!available) return filteredServices
+    return filteredServices.filter((s) => available.includes(s.slug))
+  }, [filteredServices, available])
+
+  // Récupération des services disponibles à chaque changement de pays.
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/numbers/services?country=${country}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled) setAvailable(Array.isArray((d as any)?.slugs) ? (d as { slugs: string[] }).slugs : null)
+      })
+      .catch(() => {
+        if (!cancelled) setAvailable(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [country])
 
   // À l'ouverture du modal (ou changement pays/service), on interroge la
   // disponibilité + le prix de CHAQUE forfait en parallèle. Les forfaits
@@ -104,7 +128,13 @@ export default function MarketplacePage() {
         <aside className={`${card} h-fit p-5`}>
           <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-white/40">Pays</label>
           <div className="mb-4">
-            <CountrySelect value={country} onChange={setCountry} />
+            <CountrySelect
+              value={country}
+              onChange={(c) => {
+                setCountry(c)
+                setAvailable(null)
+              }}
+            />
           </div>
 
           <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3 text-sm">
@@ -136,13 +166,29 @@ export default function MarketplacePage() {
           </div>
 
           <p className="flex items-center gap-1.5 text-sm text-white/50">
-            {filteredServices.length} services disponibles pour
+            {available === null ? (
+              'Chargement des services...'
+            ) : (
+              <>
+                {shownServices.length} service{shownServices.length === 1 ? '' : 's'} disponible
+                {shownServices.length === 1 ? '' : 's'} pour
+              </>
+            )}
             {selectedCountry && <CountryFlag code={selectedCountry.code} size={18} />}
             {selectedCountry?.name}
           </p>
 
+          {available !== null && shownServices.length === 0 ? (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center text-sm text-white/50">
+              {query ? (
+                <>Aucun service ne correspond à « {query} » pour {selectedCountry?.name}.</>
+              ) : (
+                <>Aucun service numéro n&apos;est disponible pour {selectedCountry?.name} pour le moment. Choisissez un autre pays.</>
+              )}
+            </div>
+          ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredServices.map((s) => (
+            {shownServices.map((s) => (
               <button
                 key={s.slug}
                 onClick={() => setService(s.slug)}
@@ -157,6 +203,7 @@ export default function MarketplacePage() {
               </button>
             ))}
           </div>
+          )}
         </div>
       </div>
 

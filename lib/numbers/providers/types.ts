@@ -40,6 +40,8 @@ export interface ProviderAdapter {
   name: string
   /** Coût + disponibilité pour un pays/service, ou null si indisponible. */
   quote(country: CanonCountry, service: CanonService): Promise<Quote | null>
+  /** Slugs des services réellement proposés pour ce pays (catalogue du fournisseur). */
+  services?(country: CanonCountry): Promise<string[]>
   /**
    * Achète un numéro. Lève une erreur si indisponible.
    * @param maxCostUsd Coût fournisseur maximum accepté (USD). Si fourni, le

@@ -1,5 +1,5 @@
 import 'server-only'
-import { normalize, type CanonCountry, type CanonService } from '@/lib/numbers/catalog'
+import { normalize, SERVICES, type CanonCountry, type CanonService } from '@/lib/numbers/catalog'
 import { nativeToUsd } from '@/lib/numbers/pricing'
 import type { CodeResult, ProviderAdapter, PurchaseResult, Quote } from './types'
 import { normalizePhone } from './types'
@@ -134,6 +134,22 @@ function effectiveRate(entries: PriceEntry[], count: number): number {
 export const fiveSim: ProviderAdapter = {
   id: 'five_sim',
   name: '5sim',
+
+  async services(country: CanonCountry): Promise<string[]> {
+    const countryKey = await resolveCountry(country)
+    if (!countryKey) return []
+    const products = await productsFor(countryKey)
+    if (products.length === 0) return []
+    return SERVICES.filter((s) =>
+      products.some((p) =>
+        s.match.some((m) => {
+          const key = normalize(p)
+          const mw = normalize(m)
+          return key === mw || key.includes(mw) || mw.includes(key)
+        }),
+      ),
+    ).map((s) => s.slug)
+  },
 
   async quote(country: CanonCountry, service: CanonService): Promise<Quote | null> {
     const { countryKey, productKey } = await resolve(country, service)

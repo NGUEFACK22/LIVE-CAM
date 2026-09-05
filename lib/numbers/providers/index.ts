@@ -50,6 +50,14 @@ export type BestQuote = {
   usdToXof: number
 }
 
+/** Union des services proposés par les fournisseurs actifs pour ce pays. */
+export async function listAvailableServices(country: CanonCountry): Promise<string[]> {
+  const results = await Promise.all(
+    ALL.map((a) => (a.services ? a.services(country).catch(() => [] as string[]) : Promise.resolve([] as string[]))),
+  )
+  return [...new Set(results.flat())]
+}
+
 /** Interroge tous les fournisseurs et renvoie le moins cher, prix client en XOF. */
 export async function getBestQuote(country: CanonCountry, service: CanonService): Promise<BestQuote> {
   const [usdToXof, results] = await Promise.all([
