@@ -220,41 +220,61 @@ export const fiveSim: ProviderAdapter = {
     const { countryKey, productKey } = await resolve(country, service)
     if (!countryKey || !productKey) throw new Error('FIVE_SIM_UNSUPPORTED: pays/service non disponible')
 
-    // "any" : 5sim choisit lui-même l'opérateur. En mode premium, on commande
-    // explicitement l'opérateur au meilleur taux de réussite annoncé.
-    let operator = 'any'
+    // Mode auto : "any" laisse 5sim choisir l'opérateur. Mode premium : on
+    // essaie les opérateurs par MEILLEUR taux annoncé décroissant (à taux
+    // égal, le moins cher), jusqu'à 3, pour absorber les "no free phones".
+    const candidates: string[] = []
     if (quality === 'premium') {
       const ops = await pricesByOperator(countryKey, productKey)
-      const best = pickPremiumOperator(ops)
-      if (!best) throw new Error('FIVE_SIM_PREMIUM_UNAVAILABLE: pas d\'opérateur haute réussite pour ce pays/service')
-      operator = best.operator
+      if (ops.length === 0) throw new Error('FIVE_SIM_PREMIUM_UNAVAILABLE: pas d\'opérateur haute réussite pour ce pays/service')
+      candidates.push(
+        ...[...ops]
+          .sort((a, b) => (b.rate !== a.rate ? b.rate - a.rate : a.cost - b.cost))
+          .slice(0, 3)
+          .map((o) => o.operator),
+      )
+    } else {
+      candidates.push('any')
     }
 
     // On réessaie quelques fois pour absorber les "no free phones" transitoires.
     let last = ''
-    for (let attempt = 0; attempt < 4; attempt++) {
-      const { status, json } = await api<Order>(
-        `/user/buy/activation/${encodeURIComponent(countryKey)}/${encodeURIComponent(operator)}/${encodeURIComponent(productKey)}`,
-      )
-      const data = (json ?? {}) as Order
-      if (status === 200 && data.id && !data.error) {
-        return {
-          provider: 'five_sim',
-          providerOrder: String(data.id),
-          phone: normalizePhone(data.phone ?? ''),
-          costUsd: Number(data.price ?? 0) > 0 ? await nativeToUsd(Number(data.price), 'RUB') : 0,
-          // Fenêtre 5sim renvoyée par l'API (sinon +15 min par défaut).
-          expiresAt: parseExpiry(data.expires),
+    let sawNoNumbers = false
+    for (const operator of candidates) {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { status, json } = await api<Order>(
+          `/user/buy/activation/${encodeURIComponent(countryKey)}/${encodeURIComponent(operator)}/${encodeURIComponent(productKey)}`,
+        )
+        const data = (json ?? {}) as Order
+        if (status === 200 && data.id && !data.error) {
+          return {
+            provider: 'five_sim',
+            providerOrder: String(data.id),
+            phone: normalizePhone(data.phone ?? ''),
+            costUsd: Number(data.price ?? 0) > 0 ? await nativeToUsd(Number(data.price), 'RUB') : 0,
+            // Fenêtre 5sim renvoyée par l'API (sinon +15 min par défaut).
+            expiresAt: parseExpiry(data.expires),
+          }
         }
+        last = errorText(json)
+        // Solde fournisseur insuffisant : inutile de réessayer, même opérateur.
+        if (last.includes('balance')) break
+        if (last.includes('no free phones')) {
+          sawNoNumbers = true
+          if (attempt < 2) {
+            await new Promise((r) => setTimeout(r, 400))
+            continue
+          }
+          // Opérateur épuisé (3 essais) : on passe au meilleur opérateur suivant.
+          break
+        }
+        if (attempt < 2) await new Promise((r) => setTimeout(r, 700))
       }
-      last = errorText(json)
-      // Solde fournisseur insuffisant : inutile de réessayer.
       if (last.includes('balance')) break
-      if (attempt < 3) await new Promise((r) => setTimeout(r, 700))
     }
 
     if (last.includes('balance')) throw new Error('FIVE_SIM_BALANCE: solde fournisseur insuffisant')
-    if (last.includes('no free phones')) throw new Error('FIVE_SIM_NO_NUMBERS: aucun numéro disponible actuellement')
+    if (sawNoNumbers || last.includes('no free phones')) throw new Error('FIVE_SIM_NO_NUMBERS: aucun numéro disponible actuellement')
     throw new Error(`5sim: ${last || 'achat impossible'}`)
   },
 

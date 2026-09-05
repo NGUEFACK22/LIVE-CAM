@@ -82,6 +82,16 @@ export function tierPriceXof(costUsd: number, usdToXof: number): number {
 }
 
 /**
+ * Prix « meilleure réussite » : TOUJOURS 1,5 × le prix client du numéro le
+ * moins cher, arrondi au multiple de 20 supérieur (jamais sous le plancher).
+ * Décision produit : même si le plancher 2000 FCFA s'applique au moins cher,
+ * le premium reste bien 1,5× plus cher (2000 → 3000 FCFA).
+ */
+export function premiumPriceXof(cheapPriceXof: number): number {
+  return Math.max(PRICE_TIERS.floorXof, Math.ceil((cheapPriceXof * PREMIUM_PRICE_MULTIPLIER) / 20) * 20)
+}
+
+/**
  * Coût fournisseur MAXIMUM (en USD) que l'on accepte de payer pour rester
  * rentable au `displayedPriceXof` affiché. Envoyé comme plafond (`max_price`)
  * au fournisseur à l'achat : il ne nous assignera jamais un numéro plus cher,

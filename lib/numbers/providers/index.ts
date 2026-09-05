@@ -1,6 +1,6 @@
 import 'server-only'
 import type { CanonCountry, CanonService } from '@/lib/numbers/catalog'
-import { getUsdToXof, tierMaxCostUsd, tierPriceXof, PREMIUM_PRICE_MULTIPLIER } from '@/lib/numbers/pricing'
+import { getUsdToXof, premiumPriceXof, tierMaxCostUsd, tierPriceXof } from '@/lib/numbers/pricing'
 import { smsman } from './smsman'
 import { fiveSim } from './five_sim'
 import { DEFAULT_SUCCESS_RATE, MIN_SUCCESS_RATE } from './types'
@@ -56,7 +56,7 @@ export type BestQuote = {
  * Devis « meilleure réussite » : le prix payé par le client est TOUJOURS
  * 1,5 × le prix du numéro le moins cher (décision produit), quel que soit le
  * coût réel de l'opérateur retenu (la marge ×3 du prix premium couvre jusqu'à
- * 4,5× le coût minimal, bien au-delà d'un opérateur premium réaliste).
+ * 1,5× le coût minimal ; au-delà, l'achat est annulé et remboursé).
  */
 export async function getPremiumQuote(country: CanonCountry, service: CanonService): Promise<BestQuote> {
   const [usdToXof, base, results] = await Promise.all([
@@ -73,11 +73,11 @@ export async function getPremiumQuote(country: CanonCountry, service: CanonServi
   ])
   const quotes = results.filter((q): q is Quote => !!q && q.costUsd > 0)
   if (quotes.length === 0) return { available: false, priceXof: null, best: null, quotes, usdToXof }
-  const minCostUsd = base.best?.costUsd
-  if (!(minCostUsd && minCostUsd > 0)) return { available: false, priceXof: null, best: null, quotes, usdToXof }
+  const cheapPriceXof = base.priceXof
+  if (!(cheapPriceXof && cheapPriceXof > 0)) return { available: false, priceXof: null, best: null, quotes, usdToXof }
   return {
     available: true,
-    priceXof: tierPriceXof(minCostUsd * PREMIUM_PRICE_MULTIPLIER, usdToXof),
+    priceXof: premiumPriceXof(cheapPriceXof),
     best: quotes[0],
     quotes,
     usdToXof,
@@ -177,8 +177,7 @@ export async function purchasePremium(country: CanonCountry, service: CanonServi
     throw new Error('Aucun fournisseur ne propose ce pays/service actuellement.')
   }
   const usdToXof = cheap.usdToXof
-  const minCostUsd = cheap.best.costUsd
-  const priceXof = tierPriceXof(minCostUsd * PREMIUM_PRICE_MULTIPLIER, usdToXof)
+  const priceXof = premiumPriceXof(cheap.priceXof)
 
   const premiumQuotes = await Promise.all(
     PREMIUM_ADAPTERS.map((a) =>
