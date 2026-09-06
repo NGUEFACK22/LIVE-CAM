@@ -341,7 +341,14 @@ export default function DashboardPage() {
                         </span>
                       </td>
                       <td className="py-3">{svc?.label ?? a.serviceLabel}</td>
-                      <td className="py-3 text-white">{formatPoints(xofToPoints(a.priceXof))}</td>
+                      <td className="py-3 text-white">
+                        <div className="flex flex-col leading-tight">
+                          <span>{formatPoints(xofToPoints(a.priceXof))}</span>
+                          <span className="text-[10px] text-white/40">
+                            {a.priceXof.toLocaleString('fr-FR')} FCFA
+                          </span>
+                        </div>
+                      </td>
                       <td className="py-3">
                         <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLOR[a.status]}`}>
                           {a.status === 'received' && <CheckCircle2 className="h-3 w-3" />}

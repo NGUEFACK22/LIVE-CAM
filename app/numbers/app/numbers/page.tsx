@@ -187,7 +187,12 @@ export default function NumbersPage() {
                 </div>
 
                 <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-4 text-sm">
-                  <span className="text-white/50">{formatPoints(xofToPoints(a.priceXof))}</span>
+                  <span className="text-white/50 flex flex-col leading-tight">
+                    {formatPoints(xofToPoints(a.priceXof))}
+                    <span className="text-[10px] text-white/40">
+                      {a.priceXof.toLocaleString('fr-FR')} FCFA
+                    </span>
+                  </span>
                   {a.status === 'waiting' ? (
                     <button
                       onClick={() => setConfirmCancel(a)}

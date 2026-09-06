@@ -249,15 +249,17 @@ export default function RechargePage() {
                   amountXof === p ? 'border-blue-500 bg-blue-500/15 text-blue-300' : 'border-white/10 text-white/60 hover:text-white'
                 } transition-colors`}
               >
-                {p.toLocaleString('fr-FR')} FCFA
-                <span className="text-xs text-white/40"> → {Math.round(p / 20)} pts</span>
+                <span className="block text-lg font-semibold text-white">
+                  {formatPoints(Math.round(p / 20))}
+                </span>
+                <span className="text-[10px] text-white/40">{p.toLocaleString('fr-FR')} FCFA</span>
               </button>
             ))}
           </div>
 
           <div>
             <label className="block text-sm text-white/50 mb-2">
-              Montant personnalisé (FCFA)
+              Montant personnalisé
             </label>
             <div className="relative">
               <input
@@ -269,16 +271,22 @@ export default function RechargePage() {
                 className="w-full bg-transparent px-3 py-2 text-lg font-semibold text-white outline-none placeholder:text-white/40"
                 defaultValue={amountXof}
               />
-              <span className="absolute right-3 text-white/40">FCFA</span>
+              <span className="absolute right-3 text-xs text-white/40">FCFA</span>
             </div>
+            <p className="mt-1 text-right text-sm font-semibold text-white">
+              {formatPoints(Math.round(amountXof / 20))}
+            </p>
           </div>
 
-          <p className="mt-4 text-white/50">
-            Frais de paiement : {fee.toLocaleString('fr-FR')} FCFA
-            ({geniusPayTotalToCharge(amountXof).toLocaleString('fr-FR')} FCFA total)
+          <p className="mt-4 text-xs text-white/50">
+            Frais de paiement : {formatPoints(Math.round(fee / 20))}{' '}
+            <span className="text-white/30">({fee.toLocaleString('fr-FR')} FCFA)</span>
           </p>
           <p className="mt-2 text-white/50">
-            {points} points seront crédités ({Math.round(points / 60)} min de swap + reste)
+            <span className="text-sm font-semibold text-white">
+              {points} points seront crédités
+            </span>{' '}
+            <span className="text-xs text-white/40">({Math.round(points / 60)} min de swap + reste)</span>
           </p>
 
           <button
@@ -290,9 +298,12 @@ export default function RechargePage() {
                 <Loader2 className="h-4 w-4 animate-spin mr-2" /> Redirection vers la page de paiement...
               </>
             ) : (
-              <>
-                Payer {geniusPayTotalToCharge(amountXof).toLocaleString('fr-FR')} FCFA
-              </>
+              <span className="block text-lg font-semibold">
+                Payer {formatPoints(Math.round(geniusPayTotalToCharge(amountXof) / 20))}
+                <span className="block text-xs font-normal text-white/50">
+                  {geniusPayTotalToCharge(amountXof).toLocaleString('fr-FR')} FCFA incl.
+                </span>
+              </span>
             )}
           </button>
 

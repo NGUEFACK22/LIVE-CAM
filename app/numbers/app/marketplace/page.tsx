@@ -297,7 +297,14 @@ export default function MarketplacePage() {
                               <Loader2 className="h-3 w-3 animate-spin" /> ...
                             </span>
                           ) : q?.available && q.priceXof != null ? (
-                            formatPoints(xofToPoints(q.priceXof))
+                            <>
+                              <span className="text-sm font-semibold text-white">
+                                {formatPoints(xofToPoints(q.priceXof))}
+                              </span>{' '}
+                              <span className="text-[10px] text-white/40">
+                                {q.priceXof.toLocaleString('fr-FR')} FCFA
+                              </span>
+                            </>
                           ) : (
                             'Indisponible'
                           )}
@@ -348,7 +355,12 @@ export default function MarketplacePage() {
                               <Loader2 className="h-3 w-3 animate-spin" /> ...
                             </span>
                           ) : q?.available && q.priceXof != null ? (
-                            formatPoints(xofToPoints(q.priceXof))
+                            <>
+                              {formatPoints(xofToPoints(q.priceXof))}{' '}
+                              <span className="text-[10px] font-normal text-white/40">
+                                {q.priceXof.toLocaleString('fr-FR')} FCFA
+                              </span>
+                            </>
                           ) : (
                             <span className="font-normal text-white/30">Indisponible</span>
                           )}
@@ -376,19 +388,26 @@ export default function MarketplacePage() {
                       {quality === 'premium' ? 'Opérateur haute réussite' : 'Auto — le moins cher'}
                     </span>
                   </div>
-                  {quote.successRate != null && (
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="flex items-center gap-1.5 text-white/50">
-                        <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />
-                        Taux de réussite SMS estimé
-                      </span>
-                      <span className="font-semibold text-emerald-400">{quote.successRate}%</span>
-                    </div>
-                  )}
+{quote.successRate != null && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1.5 text-white/50">
+                    <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />
+                    Taux de réussite SMS estimé
+                  </span>
+                  <span className="font-semibold text-emerald-400">
+                    {quote.successRate < 50
+                      ? 'moins de 50%'
+                      : '50% et plus'}
+                  </span>
+                </div>
+              )}
                   <div className="flex justify-between border-t border-white/10 pt-2 text-lg font-semibold text-white">
                     <span>Total</span>
-                    <span className="flex items-baseline gap-2">
+                    <span className="flex flex-col items-end">
                       {formatPoints(xofToPoints(quote.priceXof ?? 0))}
+                      <span className="text-[10px] font-normal text-white/40">
+                        {(quote.priceXof ?? 0).toLocaleString('fr-FR')} FCFA
+                      </span>
                     </span>
                   </div>
                   {insufficient && (

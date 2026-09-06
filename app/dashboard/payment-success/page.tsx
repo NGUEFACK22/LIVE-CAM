@@ -108,14 +108,18 @@ function PaymentSuccessContent() {
                 ? 'Votre acces a ete credite. Rendez-vous sur votre tableau de bord.'
                 : 'Vos points ont ete credites sur votre compte. Vous pouvez commencer a creer.'}
             </p>
-            {amounts.fee != null && amounts.charged != null && (
+            {amounts.charged != null && amounts.fee != null && (
               <div className="mx-auto mt-4 max-w-xs rounded-xl border border-hairline bg-muted/40 px-4 py-3 text-center">
+                {kind !== 'live' && amounts.net != null && (
+                  <p className="text-2xl font-bold text-foreground">
+                    {Math.round(amounts.net / 20)} points cr&eacute;dit&eacute;s
+                  </p>
+                )}
                 <p className="text-sm font-semibold text-foreground">
                   Total paye : {amounts.charged.toLocaleString('fr-FR')} FCFA
                 </p>
                 <p className="text-xs text-muted-foreground">
                   dont {amounts.fee.toLocaleString('fr-FR')} FCFA de frais de paiement
-                  {amounts.net != null ? ` · ${amounts.net.toLocaleString('fr-FR')} FCFA credites` : ''}
                 </p>
               </div>
             )}

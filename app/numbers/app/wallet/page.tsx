@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useNumbers } from '@/components/numbers/numbers-provider'
 import { FUNDING_METHODS } from '@/lib/numbers/data'
-import { formatPoints, xofToPoints } from '@/lib/numbers/points'
+import { formatPoints, pointsToXof, xofToPoints } from '@/lib/numbers/points'
 import { Wallet, ArrowDownLeft, ArrowUpRight, Smartphone, CreditCard, Coins, Plus } from 'lucide-react'
 
 const card = 'rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl'
@@ -45,7 +45,9 @@ export default function WalletPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-white">Portefeuille</h1>
-          <p className="text-sm text-white/50">Des crédits partagés avec vos sessions vidéo — 1 point = 20 FCFA</p>
+          <p className="text-sm text-white/50">
+            Des crédits partagés avec vos sessions vidéo — <span className="text-white/30">1 point = 20 FCFA</span>
+          </p>
         </div>
         <div>
           <button
@@ -63,7 +65,9 @@ export default function WalletPage() {
             <Wallet className="h-5 w-5" />
           </span>
           <p className="mt-4 text-3xl font-semibold text-white">{formatPoints(balancePoints)}</p>
-          <p className="text-sm text-white/50">Solde disponible (1 point = 20 FCFA)</p>
+          <p className="text-sm text-white/50">
+            Solde disponible <span className="text-xs text-white/30">({pointsToXof(balancePoints).toLocaleString('fr-FR')} FCFA)</span>
+          </p>
         </div>
         <div className={`${card} p-5`}>
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400">
