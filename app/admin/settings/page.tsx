@@ -93,7 +93,10 @@ export default function AdminSettingsPage() {
                 <div className="mb-3 flex items-center justify-between">
                   <span className="font-semibold capitalize text-white">{l.label}</span>
                   <span className="rounded-full border border-gray-700 bg-[#0a0a0a] px-3 py-1 text-sm font-medium text-[#00ff88]">
-                    {l.amount.toLocaleString()} FCFA
+                    {Math.round(l.amount / 20).toLocaleString()} pts
+                    <span className="ml-1 text-[10px] font-normal text-gray-500">
+                      ({l.amount.toLocaleString()} FCFA)
+                    </span>
                   </span>
                 </div>
                 <div className="relative">

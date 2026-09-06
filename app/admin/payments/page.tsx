@@ -281,7 +281,7 @@ export default function AdminPaymentsPage() {
             <StatCard icon={Users} label="Clients credites" value={stats.total.toString()} color="text-white" />
             <StatCard icon={CheckCircle2} label="Abonnements actifs" value={stats.active.toString()} color="text-[#00ff88]" />
             <StatCard icon={Wrench} label="Demandes install." value={`${stats.installPaid}/${stats.installTotal}`} color="text-white" />
-            <StatCard icon={Wallet} label="Revenu total" value={`${stats.totalRevenue.toLocaleString()} F`} color="text-[#00ff88]" />
+            <StatCard icon={Wallet} label="Revenu total" value={`${Math.round(stats.totalRevenue / 20).toLocaleString()} pts`} color="text-[#00ff88]" />
           </div>
         )}
 
@@ -382,7 +382,9 @@ export default function AdminPaymentsPage() {
                         </span>
                       </div>
                       <p className="mt-1 text-sm text-gray-500">
-                        {c.planName} · {c.amount.toLocaleString()} FCFA · expire le {fmtDate(c.expiresAt)}
+                        {c.planName} · {Math.round(c.amount / 20).toLocaleString()} pts
+                        <span className="text-xs text-gray-600"> ({c.amount.toLocaleString()} FCFA)</span> · expire le{' '}
+                        {fmtDate(c.expiresAt)}
                       </p>
                     </div>
                     <div className="sm:w-56">
@@ -432,7 +434,7 @@ export default function AdminPaymentsPage() {
                           : 'border-gray-500/30 bg-gray-500/15 text-gray-400'
                       }`}
                     >
-                      {i.paid ? 'Paye · 8 500 F' : 'En attente'}
+                      {i.paid ? 'Paye · 425 pts' : 'En attente'}
                     </span>
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
@@ -508,7 +510,11 @@ export default function AdminPaymentsPage() {
                         </span>
                       </div>
                       <p className="mt-1 text-sm text-gray-500">
-                        {t.plan || '—'} · {Number(t.paidAmount || t.amount).toLocaleString()} FCFA
+                        {t.plan || '—'} · {Math.round(Number(t.paidAmount || t.amount) / 20).toLocaleString()} pts
+                        <span className="text-xs text-gray-600">
+                          {' '}
+                          ({Number(t.paidAmount || t.amount).toLocaleString()} FCFA)
+                        </span>
                         {t.paymentMethod ? ` · ${t.paymentMethod}` : ''} · {fmtDateTime(t.createdAt)}
                       </p>
                       {(t.phone || t.token) && (
@@ -576,7 +582,8 @@ export default function AdminPaymentsPage() {
                       </span>
                     </div>
                     <p className="mt-1 text-sm text-gray-500">
-                      {l.productId || '—'} · {Number(l.amount).toLocaleString()} FCFA
+                      {l.productId || '—'} · {Math.round(Number(l.amount) / 20).toLocaleString()} pts
+                      <span className="text-xs text-gray-600"> ({Number(l.amount).toLocaleString()} FCFA)</span>
                       {l.creditKind ? ` · ${l.creditKind}` : ''} · {fmtDateTime(l.createdAt)}
                     </p>
                     {failed && l.failureReason && (

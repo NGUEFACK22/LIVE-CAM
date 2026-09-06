@@ -169,7 +169,7 @@ export default function AdminSubscriptionsPage() {
               <optgroup label="Acces Live Pro (fenetre temps reel)">
                 {LIVE_OFFERS.map((o) => (
                   <option key={o.id} value={o.id}>
-                    {o.name} — {o.price.toLocaleString()} FCFA ({o.windowMinutes} min)
+                    {o.name} — {Math.round(o.price / 20).toLocaleString()} pts ({o.windowMinutes} min)
                   </option>
                 ))}
               </optgroup>
@@ -311,7 +311,7 @@ export default function AdminSubscriptionsPage() {
             <div>
               <h2 className="text-xl font-bold text-white">Retrait du watermark (Premium)</h2>
               <p className="text-sm text-gray-400">
-                Reserve au forfait Premium (50 000 F). L&apos;Ultimate (85 000 F) est deja sans
+                Reserve au forfait Premium (2 500 pts). L&apos;Ultimate (4 250 pts) est deja sans
                 watermark automatiquement.
               </p>
             </div>

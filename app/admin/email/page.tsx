@@ -14,7 +14,7 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 
-const DEFAULT_SUBJECT = 'Votre installation LIVECAM PC - Choisissez votre option (50 000 FCFA)'
+const DEFAULT_SUBJECT = 'Votre installation LIVECAM PC - Choisissez votre option (2 500 pts)'
 
 const DEFAULT_MESSAGE = `Bonjour {nom},
 
@@ -39,7 +39,7 @@ Ce que comprend l'installation
 - Assistance a la prise en main
 
 Tarif
-LIVECAM PC : 50 000 FCFA (licence a vie)
+LIVECAM PC : 2 500 pts (licence a vie)
 
 Comment proceder ?
 Cliquez sur le bouton ci-dessous pour consulter nos coordonnees sur chapcam.com. Indiquez-nous l'option choisie (bureaux, domicile ou a distance) et notre equipe s'occupe du reste.

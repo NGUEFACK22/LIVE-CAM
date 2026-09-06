@@ -72,7 +72,7 @@ export default function AdminCampaignPage() {
 
   const sendCampaign = async (type: "D2" | "D1" | "DJ" | "PC" | "VIDEO" | "SUPPORT" | "V2") => {
     if (type === "V2" && !confirm("Envoyer la campagne 'LIVECAM 2.0 disponible' a TOUS les utilisateurs inscrits ?")) return
-    if (type === "PC" && !confirm("Envoyer la campagne 'LIVECAM PC a vie - 50 000 FCFA' a TOUS les utilisateurs inscrits ?")) return
+    if (type === "PC" && !confirm("Envoyer la campagne 'LIVECAM PC a vie - 2 500 pts' a TOUS les utilisateurs inscrits ?")) return
     if (type === "VIDEO" && !confirm("Envoyer la campagne 'Appels video' a TOUS les utilisateurs inscrits ?")) return
     if (type === "SUPPORT" && !confirm("Envoyer la campagne 'Assistance / Besoin d'aide ?' a TOUS les utilisateurs inscrits ?")) return
     setSending(type)
@@ -362,9 +362,11 @@ export default function AdminCampaignPage() {
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white mb-1">Campagne LIVECAM PC - Logiciel a VIE</h3>
                 <p className="text-gray-400 text-sm">
-                  Annonce a tous les inscrits : <strong className="text-[#00ff88]">50 000 FCFA a vie</strong> (paiement unique)
-                  pour les premiers utilisateurs. A partir du <strong className="text-white">dimanche 14 juin</strong>, l&apos;offre
-                  passe a <strong className="text-white">50 000 FCFA / mois</strong> avec acces illimite.
+                  Annonce a tous les inscrits : <strong className="text-[#00ff88]">2 500 pts a vie</strong>{' '}
+                  <span className="text-xs text-gray-500">(50 000 FCFA)</span> (paiement unique) pour les premiers
+                  utilisateurs. A partir du <strong className="text-white">dimanche 14 juin</strong>, l&apos;offre passe a{' '}
+                  <strong className="text-white">2 500 pts / mois</strong>{' '}
+                  <span className="text-xs text-gray-500">(50 000 FCFA)</span> avec acces illimite.
                 </p>
               </div>
             </div>
@@ -374,9 +376,9 @@ export default function AdminCampaignPage() {
                 <Users className="w-4 h-4 text-[#00d4ff]" />
                 Tous les utilisateurs inscrits
               </span>
-              <span className="inline-flex items-center gap-1.5 text-gray-300">
+                <span className="inline-flex items-center gap-1.5 text-gray-300">
                 <Clock className="w-4 h-4 text-[#00d4ff]" />
-                Sujet : &quot;LIVECAM PC a VIE pour 50 000 FCFA&quot;
+                Sujet : &quot;LIVECAM PC a VIE pour 2 500 pts&quot;
               </span>
             </div>
 

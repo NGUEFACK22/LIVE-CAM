@@ -116,10 +116,15 @@ function PaymentSuccessContent() {
                   </p>
                 )}
                 <p className="text-sm font-semibold text-foreground">
-                  Total paye : {amounts.charged.toLocaleString('fr-FR')} FCFA
+                  {Math.round(amounts.charged / 20).toLocaleString('fr-FR')} pts
+                  <span className="text-xs font-normal text-muted-foreground">
+                    {' '}
+                    ({amounts.charged.toLocaleString('fr-FR')} FCFA)
+                  </span>
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  dont {amounts.fee.toLocaleString('fr-FR')} FCFA de frais de paiement
+                  dont {Math.round(amounts.fee / 20).toLocaleString('fr-FR')} pts
+                  <span> ({amounts.fee.toLocaleString('fr-FR')} FCFA)</span> de frais
                 </p>
               </div>
             )}

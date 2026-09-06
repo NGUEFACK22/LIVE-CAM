@@ -297,9 +297,9 @@ export default function AdminLicensesPage() {
             </h2>
           </div>
           <p className="mb-3 text-xs text-gray-400">
-            Envoie a un client l&apos;email officiel LIVECAM PC (50 000 FCFA) avec sa cle de licence
-            et les liens de telechargement Windows ET MacBook. Si une licence active existe deja
-            pour cet email, elle est reutilisee ; sinon une nouvelle cle est generee.
+            Envoie a un client l&apos;email officiel LIVECAM PC (2 500 pts) avec sa cle de licence et
+            les liens de telechargement Windows ET MacBook. Si une licence active existe deja pour cet
+            email, elle est reutilisee ; sinon une nouvelle cle est generee.
           </p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input

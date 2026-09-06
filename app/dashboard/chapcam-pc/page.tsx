@@ -72,7 +72,10 @@ export default function ChapCamPcPage() {
             <div className="mt-7">
               <div className="mb-1.5 flex items-center gap-2">
                 <span className="text-xl text-text-faint line-through">
-                  {PC_OFFER.originalPrice.toLocaleString('fr-FR')} FCFA
+                  {Math.round(PC_OFFER.originalPrice / 20).toLocaleString('fr-FR')} pts
+                </span>
+                <span className="text-xs text-text-faint line-through">
+                  ({PC_OFFER.originalPrice.toLocaleString('fr-FR')} FCFA)
                 </span>
                 <span className="rounded-full bg-red-500 px-2.5 py-0.5 text-xs font-bold text-white">
                   -{PC_OFFER.discountPercent}%
@@ -80,9 +83,12 @@ export default function ChapCamPcPage() {
               </div>
               <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
                 <span className="text-5xl font-black text-primary">
-                  {PC_OFFER.price.toLocaleString('fr-FR')}
+                  {Math.round(PC_OFFER.price / 20).toLocaleString('fr-FR')}
                 </span>
-                <span className="pb-1.5 text-lg text-muted-foreground">FCFA</span>
+                <span className="pb-1.5 text-lg text-primary">pts</span>
+                <span className="pb-1.5 text-xs text-muted-foreground">
+                  ({PC_OFFER.price.toLocaleString('fr-FR')} FCFA)
+                </span>
                 <span className="pb-1.5 text-sm text-text-faint">· une seule fois</span>
               </div>
             </div>
