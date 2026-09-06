@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { requireUserId, UnauthorizedError } from '@/lib/numbers/auth'
 import { countryByCode } from '@/lib/numbers/catalog'
 import { listAvailableServices } from '@/lib/numbers/providers'
-import { resolveFiveSimApiKey } from '@/lib/numbers/five-sim-config'
+import { resolveVsnApiKey } from '@/lib/numbers/vsn-config'
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,8 +12,8 @@ export async function GET(req: NextRequest) {
     if (!country) {
       return NextResponse.json({ error: 'Pays inconnu' }, { status: 400 })
     }
+    const { key, source } = await resolveVsnApiKey()
     const slugs = await listAvailableServices(country)
-    const { key, source } = await resolveFiveSimApiKey()
     return NextResponse.json({
       slugs,
       configured: !!key,

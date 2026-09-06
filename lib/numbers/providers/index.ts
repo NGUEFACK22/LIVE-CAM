@@ -2,22 +2,31 @@ import 'server-only'
 import type { CanonCountry, CanonService } from '@/lib/numbers/catalog'
 import { getUsdToXof, premiumPriceXof, tierMaxCostUsd, tierPriceXof } from '@/lib/numbers/pricing'
 import { smsman } from './smsman'
-import { fiveSim } from './five_sim'
+import { virtualSmsNumbers } from './virtual_sms_numbers'
+import { resolveVsnApiKey } from '@/lib/numbers/vsn-config'
 import { DEFAULT_SUCCESS_RATE, MIN_SUCCESS_RATE } from './types'
 import type { CodeResult, ProviderAdapter, ProviderId, PurchaseResult, Quote } from './types'
 
 export const adapters: Record<ProviderId, ProviderAdapter> = {
   smsman,
-  five_sim: fiveSim,
+  virtual_sms_numbers: virtualSmsNumbers,
 }
 
-// fournisseur actif est interrogé. 5sim est TOUJOURS actif : sa clé API peut
-// être fournie par Supabase (app_config) ou par env (voir five-sim-config.ts).
-const ALL: ProviderAdapter[] = [fiveSim]
-if (process.env.SMSMAN_API_TOKEN) ALL.push(smsman)
+/**
+ * Fournisseur effectivement utilisé : VirtualSMSNumbers est le SEUL fournisseur
+ * actif. Sa clé API peut venir de Supabase (app_config, clé `vsn_api_key`) ou de
+ * l'env (VSN_API_KEY) — voir vsn-config.ts. sms-man reste enregistré (format
+ * legacy) mais n'est plus interrogé.
+ */
+async function activeAdapters(): Promise<ProviderAdapter[]> {
+  const { key } = await resolveVsnApiKey()
+  return key ? [virtualSmsNumbers] : []
+}
 
 /** Fournisseurs capables d'attribuer un numéro « meilleure réussite ». */
-const PREMIUM_ADAPTERS = ALL.filter((a) => a.supportsPremium)
+async function premiumAdapters(): Promise<ProviderAdapter[]> {
+  return (await activeAdapters()).filter((a) => a.supportsPremium)
+}
 
 /** Taux de réussite effectif d'un devis (valeur par défaut si non communiquée). */
 function effectiveRate(q: Quote): number {
@@ -59,11 +68,12 @@ export type BestQuote = {
  * 1,5× le coût minimal ; au-delà, l'achat est annulé et remboursé).
  */
 export async function getPremiumQuote(country: CanonCountry, service: CanonService): Promise<BestQuote> {
+  const premium = await premiumAdapters()
   const [usdToXof, base, results] = await Promise.all([
     getUsdToXof(),
     getBestQuote(country, service),
     Promise.all(
-      PREMIUM_ADAPTERS.map((a) =>
+      premium.map((a) =>
         a.quote(country, service, 'premium').catch((e) => {
           console.log(`[v0] premium quote ${a.id} failed:`, (e as Error)?.message)
           return null
@@ -86,18 +96,20 @@ export async function getPremiumQuote(country: CanonCountry, service: CanonServi
 
 /** Union des services proposés par les fournisseurs actifs pour ce pays. */
 export async function listAvailableServices(country: CanonCountry): Promise<string[]> {
+  const active = await activeAdapters()
   const results = await Promise.all(
-    ALL.map((a) => (a.services ? a.services(country).catch(() => [] as string[]) : Promise.resolve([] as string[]))),
+    active.map((a) => (a.services ? a.services(country).catch(() => [] as string[]) : Promise.resolve([] as string[]))),
   )
   return [...new Set(results.flat())]
 }
 
 /** Interroge tous les fournisseurs et renvoie le moins cher, prix client en XOF. */
 export async function getBestQuote(country: CanonCountry, service: CanonService): Promise<BestQuote> {
+  const active = await activeAdapters()
   const [usdToXof, results] = await Promise.all([
     getUsdToXof(),
     Promise.all(
-      ALL.map((a) =>
+      active.map((a) =>
         a.quote(country, service).catch((e) => {
           console.log(`[v0] quote ${a.id} failed:`, (e as Error)?.message)
           return null
@@ -160,16 +172,16 @@ export async function purchaseCheapest(country: CanonCountry, service: CanonServ
   if (lastErr) console.log('[v0] purchase: tous les fournisseurs ont échoué:', lastErr.message)
   if (lastErr?.message.includes('SMSMAN_NO_NUMBERS')) throw new Error('NO_NUMBERS')
   if (lastErr?.message.includes('SMSMAN_BALANCE')) throw new Error('PROVIDER_BALANCE')
-  if (lastErr?.message.includes('FIVE_SIM_NO_NUMBERS')) throw new Error('NO_NUMBERS')
-  if (lastErr?.message.includes('FIVE_SIM_BALANCE')) throw new Error('PROVIDER_BALANCE')
+  if (lastErr?.message.includes('VSN_NO_NUMBERS')) throw new Error('NO_NUMBERS')
+  if (lastErr?.message.includes('VSN_BALANCE')) throw new Error('PROVIDER_BALANCE')
   throw new Error('NUMBER_UNAVAILABLE')
 }
 
 /**
- * Achat « meilleure réussite » : commande chez le fournisseur premium (5sim)
- * sur l'opérateur au meilleur taux annoncé. Le prix client est figé à
- * 1,5 × le prix du moins cher. Garde anti-perte : si le coût réel dépassait le
- * seuil d'équilibre du prix premium, on annule et on rembourse côté fournisseur.
+ * Achat « meilleure réussite » : commande chez le fournisseur premium actif.
+ * Le prix client est figé à 1,5 × le prix du moins cher. Garde anti-perte :
+ * si le coût réel dépassait le seuil d'équilibre du prix premium, on annule
+ * et on rembourse côté fournisseur.
  */
 export async function purchasePremium(country: CanonCountry, service: CanonService): Promise<PurchaseOutcome> {
   const cheap = await getBestQuote(country, service)
@@ -180,7 +192,7 @@ export async function purchasePremium(country: CanonCountry, service: CanonServi
   const priceXof = premiumPriceXof(cheap.priceXof)
 
   const premiumQuotes = await Promise.all(
-    PREMIUM_ADAPTERS.map((a) =>
+    (await premiumAdapters()).map((a) =>
       a.quote(country, service, 'premium').catch((e) => {
         console.log(`[v0] premium quote ${a.id} failed:`, (e as Error)?.message)
         return null
@@ -222,7 +234,7 @@ export async function getRentQuote(
   service: CanonService,
   minHours: number,
 ): Promise<BestQuote> {
-  const renters = ALL.filter((a) => typeof a.rentQuote === 'function' && typeof a.rent === 'function')
+  const renters = (await activeAdapters()).filter((a) => typeof a.rentQuote === 'function' && typeof a.rent === 'function')
   const [usdToXof, results] = await Promise.all([
     getUsdToXof(),
     Promise.all(

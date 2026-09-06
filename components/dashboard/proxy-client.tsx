@@ -233,7 +233,7 @@ export function ProxyClient({ planLabel, quotaGb, usedGb, hasPlan }: Props) {
             </div>
             {!FREE_MODE && (
               <Link
-                href="/dashboard/plans"
+                href="/recharge"
                 className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-black transition-colors hover:bg-primary/90"
               >
                 <RefreshCw className="h-4 w-4" />

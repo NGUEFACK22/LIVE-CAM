@@ -70,7 +70,7 @@ export async function GET() {
 
     const { data: logs } = await admin
       .from('payment_logs')
-      .select('id, source, token, transaction_id, email, product_id, amount, status, credited, already_done, credit_kind, user_linked, failure_reason, created_at')
+      .select('id, source, token, transaction_id, email, product_id, amount, status, credited, credit_kind, user_linked, failure_reason, created_at')
       .neq('source', 'reconcile')
       .order('created_at', { ascending: false })
       .limit(200)
@@ -145,7 +145,6 @@ export async function GET() {
         amount: l.amount,
         status: l.status,
         credited: l.credited,
-        alreadyDone: l.already_done,
         creditKind: l.credit_kind,
         userLinked: l.user_linked,
         failureReason: l.failure_reason,

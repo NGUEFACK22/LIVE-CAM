@@ -103,7 +103,7 @@ export function usePaymentCheckout() {
                 Compte credite automatiquement des la confirmation.
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Frais de paiement GeniusPay (100 FCFA + 1%) a la charge du client, inclus dans le montant facture.
+                Frais de paiement (100 FCFA + 1%) a la charge du client, inclus dans le montant facture.
               </p>
             </div>
 
@@ -114,7 +114,7 @@ export function usePaymentCheckout() {
                 </p>
               )}
 
-              {/* GeniusPay : mobile money / carte */}
+              {/* Mobile money / carte */}
               <button
                 onClick={() => pay()}
                 disabled={!!pendingKey}

@@ -6,7 +6,8 @@ import { useNumbers } from '@/components/numbers/numbers-provider'
 import { ActivityChart, RevenueChart } from '@/components/numbers/charts'
 import { timeAgo } from '@/lib/numbers/data'
 import { countryByCode, serviceBySlug } from '@/lib/numbers/catalog'
-import { formatXOF, type Activation } from '@/lib/numbers/types'
+import type { Activation } from '@/lib/numbers/types'
+import { formatPoints, xofToPoints } from '@/lib/numbers/points'
 import {
   Phone,
   MessageSquareText,
@@ -43,7 +44,7 @@ const startOfDay = (ms: number) => {
 }
 
 export default function DashboardPage() {
-  const { balanceXof, activations, transactions, unreadCount, loading } = useNumbers()
+  const { balancePoints, activations, transactions, unreadCount, loading } = useNumbers()
 
   const waitingNumbers = activations.filter((a) => a.status === 'waiting')
   const receivedCodes = activations.filter((a) => a.code)
@@ -92,7 +93,7 @@ export default function DashboardPage() {
       const b = buckets.find((x) => x.key === `${d.getFullYear()}-${d.getMonth()}`)
       if (b) b.revenue += Math.abs(t.amountXof)
     }
-    return buckets.map(({ month, revenue }) => ({ month, revenue: Math.round(revenue) }))
+    return buckets.map(({ month, revenue }) => ({ month, revenue: Math.round(revenue / 20) }))
   }, [transactions])
 
   // Répartition réelle par pays.
@@ -127,7 +128,7 @@ export default function DashboardPage() {
     },
     {
       label: 'Solde du portefeuille',
-      value: formatXOF(balanceXof),
+      value: formatPoints(balancePoints),
       sub: 'Disponible',
       icon: Wallet,
       href: '/numbers/app/wallet',
@@ -180,7 +181,7 @@ export default function DashboardPage() {
 
         <div className={`${card} p-5`}>
           <h2 className="font-semibold text-white">Dépenses</h2>
-          <p className="text-sm text-white/50">12 derniers mois (FCFA)</p>
+          <p className="text-sm text-white/50">12 derniers mois (points)</p>
           <div className="mt-4">
             <RevenueChart data={revenueData} />
           </div>
@@ -340,7 +341,7 @@ export default function DashboardPage() {
                         </span>
                       </td>
                       <td className="py-3">{svc?.label ?? a.serviceLabel}</td>
-                      <td className="py-3 text-white">{formatXOF(a.priceXof)}</td>
+                      <td className="py-3 text-white">{formatPoints(xofToPoints(a.priceXof))}</td>
                       <td className="py-3">
                         <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLOR[a.status]}`}>
                           {a.status === 'received' && <CheckCircle2 className="h-3 w-3" />}

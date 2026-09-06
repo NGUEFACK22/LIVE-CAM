@@ -1,8 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { confirmAndFulfillGeniusPay } from '@/lib/fulfillment'
+import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+
+// Retrouve la reference du paiement GENIUS le plus recent encore pending pour
+// un utilisateur donne (filet de securite si GeniusPay redirige vers
+// success_url SANS reference dans l'URL ; voir GET ci-dessous).
+async function findLatestPendingToken(userId: string): Promise<string | null> {
+  try {
+    const admin = createAdminClient()
+    const { data } = await admin
+      .from('payment_requests')
+      .select('paydunya_token, created_at')
+      .eq('user_id', userId)
+      .eq('payment_method', 'geniuspay')
+      .eq('status', 'pending')
+      .not('paydunya_token', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    return data?.paydunya_token || null
+  } catch (e) {
+    console.error('[callback] Lecture dernier pending echouee:', e)
+    return null
+  }
+}
 
 // Retour GeniusPay. Deux usages :
 //  1) GET : Apres le paiement, GeniusPay redirige le navigateur du client vers
@@ -13,20 +38,45 @@ export const dynamic = 'force-dynamic'
 //  2) POST : eventuelle notification webhook GeniusPay — meme traitement
 //     (reconfirmation serveur avant tout credit).
 export async function GET(request: NextRequest) {
-  const id =
+  let id =
     request.nextUrl.searchParams.get('reference') ||
     request.nextUrl.searchParams.get('token') ||
     request.nextUrl.searchParams.get('id')
   const origin = request.nextUrl.origin
 
   if (!id) {
-    return NextResponse.redirect(`${origin}/dashboard/payment-success`)
+    // GeniusPay ne glisse pas toujours la reference dans la redirection de
+    // retour. Si l'utilisateur est connecte (meme navigateur, cookies deja
+    // presents), on retombe sur son paiement GeniusPay le plus recent encore
+    // pending pour crediter automatiquement quand meme.
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.redirect(`${origin}/dashboard/payment-success`)
+    }
+    const fallback = await findLatestPendingToken(user.id)
+    if (!fallback) {
+      return NextResponse.redirect(`${origin}/dashboard/payment-success`)
+    }
+    id = fallback
   }
 
   // Reconfirmation autoritaire (idempotente, lance le credit si paye).
   await confirmAndFulfillGeniusPay(id, 'status')
 
-  return NextResponse.redirect(`${origin}/dashboard/payment-success?token=${encodeURIComponent(id)}`)
+  // Redirection vers la page de retour specifiee (ex: /recharge) ou fallback
+  // vers la page de succes du tableau de bord.
+  const returnTo = request.nextUrl.searchParams.get('return_to')
+  const safeReturnTo =
+    returnTo && returnTo.startsWith('/')
+      ? returnTo
+      : undefined
+  const redirectUrl =
+    safeReturnTo ? `${origin}${safeReturnTo}` : `${origin}/dashboard/payment-success`
+
+  return NextResponse.redirect(`${redirectUrl}?token=${encodeURIComponent(id)}`)
 }
 
 export async function POST(request: NextRequest) {

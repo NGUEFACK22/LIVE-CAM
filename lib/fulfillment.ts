@@ -60,7 +60,6 @@ export async function logPaymentEvent(
       amount: entry.amount || 0,
       status: entry.status || null,
       credited: !!entry.credited,
-      already_done: !!entry.alreadyDone,
       credit_kind: entry.creditKind || null,
       user_linked: !!entry.userLinked,
       failure_reason: entry.failureReason || null,

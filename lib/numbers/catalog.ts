@@ -1,9 +1,8 @@
 // Catalogue canonique ChapCam Numbers.
-// Chaque service / pays est mappé vers le fournisseur actif (sms-man), résolu
-// dynamiquement par nom via `match` (voir lib/numbers/providers/smsman.ts).
-// Ce fichier est généré/curé à partir du catalogue live sms-man
-// (/applications et /countries) : chaque entrée ci-dessous a été vérifiée
-// comme réellement disponible chez le fournisseur.
+// Chaque service / pays est mappé vers le fournisseur actif
+// (VirtualSMSNumbers), résolu dynamiquement par nom via `match`
+// (voir lib/numbers/providers/virtual_sms_numbers.ts). La disponibilité réelle
+// est interrogée en direct chez le fournisseur (/countries, /services, /prices).
 
 export type CanonService = {
   slug: string
@@ -23,9 +22,19 @@ export type CanonCountry = {
 }
 
 // Forfaits proposés. "verification" = SMS unique (activation, fiable).
-// La LOCATION (numéro réutilisable, multi-SMS) n'est plus proposée : le seul
-// fournisseur actif (sms-man) ne gère que la vérification par SMS unique.
-export type RentalPlanKey = 'verification' | 'rent_3d' | 'rent_1w' | 'rent_1m'
+// La LOCATION (numéro réutilisable, multi-SMS) est proposée par le fournisseur
+// VirtualSMSNumbers : les durées correspondent exactement aux fenêtres
+// acceptées par son API (POST /rentals) : 4 h, 12 h, 1 j, 3 j, 1 sem, 1 mois,
+// 3 mois. Plus la durée est longue, plus le prix (en POINTS) est élevé.
+export type RentalPlanKey =
+  | 'verification'
+  | 'rent_4h'
+  | 'rent_12h'
+  | 'rent_24h'
+  | 'rent_72h'
+  | 'rent_168h'
+  | 'rent_720h'
+  | 'rent_2160h'
 
 export type RentalPlan = {
   key: RentalPlanKey
@@ -38,13 +47,20 @@ export type RentalPlan = {
 
 export const RENTAL_PLANS: RentalPlan[] = [
   { key: 'verification', label: 'Vérification (SMS unique)', short: 'Quelques minutes', mode: 'verification', minHours: 0 },
+  { key: 'rent_4h', label: 'Location — 4 heures', short: '4 h', mode: 'rental', minHours: 4 },
+  { key: 'rent_12h', label: 'Location — 12 heures', short: '12 h', mode: 'rental', minHours: 12 },
+  { key: 'rent_24h', label: 'Location — 1 jour', short: '1 jour', mode: 'rental', minHours: 24 },
+  { key: 'rent_72h', label: 'Location — 3 jours', short: '3 jours', mode: 'rental', minHours: 72 },
+  { key: 'rent_168h', label: 'Location — 1 semaine', short: '1 semaine', mode: 'rental', minHours: 168 },
+  { key: 'rent_720h', label: 'Location — 1 mois', short: '1 mois', mode: 'rental', minHours: 720 },
+  { key: 'rent_2160h', label: 'Location — 3 mois', short: '3 mois', mode: 'rental', minHours: 2160 },
 ]
 
 export function rentalPlanByKey(key: string): RentalPlan | undefined {
   return RENTAL_PLANS.find((p) => p.key === key)
 }
 
-// 116 services vérifiés disponibles chez sms-man.
+// 116 services du catalogue (disponibilité réelle interrogée chez le fournisseur).
 export const SERVICES: CanonService[] = [
   { slug: 'whatsapp', label: 'WhatsApp', icon: 'MessageCircle', logo: 'whatsapp', match: ['whatsapp'] },
   { slug: 'telegram', label: 'Telegram', icon: 'Send', logo: 'telegram', match: ['telegram'] },
@@ -164,7 +180,7 @@ export const SERVICES: CanonService[] = [
   { slug: 'hily', label: 'Hily', icon: 'Heart', logo: 'hily', match: ['hily'] },
 ]
 
-// 130 pays vérifiés disponibles chez sms-man.
+// 130 pays du catalogue (disponibilité réelle interrogée chez le fournisseur).
 export const COUNTRIES: CanonCountry[] = [
   { code: 'AF', name: 'Afghanistan', dial: '+93', flag: '🇦🇫', match: ['afghanistan'] },
   { code: 'ZA', name: 'Afrique du Sud', dial: '+27', flag: '🇿🇦', match: ['south africa'] },

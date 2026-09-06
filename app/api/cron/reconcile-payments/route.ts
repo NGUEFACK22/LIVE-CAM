@@ -5,12 +5,14 @@ import { reconcileWaitingActivations } from '@/lib/numbers/reconcile'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-// Tache de secours (toutes les 5 min via vercel.json). Deux roles :
+// Tache de secours (planifiee dans vercel.json, toutes les 5 min). Deux roles :
 //   1) Paiements GeniusPay "pending" : credite ceux reellement payes, annule les
 //      abandonnes — garantit le credit meme si le client a ferme le navigateur.
 //   2) Activations "waiting" : recupere les SMS arrives et, surtout, rembourse
 //      AUTOMATIQUEMENT (idempotent) les numeros sans SMS / expires / rembourses
 //      par le fournisseur, meme si le client n'a pas garde la page ouverte.
+// NB : sur le plan Hobby Vercel, un cron ne tourne qu'une fois par jour ; le
+// polling temps reel cote navigateur (5 s) couvre donc la recuperation des SMS.
 export async function GET(request: NextRequest) {
   // Si un CRON_SECRET est defini, on exige le header d'autorisation Vercel Cron.
   const secret = process.env.CRON_SECRET

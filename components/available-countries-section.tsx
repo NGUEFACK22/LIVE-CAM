@@ -58,7 +58,7 @@ export function AvailableCountriesSection() {
           ))}
         </div>
 
-        {/* Grace au paiement mobile money / carte bancaire (GeniusPay) */}
+        {/* Grace au paiement mobile money / carte bancaire */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -83,7 +83,7 @@ export function AvailableCountriesSection() {
           </h3>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-base text-gray-400 md:text-lg">
             Ou que vous soyez, payez par Mobile Money (Wave, Orange, MTN, Moov, Djamo) ou carte
-            bancaire via GeniusPay et activez votre compte instantanement, sans frontieres.
+            bancaire et activez votre compte instantanement, sans frontieres.
           </p>
         </motion.div>
       </div>

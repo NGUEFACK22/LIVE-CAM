@@ -7,7 +7,7 @@ import { ServiceLogo } from '@/components/numbers/service-logo'
 import { CountryFlag } from '@/components/numbers/country-flag'
 import { CountrySelect } from '@/components/numbers/country-select'
 import { SERVICES, RENTAL_PLANS, countryByCode, serviceBySlug, rentalPlanByKey } from '@/lib/numbers/catalog'
-import { formatXOF, type QuoteResponse } from '@/lib/numbers/types'
+import type { QuoteResponse } from '@/lib/numbers/types'
 import { formatPoints, xofToPoints } from '@/lib/numbers/points'
 import {
   Search,
@@ -138,7 +138,7 @@ export default function MarketplacePage() {
       <div className="flex flex-col gap-1">
         <h1 className="text-xl font-semibold text-white">Acheter un numéro</h1>
         <p className="text-sm text-white/50">
-          Choisissez un pays et un service. LIVECAM vous garantit automatiquement le meilleur prix, en FCFA, tout
+          Choisissez un pays et un service. LIVECAM vous garantit automatiquement le meilleur prix, en points, tout
           compris.
         </p>
       </div>
@@ -162,10 +162,10 @@ export default function MarketplacePage() {
               <Wallet className="h-4 w-4 text-blue-400" />
               Solde
             </div>
-            <p className="mt-1 text-lg font-semibold text-white">{formatXOF(balanceXof)}</p>
-            <p className="text-xs text-white/40">{formatPoints(balancePoints)} · crédits partagés avec les vidéos</p>
+            <p className="mt-1 text-lg font-semibold text-white">{formatPoints(balancePoints)}</p>
+            <p className="text-xs text-white/40">crédits partagés avec les vidéos</p>
             <button
-              onClick={() => router.push('/numbers/app/wallet')}
+              onClick={() => router.push('/recharge')}
               className="mt-2 flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
             >
               Recharger <ArrowRight className="h-3 w-3" />
@@ -201,7 +201,7 @@ export default function MarketplacePage() {
           {!configured && available !== null ? (
             <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-8 text-center text-sm text-amber-200">
               Le service de numéros n&apos;est pas encore configuré côté serveur
-              (fournisseur 5sim). Revenez un peu plus tard.
+              (fournisseur de numéros). Revenez un peu plus tard.
               {probe && (
                 <p className="mx-auto mt-3 max-w-md text-xs opacity-70">
                   Diagnostic serveur : env = « {probe.nodeEnv} » · clé fournisseur
@@ -266,9 +266,8 @@ export default function MarketplacePage() {
               {selectedCountry && <CountryFlag code={selectedCountry.code} size={28} />}
             </div>
 
-            {/* Sélecteur de forfait affiché uniquement s'il existe plusieurs
-                forfaits. Avec sms-man, seul le forfait "vérification" existe :
-                on masque la sélection pour aller droit au but. */}
+            {/* Sélecteur de forfait : affiché dès qu'il existe plusieurs forfaits
+                (VirtualSMSNumbers : vérification + locations par durée). */}
             {RENTAL_PLANS.length > 1 && (
               <div className="mt-4">
                 <p className="mb-2 text-xs font-medium uppercase tracking-wider text-white/40">Forfait</p>
@@ -298,7 +297,7 @@ export default function MarketplacePage() {
                               <Loader2 className="h-3 w-3 animate-spin" /> ...
                             </span>
                           ) : q?.available && q.priceXof != null ? (
-                            formatXOF(q.priceXof)
+                            formatPoints(xofToPoints(q.priceXof))
                           ) : (
                             'Indisponible'
                           )}
@@ -349,7 +348,7 @@ export default function MarketplacePage() {
                               <Loader2 className="h-3 w-3 animate-spin" /> ...
                             </span>
                           ) : q?.available && q.priceXof != null ? (
-                            formatXOF(q.priceXof)
+                            formatPoints(xofToPoints(q.priceXof))
                           ) : (
                             <span className="font-normal text-white/30">Indisponible</span>
                           )}
@@ -389,10 +388,7 @@ export default function MarketplacePage() {
                   <div className="flex justify-between border-t border-white/10 pt-2 text-lg font-semibold text-white">
                     <span>Total</span>
                     <span className="flex items-baseline gap-2">
-                      {formatXOF(quote.priceXof ?? 0)}
-                      <span className="text-xs font-normal text-white/40">
-                        {formatPoints(xofToPoints(quote.priceXof ?? 0))}
-                      </span>
+                      {formatPoints(xofToPoints(quote.priceXof ?? 0))}
                     </span>
                   </div>
                   {insufficient && (
@@ -410,7 +406,7 @@ export default function MarketplacePage() {
 
             {insufficient ? (
               <button
-                onClick={() => router.push('/numbers/app/wallet')}
+                onClick={() => router.push('/recharge')}
                 className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 font-medium text-white transition-colors hover:bg-blue-500"
               >
                 <Wallet className="h-4 w-4" />
@@ -428,7 +424,7 @@ export default function MarketplacePage() {
                   </>
                 ) : (
                   <>
-                    <Check className="h-4 w-4" /> Confirmer {quote?.priceXof ? `· ${formatXOF(quote.priceXof)}` : ''}
+                    <Check className="h-4 w-4" /> Confirmer {quote?.priceXof ? `· ${formatPoints(xofToPoints(quote.priceXof))}` : ''}
                   </>
                 )}
               </button>

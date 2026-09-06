@@ -15,7 +15,7 @@
 create table if not exists public.numbers_activations (
   id bigint generated always as identity primary key,
   user_id uuid not null,
-  provider text not null default 'five_sim',
+  provider text not null default 'virtual_sms_numbers',
   provider_order text not null,
   country_code text not null,
   service_slug text not null,

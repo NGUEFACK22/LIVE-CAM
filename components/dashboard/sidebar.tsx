@@ -306,7 +306,7 @@ function SidebarContent({
                 Il te reste seulement {Math.floor(effectivePoints / 60)} min {effectivePoints % 60 > 0 ? `${effectivePoints % 60} s` : ''} de swap.
               </p>
               <Link
-                href="/dashboard/stats"
+                href="/recharge"
                 className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 underline hover:text-amber-200"
               >
                 Recharger <ChevronRight className="h-3 w-3" />
@@ -325,7 +325,7 @@ function SidebarContent({
                 Tu ne peux plus utiliser le Live Swap.
               </p>
               <Link
-                href="/dashboard/stats"
+                href="/recharge"
                 className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-red-300 underline hover:text-red-200"
               >
                 Recharger maintenant <ChevronRight className="h-3 w-3" />

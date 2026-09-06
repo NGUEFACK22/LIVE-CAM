@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { useNumbers } from '@/components/numbers/numbers-provider'
 import { ServiceLogo } from '@/components/numbers/service-logo'
 import { countryByCode, serviceBySlug } from '@/lib/numbers/catalog'
-import { formatXOF, type Activation } from '@/lib/numbers/types'
+import type { Activation } from '@/lib/numbers/types'
+import { formatPoints, xofToPoints } from '@/lib/numbers/points'
 import {
   Copy,
   Check,
@@ -186,7 +187,7 @@ export default function NumbersPage() {
                 </div>
 
                 <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-4 text-sm">
-                  <span className="text-white/50">{formatXOF(a.priceXof)}</span>
+                  <span className="text-white/50">{formatPoints(xofToPoints(a.priceXof))}</span>
                   {a.status === 'waiting' ? (
                     <button
                       onClick={() => setConfirmCancel(a)}

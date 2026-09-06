@@ -90,21 +90,6 @@ export function NumbersProvider({ user, children }: { user: AccountUser; childre
     refreshState()
   }, [refreshState])
 
-  // Sondage automatique tant qu'une activation attend un SMS.
-  const hasWaiting = state.activations.some((a) => a.status === 'waiting')
-  const waitingRef = useRef(hasWaiting)
-  // Mise à jour de la ref dans un effet (jamais pendant le rendu).
-  useEffect(() => {
-    waitingRef.current = hasWaiting
-  }, [hasWaiting])
-  useEffect(() => {
-    if (!hasWaiting) return
-    const interval = setInterval(() => {
-      if (waitingRef.current) refreshState()
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [hasWaiting, refreshState])
-
   const quote = useCallback<Ctx['quote']>(
     async (countryCode, serviceSlug, plan = 'verification', quality = 'cheap') => {
       const res = await fetch(
@@ -164,6 +149,29 @@ export function NumbersProvider({ user, children }: { user: AccountUser; childre
     },
     [],
   )
+
+  // Sondage automatique tant qu'une activation attend un SMS : on interroge le
+  // FOURNISSEUR via /api/numbers/activation/{id} (qui récupère le code et met à
+  // jour la base), puis on rafraîchit le solde (un remboursement éventuel a pu
+  // avoir lieu). Le cron de réconciliation reste le filet de sécurité si le
+  // client a quitté l'app.
+  const waitingList = useMemo(() => state.activations.filter((a) => a.status === 'waiting'), [state.activations])
+  const runningRef = useRef(false)
+  useEffect(() => {
+    if (waitingList.length === 0) return
+    const ids = waitingList.map((a) => a.id)
+    const interval = setInterval(() => {
+      if (runningRef.current) return
+      runningRef.current = true
+      Promise.all(ids.map((id) => refreshActivation(id)))
+        .then(() => refreshState())
+        .catch(() => {})
+        .finally(() => {
+          runningRef.current = false
+        })
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [waitingList, refreshActivation, refreshState])
 
   const cancelActivation = useCallback<Ctx['cancelActivation']>(
     async (id) => {

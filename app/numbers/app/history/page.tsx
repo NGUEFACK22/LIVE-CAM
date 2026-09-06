@@ -4,7 +4,8 @@ import { useMemo, useState } from 'react'
 import { useNumbers } from '@/components/numbers/numbers-provider'
 import { ServiceLogo } from '@/components/numbers/service-logo'
 import { countryByCode, serviceBySlug } from '@/lib/numbers/catalog'
-import { formatXOF, type Activation } from '@/lib/numbers/types'
+import type { Activation } from '@/lib/numbers/types'
+import { formatPoints, xofToPoints } from '@/lib/numbers/points'
 import { Search, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
 
 const card = 'rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl'
@@ -135,7 +136,7 @@ export default function HistoryPage() {
                         )}
                       </td>
                       {isAdmin && <td className="p-4 capitalize">{o.provider}</td>}
-                      <td className="p-4 text-white">{formatXOF(o.priceXof)}</td>
+                      <td className="p-4 text-white">{formatPoints(xofToPoints(o.priceXof))}</td>
                       <td className="p-4">
                         <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${orderStatusStyle[o.status]}`}>
                           {ORDER_STATUS_FR[o.status]}
@@ -187,7 +188,7 @@ export default function HistoryPage() {
                       {isAdmin && <td className="p-4 font-mono text-xs text-white/50">{t.reference}</td>}
                       <td className={`p-4 font-medium ${positive ? 'text-emerald-400' : 'text-white'}`}>
                         {positive ? '+' : '−'}
-                        {formatXOF(Math.abs(t.amountXof))}
+                        {formatPoints(xofToPoints(Math.abs(t.amountXof)))}
                       </td>
                       <td className="p-4">
                         <span

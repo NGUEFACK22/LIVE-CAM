@@ -8,7 +8,7 @@ export const MARKUP_MULTIPLIER = 3
 export const PREMIUM_PRICE_MULTIPLIER = 1.5
 
 // Taux de secours si l'API de change est indisponible (unités par 1 USD).
-const FALLBACK = { XOF: 600, RUB: 90 }
+const FALLBACK = { XOF: 600, RUB: 90, EUR: 0.9 }
 
 let cached: { rates: Record<string, number>; at: number } | null = null
 const RATE_TTL = 6 * 60 * 60 * 1000 // 6 h
@@ -37,7 +37,13 @@ export async function getUsdToXof(): Promise<number> {
   return r.XOF ?? FALLBACK.XOF
 }
 
-export type NativeCurrency = 'USD' | 'RUB'
+/** Taux EUR par 1 USD (pour les fournisseurs facturant en €, ex: VirtualSMSNumbers). */
+export async function getEurPerUsd(): Promise<number> {
+  const r = await getRates()
+  return r.EUR ?? FALLBACK.EUR
+}
+
+export type NativeCurrency = 'USD' | 'RUB' | 'EUR'
 
 /** Convertit un coût exprimé dans la devise du fournisseur vers l'USD. */
 export async function nativeToUsd(cost: number, currency: NativeCurrency): Promise<number> {
