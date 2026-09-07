@@ -104,9 +104,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Base URL publique : l'origine de la requete (fonctionne en preview + prod),
-    // avec repli sur l'env / le domaine de prod.
-    const origin =
-      process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin || 'https://chapcam.com'
+    // avec repli sur l'env / le domaine de prod. Prefixe https:// ajoute
+    // automatiquement si NEXT_PUBLIC_APP_URL est renseignee sans schema.
+    const rawOrigin =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+      new URL(request.url).origin ||
+      'https://chapcam.com'
+    const origin = rawOrigin.startsWith('http') ? rawOrigin : `https://${rawOrigin}`
 
     // GeniusPay redirige le navigateur du client vers success_url/error_url apres
     // le checkout. On ne s'y fie pas : la source de verite est la reconfirmation

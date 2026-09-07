@@ -9,6 +9,10 @@ export const dynamic = 'force-dynamic'
 // Retrouve la reference du paiement GENIUS le plus recent encore pending pour
 // un utilisateur donne (filet de securite si GeniusPay redirige vers
 // success_url SANS reference dans l'URL ; voir GET ci-dessous).
+// Limite aux 30 dernieres minutes : un ancien paiement abandonne ne doit pas
+// etre confondu avec un paiement venant d'etre effectue.
+const RECENT_WINDOW_MS = 30 * 60 * 1000
+
 async function findLatestPendingToken(userId: string): Promise<string | null> {
   try {
     const admin = createAdminClient()
@@ -19,6 +23,7 @@ async function findLatestPendingToken(userId: string): Promise<string | null> {
       .eq('payment_method', 'geniuspay')
       .eq('status', 'pending')
       .not('paydunya_token', 'is', null)
+      .gte('created_at', new Date(Date.now() - RECENT_WINDOW_MS).toISOString())
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()

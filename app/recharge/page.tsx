@@ -61,16 +61,22 @@ export default function RechargePage() {
 
   // --- Polling du statut du paiement ---
   // Les paiements Mobile Money peuvent rester "pending" plusieurs dizaines de
-  // secondes cote GeniusPay une fois le client de retour. On continue donc a
-  // sonder jusqu'a un statut TERMINAL (completed / cancelled / error), avec une
-  // fenetre large (~4 min) pour laisser le temps au delai de confirmation de se
-  // resorber. Le cron de reconciliation reste le filet de secours.
+  // secondes cote GeniusPay une fois le client de retour. On sonde donc jusqu'a
+  // un statut TERMINAL (completed / cancelled / error), avec une cadence
+  // ADAPTATIVE : rapide (2 s) pendant la premiere minute (delai de retour
+  // GeniusPay habituel), puis espacee (5 s) — cela reduit fortement le nombre
+  // d'appels a GeniusPay (rate-limit) tout en gardant une fenetre ~4 min au
+  // total. Le cron de reconciliation reste le filet de secours.
   useEffect(() => {
     if (status !== 'checking') return
     if (!token) return
+    const FAST_MS = 2000
+    const SLOW_MS = 5000
+    const fastAttempts = 20 // ~40 s rapides
+    const maxAttempts = 64 // ~40 s + ~220 s lentes = ~4 min
     let attempts = 0
-    const maxAttempts = 120 // ~4 minutes (toutes les 2 s)
-    const interval = setInterval(async () => {
+    let timer: ReturnType<typeof setTimeout>
+    const poll = async () => {
       attempts++
       try {
         const res = await fetch(`/api/payment/status?token=${token}`, {
@@ -78,12 +84,12 @@ export default function RechargePage() {
         })
         const data = await res.json()
         if (data.status === 'completed') {
-          clearInterval(interval)
+          clearTimeout(timer)
           setStatus('success')
           return
         }
         if (data.status === 'cancelled') {
-          clearInterval(interval)
+          clearTimeout(timer)
           setStatus('cancelled')
           return
         }
@@ -92,22 +98,30 @@ export default function RechargePage() {
           // continuer quelques tentatives (le paiement a pu etre "pending"
           // le temps de confirmer), mais on abandonne apres la fenetre.
           if (attempts >= maxAttempts) {
-            clearInterval(interval)
+            clearTimeout(timer)
             setStatus('error')
           }
-          // sinon on continue de sonder
+          schedule()
           return
         }
         // 'pending' (ou autre) : encore en attente, on continue.
         if (attempts >= maxAttempts) {
-          clearInterval(interval)
+          clearTimeout(timer)
           setStatus('pending')
+          return
         }
+        schedule()
       } catch {
         // erreur réseau → continuer
+        schedule()
       }
-    }, 2000)
-    return () => clearInterval(interval)
+    }
+    const schedule = () => {
+      const delay = attempts <= fastAttempts ? FAST_MS : SLOW_MS
+      timer = setTimeout(poll, delay)
+    }
+    schedule()
+    return () => clearTimeout(timer)
   }, [token, status])
 
   // --- Action : lancer le paiement ---

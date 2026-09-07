@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { confirmAndFulfillGeniusPay } from '@/lib/fulfillment'
 
 export const runtime = 'nodejs'
@@ -22,6 +23,20 @@ export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token')
   if (!token) {
     return NextResponse.json({ status: 'error', error: 'token manquant.' }, { status: 400 })
+  }
+
+  // Seul le proprietaire du paiement peut sonder son statut. Une demande sans
+  // lien avec l'utilisateur courant n'est pas confirmee (anti-fuite d'infos
+  // entre comptes et anti-abus sur un token tiers).
+  const admin = createAdminClient()
+  const { data: owned } = await admin
+    .from('payment_requests')
+    .select('id')
+    .eq('paydunya_token', token)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (!owned) {
+    return NextResponse.json({ status: 'error', error: 'Paiement introuvable.' }, { status: 404 })
   }
 
   const outcome = await confirmAndFulfillGeniusPay(token)

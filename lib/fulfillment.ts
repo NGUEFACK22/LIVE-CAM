@@ -612,8 +612,16 @@ async function fulfillConfirmedInvoice(params: {
   }
 
   // Marquer le token comme effectivement credite (pour audit).
+  // Si cette maj echoue, pas de double credit (le verrou + payment_requests
+  // passe a approved) ; on trace juste pour le diagnostic.
   if (result.ok) {
-    await admin.from('processed_payments').update({ credited: true }).eq('token', token)
+    const { error: markErr } = await admin
+      .from('processed_payments')
+      .update({ credited: true })
+      .eq('token', token)
+    if (markErr) {
+      console.warn('[fulfillment] Maj processed_payments credited echouee:', markErr.message)
+    }
   } else {
     // Credit echoue : on libere le token pour permettre une nouvelle tentative
     // (re-credit manuel ou cron de reconciliation).
@@ -639,7 +647,7 @@ async function fulfillConfirmedInvoice(params: {
   // Marquer la demande approuvee (si elle existe).
   const now = new Date()
   if (reqRow) {
-    await admin
+    const { error: updReqErr } = await admin
       .from('payment_requests')
       .update({
         status: 'approved',
@@ -650,6 +658,9 @@ async function fulfillConfirmedInvoice(params: {
       })
       .eq('id', reqRow.id)
       .neq('status', 'approved')
+    if (updReqErr) {
+      console.warn('[fulfillment] Maj payment_requests approved echouee:', updReqErr.message)
+    }
 
     await admin.from('admin_logs').insert({
       action: 'geniuspay_approve',

@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   avatar_url text,
   points integer DEFAULT 0,
   max_points integer DEFAULT 0,
-  plan text DEFAULT 'free' CHECK (plan IN ('free','unlimited','1day','30days','90days','365days','starter','premium','ultimate','vipdebout')),
+  plan text DEFAULT 'free' CHECK (plan IN ('free','unlimited','1day','30days','90days','365days','starter','standard','premium','ultimate','vipdebout','custom')),
   is_active boolean DEFAULT true,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE TABLE IF NOT EXISTS subscriptions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
-  plan text DEFAULT 'free' CHECK (plan IN ('free','unlimited','1day','30days','90days','365days','starter','premium','ultimate','vipdebout')),
+  plan text DEFAULT 'free' CHECK (plan IN ('free','unlimited','1day','30days','90days','365days','starter','standard','premium','ultimate','vipdebout','custom')),
   started_at timestamptz DEFAULT now(),
   expires_at timestamptz,
   is_active boolean DEFAULT true,
