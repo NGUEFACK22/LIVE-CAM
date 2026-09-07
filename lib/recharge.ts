@@ -57,8 +57,12 @@ export async function createRechargePayment(
   const chargeAmount = geniusPayTotalToCharge(amountXof)
   const fee = geniusPayFeeFor(amountXof)
 
-  const origin =
-    process.env.NEXT_PUBLIC_APP_URL || 'https://chapcam.com'
+  const rawOrigin =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+    'https://chapcam.com'
+  const origin = rawOrigin.startsWith('http') ? rawOrigin : `https://${rawOrigin}`
 
   // ---- Création du paiement GeniusPay -----------------------------------
   const metadata = {
