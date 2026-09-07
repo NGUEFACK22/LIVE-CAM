@@ -136,7 +136,12 @@ export default function HistoryPage() {
                         )}
                       </td>
                       {isAdmin && <td className="p-4 capitalize">{o.provider}</td>}
-                      <td className="p-4 text-white">{formatPoints(xofToPoints(o.priceXof))}</td>
+                      <td className="p-4 text-white">
+                        <div className="flex flex-col leading-tight">
+                          <span>{formatPoints(xofToPoints(o.priceXof))}</span>
+                          <span className="text-[10px] text-white/40">{o.priceXof.toLocaleString('fr-FR')} FCFA</span>
+                        </div>
+                      </td>
                       <td className="p-4">
                         <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${orderStatusStyle[o.status]}`}>
                           {ORDER_STATUS_FR[o.status]}
@@ -187,8 +192,15 @@ export default function HistoryPage() {
                       <td className="p-4">{t.method}</td>
                       {isAdmin && <td className="p-4 font-mono text-xs text-white/50">{t.reference}</td>}
                       <td className={`p-4 font-medium ${positive ? 'text-emerald-400' : 'text-white'}`}>
-                        {positive ? '+' : '−'}
-                        {formatPoints(xofToPoints(Math.abs(t.amountXof)))}
+                        <div className="flex flex-col leading-tight">
+                          <span>
+                            {positive ? '+' : '−'}
+                            {formatPoints(xofToPoints(Math.abs(t.amountXof)))}
+                          </span>
+                          <span className="text-[10px] font-normal text-white/40">
+                            {Math.abs(t.amountXof).toLocaleString('fr-FR')} FCFA
+                          </span>
+                        </div>
                       </td>
                       <td className="p-4">
                         <span
