@@ -74,14 +74,16 @@ export default function WalletPage() {
             <ArrowDownLeft className="h-5 w-5" />
           </span>
           <p className="mt-4 text-2xl font-semibold text-white">{formatPoints(xofToPoints(deposits))}</p>
-          <p className="text-sm text-white/50">Total déposé (points)</p>
+          <p className="text-xs text-white/40">{deposits.toLocaleString('fr-FR')} FCFA</p>
+          <p className="text-sm text-white/50">Total déposé</p>
         </div>
         <div className={`${card} p-5`}>
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white/70">
             <ArrowUpRight className="h-5 w-5" />
           </span>
           <p className="mt-4 text-2xl font-semibold text-white">{formatPoints(xofToPoints(spend))}</p>
-          <p className="text-sm text-white/50">Total dépensé (points)</p>
+          <p className="text-xs text-white/40">{spend.toLocaleString('fr-FR')} FCFA</p>
+          <p className="text-sm text-white/50">Total dépensé</p>
         </div>
       </div>
 
@@ -156,6 +158,7 @@ export default function WalletPage() {
                             {positive ? '+' : '−'}
                             {formatPoints(xofToPoints(Math.abs(t.amountXof)))}
                           </p>
+                          <p className="text-[10px] text-white/40">{Math.abs(t.amountXof).toLocaleString('fr-FR')} FCFA</p>
                           <p className="text-xs text-white/40">{fmtDate(t.createdAt)}</p>
                         </td>
                       </tr>

@@ -162,6 +162,7 @@ export function NumbersProvider({ user, children }: { user: AccountUser; childre
     const ids = waitingList.map((a) => a.id)
     const interval = setInterval(() => {
       if (runningRef.current) return
+      if (typeof document !== 'undefined' && document.hidden) return
       runningRef.current = true
       Promise.all(ids.map((id) => refreshActivation(id)))
         .then(() => refreshState())

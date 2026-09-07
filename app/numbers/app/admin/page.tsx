@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { ADMIN_EMAIL } from '@/lib/admin-auth'
 import { adminStats, adminRecentActivations, adminRecentTransactions } from '@/lib/numbers/db'
 import { formatXOF } from '@/lib/numbers/types'
+import { formatPoints, xofToPoints } from '@/lib/numbers/points'
 import { Users, Wallet, ArrowDownLeft, ArrowUpRight, SignalHigh, ShieldAlert } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -60,11 +61,11 @@ export default async function NumbersAdminPage() {
   ])
 
   const statCards = [
-    { label: 'Utilisateurs', value: String(stats.users), icon: Users, tone: 'text-blue-300 bg-blue-500/15' },
-    { label: 'Solde total en circulation', value: formatXOF(stats.totalBalanceXof), icon: Wallet, tone: 'text-teal-300 bg-teal-500/15' },
-    { label: 'Total rechargé', value: formatXOF(stats.depositsXof), icon: ArrowDownLeft, tone: 'text-emerald-300 bg-emerald-500/15' },
-    { label: 'Total dépensé (achats)', value: formatXOF(stats.spendXof), icon: ArrowUpRight, tone: 'text-amber-300 bg-amber-500/15' },
-  ]
+    { label: 'Utilisateurs', value: String(stats.users), icon: Users, tone: 'text-blue-300 bg-blue-500/15', sub: null as string | null },
+    { label: 'Solde total en circulation', value: formatPoints(xofToPoints(stats.totalBalanceXof)), icon: Wallet, tone: 'text-teal-300 bg-teal-500/15', sub: formatXOF(stats.totalBalanceXof) },
+    { label: 'Total rechargé', value: formatPoints(xofToPoints(stats.depositsXof)), icon: ArrowDownLeft, tone: 'text-emerald-300 bg-emerald-500/15', sub: formatXOF(stats.depositsXof) },
+    { label: 'Total dépensé (achats)', value: formatPoints(xofToPoints(stats.spendXof)), icon: ArrowUpRight, tone: 'text-amber-300 bg-amber-500/15', sub: formatXOF(stats.spendXof) },
+  ] as const
 
   return (
     <div className="space-y-6">
@@ -88,6 +89,9 @@ export default async function NumbersAdminPage() {
               <s.icon className="h-5 w-5" />
             </span>
             <p className="mt-4 text-2xl font-semibold text-white">{s.value}</p>
+            {'sub' in s && (s as { sub: string | null }).sub && (
+              <p className="text-[10px] text-white/30">{(s as { sub: string | null }).sub}</p>
+            )}
             <p className="text-sm text-white/50">{s.label}</p>
           </div>
         ))}
@@ -103,7 +107,8 @@ export default async function NumbersAdminPage() {
           <p className="text-sm text-white/50">SMS reçus</p>
         </div>
         <div className={`${card} p-5`}>
-          <p className="text-2xl font-semibold text-white">{formatXOF(stats.refundsXof)}</p>
+          <p className="text-2xl font-semibold text-white">{formatPoints(xofToPoints(stats.refundsXof))}</p>
+          <p className="text-[10px] text-white/30">{formatXOF(stats.refundsXof)}</p>
           <p className="text-sm text-white/50">Total remboursé</p>
         </div>
       </div>
@@ -137,7 +142,12 @@ export default async function NumbersAdminPage() {
                     <td className="p-4 font-mono text-xs">{a.phone_e164}</td>
                     <td className="hidden p-4 md:table-cell">{a.provider}</td>
                     <td className="hidden p-4 font-mono text-xs text-white/40 lg:table-cell">{shortId(a.user_id)}</td>
-                    <td className="p-4">{formatXOF(Number(a.price_xof))}</td>
+                    <td className="p-4">
+                      <div className="flex flex-col leading-tight">
+                        <span className="text-white">{formatPoints(xofToPoints(Number(a.price_xof)))}</span>
+                        <span className="text-[10px] text-white/40">{formatXOF(Number(a.price_xof))}</span>
+                      </div>
+                    </td>
                     <td className="p-4">
                       <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_COLOR[a.status] ?? 'bg-white/10 text-white/50'}`}>
                         {STATUS_FR[a.status] ?? a.status}
@@ -183,8 +193,15 @@ export default async function NumbersAdminPage() {
                       <td className="p-4">{t.method}</td>
                       <td className="hidden p-4 font-mono text-xs text-white/40 sm:table-cell">{t.reference ?? '—'}</td>
                       <td className={`p-4 font-medium ${positive ? 'text-emerald-300' : 'text-white'}`}>
-                        {positive ? '+' : '−'}
-                        {formatXOF(Math.abs(Number(t.amount_xof)))}
+                        <div className="flex flex-col leading-tight">
+                          <span>
+                            {positive ? '+' : '−'}
+                            {formatPoints(xofToPoints(Math.abs(Number(t.amount_xof))))}
+                          </span>
+                          <span className="text-[10px] font-normal text-white/40">
+                            {formatXOF(Math.abs(Number(t.amount_xof)))}
+                          </span>
+                        </div>
                       </td>
                       <td className="hidden p-4 text-xs text-white/40 sm:table-cell">{fmtDate(t.created_at)}</td>
                     </tr>
