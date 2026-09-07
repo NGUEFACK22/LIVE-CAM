@@ -25,7 +25,7 @@ import {
 } from 'lucide-react'
 
 const card = 'rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl'
-const PASSCODE = 'chapcam-admin'
+const PASSCODE = process.env.NEXT_PUBLIC_NUMBERS_ADMIN_PASSCODE || 'chapcam-admin'
 
 const riskColor: Record<string, string> = {
   low: 'bg-emerald-500/15 text-emerald-400',
